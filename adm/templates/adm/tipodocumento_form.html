@@ -1,0 +1,55 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        {% if obj %}
+        <div class="card border-left-warning shadow h-100 py-2">
+        {% else %}
+        <div class="card border-left-success shadow h-100 py-2">
+        {% endif %}
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            {% if obj %} Editar {% else %} Nuevo {% endif %} Tipo de Documento
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <div class="form-group row">
+                            <label for="id_tipo" class="col-sm-3 col-form-label">Tipo:</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="tipo" maxlength="25" class="form-control" required id="id_tipo" placeholder="Tipo de Documento" value="{% if obj %}{{ obj.tipo }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id_movimiento" class="col-sm-3 col-form-label">Movimiento:</label>
+                            <div class="col-sm-9">
+                                <select name="movimiento" class="form-control" id="id_movimiento" required>
+                                    <option value="">Seleccione un movimiento</option>
+                                    {% for key, value in obj.MOVIMIENTO_CHOICES %}
+                                        <option value="{{ key }}" {% if obj and obj.movimiento == key %}selected{% endif %}>
+                                            {{ value }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-success"><span class="fa fa-save"></span> Guardar</button>
+                                <a href="{% url 'tipodocumento_list' %}" class="btn btn-danger"><span class="fa fa-undo"></span> Cancelar</a>
+                            </div>
+                        </div>    
+                    </div>                            
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}
+{% block js_page %}{% endblock js_page %}

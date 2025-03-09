@@ -1,0 +1,24 @@
+name: Deploy Django Windows
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: windows-latest
+
+    steps:
+      - name: Clonar código
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.10
+
+      - name: Instalar dependencias y ejecutar migraciones
+        run: |
+          pip install -r requirements.txt
+          python manage.py migrate

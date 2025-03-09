@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Materiales</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Reporte de Materiales</h1>
+    <table>
+        <tr>
+            <th>Clave</th>
+            <th>Descripción</th>
+            <th>Unidad de Medida</th>
+            <th>Existencia</th>
+            <th>Máximo</th>
+            <th>Mínimo</th>
+        </tr>
+        {% for material in materiales %}
+        <tr>
+            <td>{{ material.clave }}</td>
+            <td>{{ material.descripcion }}</td>
+            <td>
+                {% for unidad in material.unidad_medida.all %}
+                    {{ unidad }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </td>
+            <td>{{ material.existencia }}</td>
+            <td>{{ material.maximo }}</td>
+            <td>{{ material.minimo }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

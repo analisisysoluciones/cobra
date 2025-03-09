@@ -1,0 +1,86 @@
+{% extends 'base/base.html' %}
+{% load custom_filters %}
+{% block page_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Reporte de Nómina Semanal</h6>
+
+        
+
+        <a href="{% url 'nom:nomina_pdf' %}?fecha={{fecha|date:'Y-m-d'|cut:' '}}" class="btn btn-danger">
+            <i class="fas fa-file-pdf"></i> Descargar PDF
+        </a>
+
+        <a href="{% url 'nom:nomina_ind_pdf' %}?fecha_inicio={{ fecha|date:'Y-m-d'|cut:' ' }}" class="btn btn-warning">
+            <i class="fas fa-file-download"></i> Descargar Recibos Individuales
+        </a>
+    
+        <a href="{% url 'nom:procesar_nomina' %}" class="btn btn-success">
+            <i class="fas fa-desktop"></i> Procesar nómina
+        </a>
+        
+        
+    </div>
+    
+    
+    <div class="card-body">
+        {% if not nomina %}
+            <div class="alert alert-info">No hay datos de nómina para esta semana.</div>
+        {% else %}
+            <table class="table table-bordered text-center">
+                <thead>
+                    <tr class="bg-primary text-white">
+                        <th rowspan="2" class="text-center">Nombre</th>
+                        <th colspan="5">Percepciones</th>
+                        <th colspan="5">Deducciones</th>
+                        <th rowspan="2">Total Neto</th>
+                    </tr>
+                    <tr class="bg-light">
+                        <th>Sueldo Diario</th>
+                        <th>Días de Sueldo</th>
+                        <th>Sueldo Percibido</th>
+                        <th>7mo Día</th>
+                        <th>Compensación</th>
+                        <th>Total Percepciones</th>
+                        <th>Faltas</th>
+                        <th>Importe Faltas</th>
+                        <th>Proporción 7mo Día</th>
+                        <th>Total Deducciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                    {% for item in nomina %}
+                    <tr>
+                        <td class="text-start">{{ item.empleado }}</td>
+                        <td>{{ item.sueldo_diario|floatformat:2 }}</td>
+                        <td>{{ item.dias_trabajados }}</td>
+                        <td>{{ item.dias_trabajados|multiply:item.sueldo_diario|floatformat:2 }}</td>
+                        <td>{{ item.septimo_dia|floatformat:2 }}</td>
+                        <td>{{ item.compensacion|floatformat:2 }}</td>
+                        <td>{{ item.sueldo_diario|multiply:item.dias_trabajados|add:item.septimo_dia|add:item.compensacion|floatformat:2 }}</td>
+                        <td>{{ item.faltas }}</td>
+                        <td>{{ item.faltas|multiply:item.sueldo_diario|floatformat:2 }}</td>
+                        <td>{{ item.descuento_septimo_dia|floatformat:2 }}</td>
+                        <td>{{ item.faltas|multiply:item.sueldo_diario|add:item.descuento_septimo_dia|floatformat:2}}</td>
+                        <td>{{ item.total_pago|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="14">No hay datos de nómina para esta semana.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="bg-light">
+                    <tr>
+                        <th class="text-start">Total</th>
+                        <th colspan="5">{{ total_percepciones }}</th>
+                        <th colspan="5">{{ total_deducciones }}</th>
+                        <th>{{ total_neto_general }}</th>
+                    </tr>
+                </tfoot>
+            </table>
+        {% endif %}
+    </div>
+</div>
+{% endblock page_content %}

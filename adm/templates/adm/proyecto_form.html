@@ -1,0 +1,156 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        {% if obj %}
+        <div class="card border-left-warning shadow h-100 py-2">
+        {% else %}
+        <div class="card border-left-success shadow h-100 py-2">
+        {% endif %}
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            {% if obj %} Editar {% else %} Nuevo {% endif %} Proyecto
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <div class="form-group row">
+                            <label for="id_nombre" class="col-sm-3 col-form-label">Nombre:</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="nombre" maxlength="120" class="form-control" required id="id_nombre" placeholder="Nombre" value="{% if obj %}{{ obj.nombre }}{% endif %}">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group row">
+                            <label for="id_ubicacion" class="col-sm-3 col-form-label">Ubicación:</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="ubicacion" maxlength="120" class="form-control" required id="id_ubicacion" placeholder="Ubicación" value="{% if obj %}{{ obj.ubicacion }}{% endif %}">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group row">
+                            <label for="id_latitud" class="col-sm-3 col-form-label">Latitud:</label>
+                            <div class="col-sm-9">
+                                <input type="number" step="0.000001" name="latitud" class="form-control" required id="id_latitud" placeholder="Latitud" value="{% if obj %}{{ obj.latitud }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id_longitud" class="col-sm-3 col-form-label">Longitud:</label>
+                            <div class="col-sm-9">
+                                <input type="number" step="0.000001" name="longitud" class="form-control" required id="id_longitud" placeholder="Longitud" value="{% if obj %}{{ obj.longitud }}{% endif %}">
+                            </div>
+                        </div>
+
+
+                        <div class="form-group row">
+                            <label for="id_residente" class="col-sm-3 col-form-label">Residente:</label>
+                            <div class="col-sm-9">
+                                <select name="residente" class="form-control" id="id_residente" required>
+                                    <option value="">Seleccione un residente</option>
+                                    {% for residente in residentes %}
+                                        <option value="{{ residente.id }}" {% if obj and obj.residente.id == residente.id %}selected{% endif %}>
+                                            {{ residente.nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id_cuenta" class="col-sm-3 col-form-label">Cuenta:</label>
+                            <div class="col-sm-9">
+                                <select name="cuenta" class="form-control" id="id_cuenta" required>
+                                    <option value="">Seleccione una cuenta</option>
+                                    {% for cuenta in cuentas %}
+                                        <option value="{{ cuenta.id }}" {% if obj and obj.cuenta.id == cuenta.id %}selected{% endif %}>
+                                            {{ cuenta.banco.nombre }} - {{ cuenta.cuenta }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id_estado" class="col-sm-3 col-form-label">Estado:</label>
+                            <div class="col-sm-9">
+                                <input type="checkbox" name="estado" id="id_estado" {% if obj and obj.estado %}checked{% endif %}>
+                                <label for="id_estado" class="form-check-label">Activo</label>
+                            </div>
+                        </div>
+
+
+                        <div class="form-group row">
+                            <label for="id_mapa" class="col-sm-3 col-form-label">Mapa en PDF:</label>
+                            <div class="col-sm-9">
+                                <input type="file" name="mapa" class="form-control" id="id_mapa" accept="application/pdf">
+                                {% if obj and obj.mapa_pdf %}
+                                    <br>
+                                    <a href="{{ obj.mapa.url }}" target="_blank" class="btn btn-info">Ver Mapa PDF</a>
+                                {% endif %}
+                            </div>
+                        </div>
+
+
+                        
+                        
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-success"><span class="fa fa-save"></span> Guardar</button>
+                                <a href="{% url 'adm:proyecto_list' %}" class="btn btn-danger"><span class="fa fa-undo"></span> Cancelar</a>
+                            </div>
+                        </div>    
+                    </div>                            
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}
+{% block js_page %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Obtener los valores iniciales de latitud y longitud
+            let latitud = parseFloat(document.getElementById("id_latitud").value) || 19.4326; // Default: CDMX
+            let longitud = parseFloat(document.getElementById("id_longitud").value) || -99.1332;
+
+            // Crear el mapa
+            var map = L.map('map').setView([latitud, longitud], 13);
+            
+            // Agregar capa base de OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Agregar marcador inicial
+            var marker = L.marker([latitud, longitud], { draggable: true }).addTo(map);
+
+            // Actualizar los campos al mover el marcador
+            marker.on("dragend", function (event) {
+                let position = marker.getLatLng();
+                document.getElementById("id_latitud").value = position.lat.toFixed(6);
+                document.getElementById("id_longitud").value = position.lng.toFixed(6);
+            });
+
+            // Cambiar ubicación del marcador al escribir en los campos de lat/lon
+            function updateMarker() {
+                let newLat = parseFloat(document.getElementById("id_latitud").value) || latitud;
+                let newLon = parseFloat(document.getElementById("id_longitud").value) || longitud;
+                marker.setLatLng([newLat, newLon]);
+                map.setView([newLat, newLon], 13);
+            }
+
+            document.getElementById("id_latitud").addEventListener("change", updateMarker);
+            document.getElementById("id_longitud").addEventListener("change", updateMarker);
+        });
+    </script>
+
+{% endblock js_page %}

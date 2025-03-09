@@ -1,0 +1,104 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Lista de Proyectos</h6>
+        <div class="dropdown no-arrow">
+            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                 aria-labelledby="dropdownMenuLink">
+                <div class="dropdown-header">Acciones:</div>
+                <a class="dropdown-item" href="{% url 'adm:proyecto_new' %}"><i class="far fa-calendar-plus"></i> Nuevo</a>
+                <a class="dropdown-item" href="{% url 'adm:proyecto_report' %}"><i class="far fa-calendar-plus"></i> Reporte de Proyecto</a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if not proyectos %}
+            <div class="alert alert-info">No hay proyectos registrados.</div>
+        {% else %}
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Ubicación</th>
+                        <th>Residente</th>
+                        <th>Estado</th>
+                        <th>Mapa</th> <!-- Nueva columna para el mapa -->
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for proyecto in proyectos %}
+                    <tr>
+                        <td>{{ proyecto.id }}</td>
+                        <td>{{ proyecto.nombre }}</td>
+                        <td>{{ proyecto.ubicacion }}</td>
+                        <td>{{ proyecto.residente.nombre }}</td>   
+                        <td>{{ proyecto.estado|yesno:"Cerrado,Activo" }}</td>
+                        <td>
+                            {% if proyecto.mapa %}
+                                {% if proyecto.mapa.url|lower|slice:"-4:" == ".pdf" %}
+                                    <a href="{{ proyecto.mapa.url }}" target="_blank" class="btn btn-info btn-sm">
+                                        <i class="fas fa-file-pdf"></i> Ver PDF
+                                    </a>
+                                {% else %}
+                                    <a href="{{ proyecto.mapa.url }}" target="_blank">
+                                        <img src="{{ proyecto.mapa.url }}" alt="Mapa" style="max-width: 100px; height: auto;">
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">No disponible</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'adm:proyecto_edit' proyecto.id %}" class="btn btn-warning btn-circle" role="button">
+                                <i class="far fa-edit"></i>
+                            </a>
+                            <form action="{% url 'adm:proyecto_del' proyecto.id %}" method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-circle" role="button">
+                                    <i class="far fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+</div>
+{% endblock page_content %}
+
+{% block js_page %}
+<script>
+    $(document).ready(function() {
+        $('.table').DataTable({
+            "paging": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "language": {
+                "search": "Buscar:",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+                "infoEmpty": "No hay entradas disponibles",
+                "infoFiltered": "(filtrado de _MAX_ entradas totales)",
+                "lengthMenu": "Mostrar _MENU_ entradas",
+                "paginate": {
+                    "first": "Primero",
+                    "last": "Último",
+                    "next": "Siguiente",
+                    "previous": "Anterior"
+                }
+            }
+        });
+    });
+</script>
+{% endblock js_page %}

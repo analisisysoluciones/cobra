@@ -1,0 +1,91 @@
+.dropdown-submenu {
+    position: relative;
+}
+
+.dropdown-submenu > .dropdown-menu {
+    top: 0;
+    left: 100%;
+    margin-top: -6px;
+}
+
+.dropdown-submenu:hover > .dropdown-menu {
+    display: block;
+}
+
+/* Estilo general del menú */
+.navbar-nav .nav-link {
+    color: #333;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #007bff;
+    text-decoration: underline;
+}
+
+/* Submenús */
+.dropdown-menu {
+    background-color: #34495e; /* Fondo del submenú */
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown-menu .dropdown-item {
+    color: white;
+}
+
+.dropdown-menu .dropdown-item:hover {
+    background-color: #1abc9c; /* Verde claro */
+    color: white;
+}
+
+
+/* Fondo y bordes del menú lateral */
+.navbar {
+    background-color: #2c3e50; /* Fondo oscuro */
+    color: white;
+    border-right: 1px solid #ddd;
+}
+
+/* Estilo para los textos del menú */
+.navbar .nav-link {
+    color: white;
+    font-size: 15px;
+    padding: 10px 15px;
+}
+
+.navbar .nav-link:hover {
+    background-color: #34495e; /* Efecto al pasar el cursor */
+    color: #f1c40f; /* Amarillo */
+}
+
+/* Títulos de secciones (como "Opciones de Menú") */
+.navbar h5 {
+    color: #ecf0f1; /* Gris claro */
+    padding: 10px;
+    margin-bottom: 0;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.bg-login-image {
+    background: url("inemo.png") no-repeat center center;
+    background-size: cover;
+}
+
+.fecha-pequena {
+    max-width: 150px; /* Ajusta el tamaño según necesites */
+    padding: 2px 5px;
+    font-size: 14px;
+}
+
+
+/* body {
+    background: url('/static/img/inemo.png') no-repeat center center fixed;
+    background-size: 30%; /* Ajusta el tamaño de la marca de agua */
+    opacity: 0.1; /* Controla la transparencia */
+}
+ */
+
+

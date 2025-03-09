@@ -1,0 +1,60 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Registrar Venta</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <!-- Cliente -->
+                        <div class="form-group">
+                            <label for="{{ form.cliente.id_for_label }}">Cliente:</label>
+                            {{ form.cliente }}
+                        </div>
+                        
+                        <!-- Producto Inmobiliario -->
+                        <div class="form-group">
+                            <label for="{{ form.producto.id_for_label }}">Producto Inmobiliario:</label>
+                            {{ form.producto }}
+                        </div>
+                        
+                        <!-- Monto -->
+                        <div class="form-group">
+                            <label for="{{ form.monto.id_for_label }}">Monto:</label>
+                            {{ form.monto }}
+                        </div>
+                        
+                        <!-- Fecha -->
+                        <div class="form-group">
+                            <label for="{{ form.fecha.id_for_label }}">Fecha:</label>
+                            {{ form.fecha }}
+                        </div>
+                        
+                        <!-- Notas -->
+                        <div class="form-group">
+                            <label for="{{ form.notas.id_for_label }}">Notas:</label>
+                            {{ form.notas }}
+                        </div>
+                        
+                        <!-- Botones -->
+                        <div class="text-right">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fa fa-check"></i> Registrar Venta
+                            </button>
+                            <a href="{% url 'productoinmobiliario_list' %}" class="btn btn-secondary">
+                                <i class="fa fa-undo"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock page_content %}

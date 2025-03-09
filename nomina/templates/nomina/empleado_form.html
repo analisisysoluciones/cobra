@@ -1,0 +1,127 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        <div class="card shadow h-100 py-2">
+            <div class="card-body">
+                <ul class="nav nav-tabs" id="empleadoTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="datos-tab" data-bs-toggle="tab" data-bs-target="#datos" type="button" role="tab">Datos del Empleado</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="archivos-tab" data-bs-toggle="tab" data-bs-target="#archivos" type="button" role="tab">Archivos</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="empleadoTabsContent">
+                    <!-- Pestaña de Datos del Empleado -->
+                    <div class="tab-pane fade show active p-3" id="datos" role="tabpanel">
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Código</label>
+                            <div class="col-sm-4">{{ form.codigo }}</div>
+                            <label class="col-sm-2 col-form-label">CURP</label>
+                            <div class="col-sm-4">{{ form.curp }}</div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">RFC</label>
+                            <div class="col-sm-4">{{ form.rfc }}</div>
+                            <label class="col-sm-2 col-form-label">Nombre</label>
+                            <div class="col-sm-4">{{ form.nombre }}</div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Ingreso</label>
+                            <div class="col-sm-4">{{ form.ingreso }}</div>
+                            <label class="col-sm-2 col-form-label">Sueldo Diario</label>
+                            <div class="col-sm-4">{{ form.sueldo_diario }}</div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Compensación</label>
+                            <div class="col-sm-4">{{ form.compensacion }}</div>
+                            <label class="col-sm-2 col-form-label">Puesto</label>
+                            <div class="col-sm-4">{{ form.puesto }}</div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Estado</label>
+                            <div class="col-sm-4">
+                                <select name="estado" class="form-control">
+                                    <option value="True" {% if form.estado.value %}selected{% endif %}>Activo</option>
+                                    <option value="False" {% if not form.estado.value %}selected{% endif %}>Baja</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pestaña de Archivos -->
+                    <div class="tab-pane fade p-3" id="archivos" role="tabpanel">
+                        <h4>Subir Archivo</h4>
+                        <div class="form-group">
+                            <label for="nombre_archivo">Nombre del Documento</label>
+                            <input type="text" name="nombre_archivo" class="form-control" placeholder="Ej. Identificación, Contrato, etc.">
+                        </div>
+                        <div class="form-group">
+                            <label for="archivo">Seleccionar archivo</label>
+                            <input type="file" name="archivo" class="form-control" multiple>
+                        </div>
+
+                        <h4 class="mt-4">Archivos Subidos</h4>
+
+                        <ul class="list-group">
+                            {% for archivo in archivos %}
+                                <li class="list-group-item">
+                                    ✅ {{ archivo.nombre }} 
+                                    <a href="{{ archivo.archivo.url }}" download>[🔗 Descargar]</a>
+                                </li>
+                            {% empty %}
+                                <li class="list-group-item">No hay archivos subidos.</li>
+                            {% endfor %}
+                        </ul>
+
+                    </div>
+                </div>
+
+                <div class="dropdown-divider"></div>
+                <button type="submit" class="btn btn-danger"><span class="fa fa-save"></span> Guardar</button>
+                <a href="{% url 'nom:empleado_list' %}" class="btn btn-success"><span class="fa fa-undo"></span> Cancelar</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Script para eliminar archivos con AJAX -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".eliminar-archivo").forEach(button => {
+        button.addEventListener("click", async function () {
+            let archivoId = this.getAttribute("data-id");
+            let csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+            if (confirm("¿Seguro que deseas eliminar este archivo?")) {
+                try {
+                    let response = await fetch(`/eliminar-archivo/${archivoId}/`, {
+                        method: "DELETE",
+                        headers: {
+                            "X-CSRFToken": csrftoken,
+                            "Content-Type": "application/json"
+                        }
+                    });
+
+                    let data = await response.json();
+
+                    if (data.success) {
+                        this.closest("li").remove();
+                    } else {
+                        alert("Error al eliminar el archivo: " + data.error);
+                    }
+                } catch (error) {
+                    alert("Hubo un problema con la conexión.");
+                    console.error(error);
+                }
+            }
+        });
+    });
+});
+</script>
+
+{% endblock page_content %}

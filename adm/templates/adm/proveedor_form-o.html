@@ -1,0 +1,69 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        {% if obj %}
+        <div class="card border-left-warning shadow h-100 py-2">
+        {% else %}
+        <div class="card border-left-success shadow h-100 py-2">
+        {% endif %}
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            {% if obj %} Editar {% else %} Nuevo {% endif %} Proveedor
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <div class="form-group row">
+                            <label for="id_razon_social" class="col-sm-3 col-form-label">Razón Social:</label>
+                            <div class="col-sm-9">
+                                {{ form.razon_social }}
+                            </div>
+                        </div>
+                        
+                        <div class="form-group row">
+                            <label for="id_domicilio" class="col-sm-3 col-form-label">Dirección:</label>
+                            <div class="col-sm-9">
+                                {{ form.domicilio }}
+                            </div>
+                        </div>
+                        
+                        <div class="form-group row">
+                            <label for="id_telefono" class="col-sm-3 col-form-label">Teléfono:</label>
+                            <div class="col-sm-9">
+                                {{ form.telefono }}
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id_email" class="col-sm-3 col-form-label">Email:</label>
+                            <div class="col-sm-9">
+                                {{ form.email }}
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id_experiencia" class="col-sm-3 col-form-label">Experiencia (Simbología):</label>
+                            <div class="col-sm-9">
+                                {{ form.experiencia }}
+                            </div>
+                        </div>
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-danger"><span class="fa fa-save"></span> Guardar</button>
+                                <a href="{% url 'adm:proveedor_list' %}" class="btn btn-success"><span class="fa fa-undo"></span> Cancelar</a>
+                            </div>
+                        </div>    
+                    </div>                            
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}
+{% block js_page %}{% endblock js_page %}

@@ -1,0 +1,70 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Alta Masiva de Productos
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <!-- Proyecto -->
+                        <div class="form-group row">
+                            <label for="id_proyecto" class="col-sm-3 col-form-label">Proyecto:</label>
+                            <div class="col-sm-9">
+                                <select name="proyecto" class="form-control" id="id_proyecto" required>
+                                    <option value="">Seleccione un proyecto</option>
+                                    {% for proyecto in form.fields.proyecto.queryset %}
+                                        <option value="{{ proyecto.id }}">{{ proyecto.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+
+                        <!-- Precio -->
+                        <div class="form-group row">
+                            <label for="id_precio" class="col-sm-3 col-form-label">Precio:</label>
+                            <div class="col-sm-9">
+                                <input type="number" step="0.01" name="precio" class="form-control" id="id_precio" placeholder="Precio del Producto" required>
+                            </div>
+                        </div>
+
+                        <!-- Medidas -->
+                        <div class="form-group row">
+                            <label for="id_medidas" class="col-sm-3 col-form-label">Medidas:</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="medidas" maxlength="100" class="form-control" id="id_medidas" placeholder="Medidas del Producto" required>
+                            </div>
+                        </div>
+
+                        
+                        <!-- Cantidad de Registros -->
+                        <div class="form-group row">
+                            <label for="id_cantidad" class="col-sm-3 col-form-label">Cantidad de Registros:</label>
+                            <div class="col-sm-9">
+                                <input type="number" name="cantidad" min="1" class="form-control" id="id_cantidad" placeholder="Cantidad de registros a crear" required>
+                            </div>
+                        </div>
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-success"><span class="fa fa-save"></span> Crear Productos</button>
+                                <a href="{% url 'ven:productoinmobiliario_list' %}" class="btn btn-danger"><span class="fa fa-undo"></span> Cancelar</a>
+                            </div>
+                        </div>
+                    </div>                            
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}
+{% block js_page %}
+{% endblock js_page %}

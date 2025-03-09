@@ -1,0 +1,235 @@
+{% extends 'base/base.html'%}
+{% block page_content %}
+    <form method="post" id="frmCompras">
+        {% csrf_token %}
+        <div class="modal-body">
+            ¿Está seguro de que desea eliminar el producto {{ obj.producto.nombre }}?
+        </div>
+        
+        <div class="col-xl-12 col-md-12 mb-12">
+            {% if encabezado %}
+            <div class="card border-left-warning shadow h-100 py-2">
+            {% else %}
+            <div class="card border-left-success shadow h-100 py-2">
+            {% endif %}
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                {% if encabezado %} Editar {% else %} Nueva {% endif %} Compra
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div class="row">
+                                <!-- Inicio Izquierda -->
+                                <div class="col-6">
+                                    <!-- Inicio Encabezado -->
+                                    <div class="form-group row">
+                                        <label for="id_tipo" class="col-sm-2 col-form-label">Tipo:</label>
+                                        <div class="col-sm-10">
+                                            {{ form_enc.tipo }}
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="id_proveedor" class="col-sm-2 col-form-label">Proveedor:</label>
+                                        <div class="col-sm-10">
+                                          {{ form_enc.proveedor }}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label for="id_fecha_compra">Fecha Compra:</label>
+                                                {{form_enc.fecha}}
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label for="id_folio_documento">No. Documento:</label>
+                                                {{form_enc.folio_documento}}
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="id_orden_compra">Orden de Compra:</label>
+                                                {{ form_enc.orden_compra }}
+                                            </div>
+                                            <div class="row">
+                                                <div class="col">
+                                                    <label for="id_proyecto">Proyecto</label>
+                                                </div>
+                                                <div class="col">
+                                                    {{ form_enc.proyecto }}
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group row align-items-center">
+                                                <label for="id_inventario" class="col-sm-6 col-form-label">Inventario:</label>
+                                                <div class="col-sm-10 d-flex align-items-center">
+                                                    <input type="checkbox" id="id_inventario" name="inventario" style="display: none;" {% if form_enc.inventario.value %}checked{% endif %}>
+                                                    <span id="icon_inventario" class="{% if form_enc.inventario.value %}fa fa-check-circle text-success{% else %}fa fa-circle-o{% endif %} ml-2"></span>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col">
+                                                    <label for="total">Total:</label>
+                                                </div>
+                                                <div class="col">
+                                                    {{ form_enc.total }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Fin Encabezado -->
+                                </div>
+                                <!-- Fin Izquierda -->
+                                <!-- Inicio Derecha -->
+                                <div class="col-6">
+                                    <div class="row">
+                                        <div class="col">
+                                            <table class="table table-striped table-hover dt-responsive table-sm nowrap tbl-productos" style="width:100%">
+                                                <thead>
+                                                    <th>Id</th>        
+                                                    <th class="all">Clave</th>
+                                                    <th class="all">Descripción</th>
+                                                    <th class="all">Acciones</th>
+                                                </thead>
+                                                <tbody>
+                                                    {% for item in materiales %}
+                                                    <tr>
+                                                    <td>{{ item.id }}</td>
+                                                    <td>{{ item.clave }}</td>
+                                                    <td>{{ item.descripcion }}</td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-warning btn-circle"
+                                                        onclick="selectProducto({{item.id}},'{{item.descripcion}}')" ><i class="far fa-hand-pointer"></i></button>
+                                                    </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="id_id_producto" class="col-sm-3 col-form-label">Producto</label>
+                                        <div class="col-sm-2">
+                                            <input type="text" readonly class="form-control-plaintext" name="id_id_producto" id="id_id_producto" value="" required>
+                                        </div>
+                                        <div class="col-sm-7">
+                                            <input type="text" readonly class="form-control-plaintext" id="id_descripcion_producto" value="" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="id_cantidad_detalle" class="col-sm-2 col-form-label">Cant.:</label>
+                                        <div class="col-sm-2">
+                                            <input type="number" class="form-control" name="id_cantidad_detalle" id="id_cantidad_detalle" value="00" required>
+                                        </div>
+                                        <label for="id_precio_detalle" class="col-sm-2 col-form-label">Precio:</label>
+                                        <div class="col-sm-2">
+                                            <input type="number" class="form-control" name="id_precio_detalle" id="id_precio_detalle" value="00" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="id_sub_total_detalle" class="col-sm-2 col-form-label">S. Total:</label>
+                                        <div class="col-sm-4">
+                                            <input type="text" readonly class="form-control-plaintext" name="id_sub_total_detalle" id="id_sub_total_detalle" value="00">
+                                        </div>
+                                        <label for="id_total_detalle" class="col-sm-2 col-form-label">Total:</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" readonly class="form-control-plaintext col-sm-10" name="id_total_detalle" id="id_total_detalle" value="00">
+                                        </div>
+                                        <div class="col-sm-1">
+                                            <button type="button" class="btn btn-sm col-sm-2" onclick="clear_Detail();"><i class="fa fa-minus-circle" aria-hidden="true"></i></button>
+                                        </div>
+                                    </div>
+                                    <!-- Botones -->
+                                    <div class="dropdown-divider"></div>
+                                    <div class="row">
+                                        <div class="col">
+                                            <button type="submit" class="btn btn-danger"><span class="fa fa-save"></span>Guardar</button>
+                                            <a href="{% url 'adm:compras_list' %}" class="btn btn-success"><i class="far fa-hand-point-left"></i> Cancelar</a>
+                                        </div>
+                                    </div>
+                                    <!-- Fin Botones -->
+                                </div>
+                                <!-- Fin Derecha -->
+                            </div>
+                            <!-- Inicio Detalle -->
+                            <div class="row">
+                                <div class="col">
+                                    <table class="table table-striped table-hover dt-responsive nowrap" style="width:100%">
+                                        <thead>
+                                            <th>Material</th>        
+                                            <th>Descripcion</th>
+                                            <th>Cantidad</th>
+                                            <th>Precio</th>
+                                            <th>Importe</th>
+                                            
+                                            <th class="all">Acciones</th>
+                                        </thead>
+                                        <tbody>
+                                            {% for item in detalle %}
+                                            <tr>
+                                            <td>{{ item.material }}</td>
+                                            <td>{{ item.material.descripcion }}</td>
+                                            <td>{{ item.cantidad }}</td>
+                                            <td>{{ item.precio_unitario }}</td>
+                                            <td>{{ item.importe }}</td>
+                                            
+                                            <td>
+                                                <button class="btn btn-danger btn-circle" onclick="return abrir_modal('{% url 'adm:compras_del' compra_id=encabezado.pk pk=item.id %}')">
+                                                <i class="fas fa-trash-alt"></i></button>
+                                            </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <!-- Fin Detalle -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+{% endblock %}
+{% block js_page %}
+<script>
+    $(document).ready(function() {
+        $('.select2').select2({
+            placeholder: 'Seleccione una opción',
+            allowClear: true,
+            width: '100%' // Aseguramos que ocupe todo el ancho
+        });
+    });
+
+    $(function () {
+        $("#id_fecha_compra, #id_fecha_factura").datetimepicker({
+            format: 'Y-m-d',
+            timepicker:false
+        });
+
+        $("#sidebarToggle").click();
+
+        $('.table').DataTable({
+            "pageLength": 2,
+            "language": {
+                "search": "Buscar:"
+            }
+        });
+    });
+
+    function selectProducto(id,descripcion){
+        $('#id_id_producto').val(id);
+        $('#id_descripcion_producto').val(descripcion);
+    }
+
+    function clear_Detail(){
+        $('#id_id_producto').val('');
+        $('#id_descripcion_producto').val('');
+        $('#id_precio_detalle').val('00');
+        $('#id_cantidad_detalle').val('00');
+        $('#id_sub_total_detalle').val('00');
+        $('#id_total_detalle').val('00');
+    }
+</script>
+{% endblock %}

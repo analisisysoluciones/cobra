@@ -1,0 +1,25 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST">
+    {% csrf_token %}
+    <div class="col-xl-8 col-md-8 mb-6">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-primary text-uppercase mb-3">Alta Masiva de Productos</div>
+                <div class="dropdown-divider"></div>
+                
+                {{ form.as_p }}
+
+                <div class="dropdown-divider"></div>
+                <div class="row">
+                    <div class="col">
+                        <button type="submit" class="btn btn-success">Crear Productos</button>
+                        <a href="{% url 'productos:list' %}" class="btn btn-danger">Cancelar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}

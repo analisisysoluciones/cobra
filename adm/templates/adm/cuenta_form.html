@@ -1,0 +1,108 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        {% if obj %}
+        <div class="card border-left-warning shadow h-100 py-2">
+        {% else %}
+        <div class="card border-left-success shadow h-100 py-2">
+        {% endif %}
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            {% if obj %} Editar {% else %} Nueva {% endif %} Cuenta
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <!-- Selección de Banco -->
+                        <div class="form-group row">
+                            <label for="id_banco" class="col-sm-3 col-form-label">Banco:</label>
+                            <div class="col-sm-9">
+                                <select name="banco" class="form-control" id="id_banco" required>
+                                    <option value="">Seleccione un banco</option>
+                                    {% for banco in bancos %}
+                                        <option value="{{ banco.id }}" {% if obj and obj.banco.id == banco.id %}selected{% endif %}>
+                                            {{ banco.nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Número de Cuenta -->
+                        <div class="form-group row">
+                            <label for="id_cuenta" class="col-sm-3 col-form-label">Número de Cuenta:</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="cuenta" maxlength="20" class="form-control" required id="id_cuenta" placeholder="Número de Cuenta" value="{% if obj %}{{ obj.cuenta }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <!-- CLABE -->
+                        <div class="form-group row">
+                            <label for="id_clabe" class="col-sm-3 col-form-label">CLABE:</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="clabe" maxlength="18" class="form-control" required id="id_clabe" placeholder="CLABE" value="{% if obj %}{{ obj.clabe }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <!-- Saldo Inicial -->
+                        <div class="form-group row">
+                            <label for="id_saldo_inicial" class="col-sm-3 col-form-label">Saldo Inicial:</label>
+                            <div class="col-sm-9">
+                                <input type="number" step="0.01" name="saldo_inicial" class="form-control" required id="id_saldo_inicial" placeholder="Saldo Inicial" value="{% if obj %}{{ obj.saldo_inicial }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <!-- Saldo Actual -->
+                        <div class="form-group row">
+                            <label for="id_saldo_actual" class="col-sm-3 col-form-label">Saldo Actual:</label>
+                            <div class="col-sm-9">
+                                <input type="number" step="0.01" name="saldo_actual" class="form-control" required id="id_saldo_actual" placeholder="Saldo Actual" value="{% if obj %}{{ obj.saldo_actual }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <!-- Estado -->
+<div class="form-group row">
+    <label for="id_estado" class="col-sm-3 col-form-label">Estado:</label>
+    <div class="col-sm-9 d-flex align-items-center">
+        <input type="checkbox" name="estado" class="form-check-input" id="id_estado" {% if obj.estado %}checked{% endif %}>
+        <label for="id_estado" class="form-check-label">Activo</label>
+    </div>
+</div>
+
+
+                        <!-- Tipo de Cuenta -->
+                        <!-- Tipo de Cuenta -->
+<div class="form-group row">
+    <label for="id_tipo_cuenta" class="col-sm-3 col-form-label">Tipo:</label>
+    <div class="col-sm-9">
+        <select name="tipo_cuenta" class="form-control" id="id_tipo_cuenta" required>
+            <option value="">Seleccione un tipo</option>
+            {% for tipo in t_cuenta %}
+                <option value="{{ tipo.0 }}" {% if obj and obj.tipo_cuenta == tipo.0 %}selected{% endif %}>
+                    {{ tipo.1 }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-success"><span class="fa fa-save"></span> Guardar</button>
+                                <a href="{% url 'adm:cuenta_list' %}" class="btn btn-danger"><span class="fa fa-undo"></span> Cancelar</a>
+                            </div>
+                        </div>    
+                    </div>                            
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}
+{% block js_page %}
+{% endblock js_page %}

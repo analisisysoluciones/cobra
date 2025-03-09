@@ -1,0 +1,102 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        <!-- Tarjeta principal -->
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            {% if obj %} Editar Cliente {% else %} Nuevo Cliente {% endif %}
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <!-- Fecha Registro (solo lectura si existe) -->
+                        {% if obj %}
+                        <div class="form-group row">
+                            <label for="id_fecha_registro" class="col-sm-3 col-form-label">Fecha Registro:</label>
+                            <div class="col-sm-9">
+                                <input type="date" name="fecha_registro" class="form-control" readonly 
+                                       id="id_fecha_registro" value="{{ obj.fecha_registro|date:'Y-m-d' }}">
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Nombre -->
+                        <div class="form-group row">
+                            <label for="id_nombre" class="col-sm-3 col-form-label">Nombre:</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="nombre" class="form-control" maxlength="120" required 
+                                       id="id_nombre" placeholder="Nombre completo" 
+                                       value="{{ obj.nombre|default_if_none:'' }}">
+                            </div>
+                        </div>
+
+                        <!-- CURP -->
+                        <div class="form-group row">
+                            <label for="id_curp" class="col-sm-3 col-form-label">CURP:</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="curp" class="form-control" maxlength="18" required 
+                                       id="id_curp" placeholder="CURP" 
+                                       value="{{ obj.curp|default_if_none:'' }}">
+                            </div>
+                        </div>
+
+                        <!-- Folio Identificación -->
+                        <div class="form-group row">
+                            <label for="id_identificacion" class="col-sm-3 col-form-label">Folio Identificación:</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="identificacion" class="form-control" maxlength="30" required 
+                                       id="id_identificacion" placeholder="Folio Identificación" 
+                                       value="{{ obj.identificacion|default_if_none:'' }}">
+                            </div>
+                        </div>
+
+                        <!-- Tipo Identificación -->
+                        <div class="form-group row">
+                            <label for="id_tipo_identificacion" class="col-sm-3 col-form-label">Tipo Identificación:</label>
+                            <div class="col-sm-9">
+                                <select name="tipo_identificacion" id="id_tipo_identificacion" class="form-control" required>
+                                    <option value="IFE" {% if obj.tipo_identificacion == 'IFE' %}selected{% endif %}>IFE</option>
+                                    <option value="PASAPORTE" {% if obj.tipo_identificacion == 'PASAPORTE' %}selected{% endif %}>PASAPORTE</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Documento Comprobatorio -->
+                        <div class="form-group row">
+                            <label for="id_documento_comprobatorio" class="col-sm-3 col-form-label">Documento Comprobatorio:</label>
+                            <div class="col-sm-9">
+                                <input type="file" name="documento_comprobatorio" class="form-control-file" 
+                                       id="id_documento_comprobatorio">
+                                {% if obj and obj.documento_comprobatorio %}
+                                <small>Documento actual: 
+                                    <a href="{{ obj.documento_comprobatorio.url }}" target="_blank">Ver archivo</a>
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fa fa-save"></i> Guardar
+                                </button>
+                                <a href="{% url 'ven:cliente_list' %}" class="btn btn-danger">
+                                    <i class="fa fa-times"></i> Cancelar
+                                </a>
+                            </div>
+                        </div>    
+
+                    </div>                            
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}

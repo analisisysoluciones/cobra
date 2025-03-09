@@ -1,0 +1,22 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="col-xl-6 col-md-6 mb-6">
+    <div class="card border-left-danger shadow h-100 py-2">
+        <div class="card-body">
+            <div class="row no-gutters align-items-center">
+                <div class="col mr-2 text-center">
+                    <div class="text-lg font-weight-bold text-danger text-uppercase mb-3">
+                        ¡Oops! Ha ocurrido un error
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <p>Lo sentimos, ha ocurrido un problema con su solicitud.</p>
+                    <p>Por favor, intente nuevamente o contacte al administrador del sistema.</p>
+                    <div class="dropdown-divider"></div>
+                    <a href="/" class="btn btn-danger"><span class="fa fa-home"></span> Volver al inicio</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock page_content %}

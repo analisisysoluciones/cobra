@@ -1,0 +1,23 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="col-xl-8 col-md-8 mb-6">
+    <div class="card border-left-success shadow h-100 py-2">
+        <div class="card-body">
+            <div class="text-xs font-weight-bold text-success text-uppercase mb-3">Alta Masiva Exitosa</div>
+            <div class="dropdown-divider"></div>
+            
+            <p>Se han creado {{ productos|length }} productos para el proyecto <strong>{{ proyecto.nombre }}</strong>.</p>
+            
+            <ul>
+                {% for producto in productos %}
+                <li>Clave: {{ producto.clave }} - Medida: {{ producto.medida }} - Precio: ${{ producto.precio }}</li>
+                {% endfor %}
+            </ul>
+
+            <div class="dropdown-divider"></div>
+            <a href="{% url 'productos:list' %}" class="btn btn-primary">Volver al Listado</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

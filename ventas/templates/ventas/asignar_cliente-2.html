@@ -1,0 +1,27 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="{{ form.cliente.id_for_label }}">Cliente:</label>
+                    {{ form.cliente }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.producto.id_for_label }}">Producto Inmobiliario:</label>
+                    {{ form.producto }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.anticipo.id_for_label }}">Anticipo:</label>
+                    {{ form.monto }}
+                </div>
+                <button type="submit" class="btn btn-primary">Registrar Venta</button>
+                <a href="{% url 'adm:productoinmobiliario_list' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}

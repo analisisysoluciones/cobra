@@ -1,0 +1,119 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        {% if obj %}
+        <div class="card border-left-warning shadow h-100 py-2">
+        {% else %}
+        <div class="card border-left-success shadow h-100 py-2">
+        {% endif %}
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            {% if obj %} Editar {% else %} Nuevo {% endif %} Registro Cuenta
+                        </div>
+
+                        
+
+                        <div class="dropdown-divider"></div>
+
+                        <div class="form-group row">
+                            <label for="id_reposicion_flujo" class="col-sm-3 col-form-label">Reposición de Flujo:</label>
+                            <div class="col-sm-9">
+                                <input type="checkbox" name="reposicion_flujo" id="id_reposicion_flujo" {% if obj and obj.reposicion_flujo %}checked{% endif %} onchange="toggleFields()">
+                                <label for="id_reposicion_flujo" class="form-check-label">Sí</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id_fecha_movimiento" class="col-sm-3 col-form-label">Fecha:</label>
+                            <div class="col-sm-9">
+                                <input type="date" name="fecha_movimiento" class="form-control" required id="id_fecha_movimiento" value="{% if obj %}{{ obj.fecha_movimiento }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id_concepto" class="col-sm-3 col-form-label">Concepto:</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="concepto" maxlength="120" class="form-control" required id="id_concepto" placeholder="Concepto" value="{% if obj %}{{ obj.concepto }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id_cantidad" class="col-sm-3 col-form-label">Cantidad:</label>
+                            <div class="col-sm-9">
+                                <input type="number" name="cantidad" class="form-control" required id="id_cantidad" placeholder="Cantidad" value="{% if obj %}{{ obj.cantidad }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id_folio_documento" class="col-sm-3 col-form-label">Folio Documento:</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="folio_documento" class="form-control" id="id_folio_documento" placeholder="Folio Documento" value="{% if obj %}{{ obj.folio_documento }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id_proveedor" class="col-sm-3 col-form-label">Proveedor:</label>
+                            <div class="col-sm-9">
+                                <select name="proveedor" class="form-control" id="id_proveedor" required>
+                                    <option value="">Seleccione un proveedor</option>
+                                    {% for proveedor in proveedores %}
+                                        <option value="{{ proveedor.id }}">
+                                            {{ proveedor.razon_social }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id_cuenta" class="col-sm-3 col-form-label">Cuenta:</label>
+                            <div class="col-sm-9">
+                                <select name="cuenta" class="form-control" id="id_cuenta" required>
+                                    <option value="">Seleccione una cuenta</option>
+                                    {% for cuenta in cuentas %}
+                                        <option value="{{ cuenta.id }}">
+                                            {{ cuenta.banco.nombre }} - {{ cuenta.cuenta }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+
+
+                        
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-success"><span class="fa fa-save"></span> Guardar</button>
+                                <a href="{% url 'adm:registrocuenta_list' %}" class="btn btn-danger"><span class="fa fa-undo"></span> Cancelar</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+    function toggleFields() {
+        const isChecked = document.getElementById('id_reposicion_flujo').checked;
+        document.getElementById('id_proveedor').disabled = isChecked;
+        document.getElementById('id_folio_documento').disabled = isChecked;
+    }
+
+    // Inicializa el estado de los campos al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleFields();
+    });
+</script>
+{% endblock page_content %}
+
+{% block js_page %}{% endblock js_page %}

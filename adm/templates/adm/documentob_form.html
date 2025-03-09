@@ -1,0 +1,123 @@
+{% extends 'base/base.html' %}
+
+{% block page_content%}
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        {% if obj %}
+        <div class="card border-left-warning shadow h-100 py-2">
+        {% else %}
+        <div class="card border-left-success shadow h-100 py-2">
+        {% endif %}
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            {% if obj %} Editar {% else %} Nuevo {% endif %} Documento
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <div class="form-group row">
+                            <label for="id_tipo" class="col-sm-3 col-form-label">Tipo de Documento:</label>
+                            <div class="col-sm-9">
+                                <select name="tipo" class="form-control" id="id_tipo" required>
+                                    <option value="">Seleccione un tipo de documento</option>
+                                    {% for tipo in tipos %}
+                                        <option value="{{ tipo.id }}" {% if obj and obj.tipo.id == tipo.id %}selected{% endif %}>
+                                            {{ tipo.tipo }}  <!-- Asegúrate de que este campo exista -->
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id_fecha" class="col-sm-3 col-form-label">Fecha:</label>
+                            <div class="col-sm-9">
+                                <input type="date" name="fecha" class="form-control" required id="id_fecha" 
+                                       value="{% if obj %}{{ obj.fecha }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id_inventario" class="col-sm-3 col-form-label">Inventario:</label>
+                            <div class="col-sm-9">
+                                <input type="checkbox" name="inventario" id="id_inventario" 
+                                       {% if obj and obj.inventario %}checked{% endif %}>
+                                <label for="id_inventario" class="form-check-label">Sí</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id_proveedor" class="col-sm-3 col-form-label">Proveedor:</label>
+                            <div class="col-sm-9">
+                                <select name="proveedor" class="form-control" id="id_proveedor" required>
+                                    <option value="">Seleccione un proveedor</option>
+                                    {% for proveedor in proveedores %}
+                                        <option value="{{ proveedor.id }}" {% if obj and obj.proveedor.id == proveedor.id %}selected{% endif %}>
+                                            {{ proveedor.razon_social }}  <!-- Asegúrate de que este campo exista -->
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+
+                        <div class="form-group row">
+                            <label for="id_archivo_pdf" class="col-sm-3 col-form-label">Archivo PDF:</label>
+                            <div class="col-sm-9">
+                                <input type="file" name="archivo_pdf" class="form-control" id="id_archivo_pdf" 
+                                       {% if not obj %}required{% endif %}>
+                                {% if obj %}<small>Archivo actual: {{ obj.archivo_pdf.url }}</small>{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id_proyecto" class="col-sm-3 col-form-label">Proyecto:</label>
+                            <div class="col-sm-9">
+                                <select name="proyecto" class="form-control" id="id_proyecto" required>
+                                    <option value="">Seleccione un proyecto</option>
+                                    {% for proyecto in proyectos %} <!-- Asegúrate de pasar la lista de proyectos en tu vista -->
+                                        <option value="{{ proyecto.id }}" {% if obj and obj.proyecto.id == proyecto.id %}selected{% endif %}>
+                                            {{ proyecto.nombre }} <!-- Ajusta según el campo que desees mostrar -->
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id_estado" class="col-sm-3 col-form-label">Estado:</label>
+                            <div class="col-sm-9">
+                                <input type="checkbox" name="estado" id="id_estado" {% if obj and obj.estado == "Aceptado" %}checked{% endif %}>
+                                <label for="id_estado" class="form-check-label">Aceptado</label>
+                            </div>
+                        </div>
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-danger"><span class="fa fa-save"></span> Guardar</button>
+                                <a href="{% url 'adm:documentob_list' %}" class="btn btn-success"><span class="fa fa-undo"></span> Cancelar</a>
+                            </div>
+                        </div>    
+                    </div>                            
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}
+
+{% block js_page %}
+
+<script>
+    $(document).ready(function() {
+        $('#id_proveedor').select2({
+            placeholder: 'Seleccione un proveedor',
+            allowClear: true,
+            width: '100%'  // Asegura que ocupe el ancho completo del contenedor
+        });
+    });
+</script>
+{% endblock js_page %}

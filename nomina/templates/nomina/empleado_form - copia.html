@@ -1,0 +1,111 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        <div class="card shadow h-100 py-2">
+            <div class="card-body">
+                <ul class="nav nav-tabs" id="empleadoTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="datos-tab" data-bs-toggle="tab" data-bs-target="#datos" type="button" role="tab">Datos del Empleado</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="documentos-tab" data-bs-toggle="tab" data-bs-target="#documentos" type="button" role="tab">Lista de Documentos</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="empleadoTabsContent">
+                    
+                    <!-- Pestaña de Datos del Empleado -->
+                    <div class="tab-pane fade show active p-3" id="datos" role="tabpanel">
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Código</label>
+                            <div class="col-sm-4">{{ form.codigo }}</div>
+                            <label class="col-sm-2 col-form-label">CURP</label>
+                            <div class="col-sm-4">{{ form.curp }}</div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">RFC</label>
+                            <div class="col-sm-4">{{ form.rfc }}</div>
+                            <label class="col-sm-2 col-form-label">Nombre</label>
+                            <div class="col-sm-4">{{ form.nombre }}</div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Ingreso</label>
+                            <div class="col-sm-4">{{ form.ingreso }}</div>
+                            <label class="col-sm-2 col-form-label">Sueldo Diario</label>
+                            <div class="col-sm-4">{{ form.sueldo_diario }}</div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Compensación</label>
+                            <div class="col-sm-4">{{ form.compensacion }}</div>
+                            <label class="col-sm-2 col-form-label">Puesto</label>
+                            <div class="col-sm-4">{{ form.puesto }}</div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Estado</label>
+                            <div class="col-sm-4">
+                                <select name="estado" class="form-control">
+                                    <option value="A" {% if form.estado.value == "A" %}selected{% endif %}>Activo</option>
+                                    <option value="B" {% if form.estado.value == "B" %}selected{% endif %}>Baja</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <button type="submit" class="btn btn-danger"><span class="fa fa-save"></span> Guardar</button>
+                        <a href="{% url 'nom:empleado_list' %}" class="btn btn-success"><span class="fa fa-undo"></span> Cancelar</a>
+                    </div>
+
+                    <!-- Pestaña de Lista de Documentos -->
+                    <div class="tab-pane fade p-3" id="documentos" role="tabpanel">
+                        <h5>Subir Archivos</h5>
+                        {{ formset.management_form }}
+
+                        {% if nuevo %}
+                            <!-- Si es nuevo, mostrar CURP, IFE, RFC y comprobante -->
+                            <div class="form-row mb-3">
+                                <label class="col-sm-2 col-form-label">CURP</label>
+                                <div class="col-sm-4"><input type="file" name="curp_file" class="form-control"></div>
+                                <label class="col-sm-2 col-form-label">IFE</label>
+                                <div class="col-sm-4"><input type="file" name="ife_file" class="form-control"></div>
+                            </div>
+                            <div class="form-row mb-3">
+                                <label class="col-sm-2 col-form-label">RFC</label>
+                                <div class="col-sm-4"><input type="file" name="rfc_file" class="form-control"></div>
+                                <label class="col-sm-2 col-form-label">Comprobante</label>
+                                <div class="col-sm-4"><input type="file" name="comprobante_file" class="form-control"></div>
+                            </div>
+                        {% endif %}
+
+                        {% for form in formset %}
+                            <div class="form-row mb-3">
+                                <div class="col-md-6">{{ form.nombre.label_tag }} {{ form.nombre }}</div>
+                                <div class="col-md-4">{{ form.archivo.label_tag }} {{ form.archivo }}</div>
+                                <div class="col-md-2">{{ form.DELETE }} <label>Eliminar</label></div>
+                            </div>
+                        {% empty %}
+                            <p>No hay formularios para subir archivos.</p>
+                        {% endfor %}
+
+                        <button type="submit" class="btn btn-primary"><span class="fa fa-upload"></span> Subir Archivos</button>
+
+                        <h5 class="mt-4">Archivos Subidos</h5>
+                        <ul class="list-group">
+                            {% for documento in empleado.documentosempleado_set.all %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    📄 {{ documento.nombre }}
+                                    <div>
+                                        <a href="{{ documento.archivo.url }}" target="_blank" class="btn btn-sm btn-outline-info">🔗 Descargar</a>
+                                        <a href="{% url 'nom:documento_delete' documento.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Estás seguro de eliminar este documento?');">🗑 Eliminar</a>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}

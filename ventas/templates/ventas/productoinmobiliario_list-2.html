@@ -1,0 +1,91 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Lista de Productos Inmobiliarios</h6>
+        <a href="{% url 'adm:crear_producto_inmobiliario' %}" class="btn btn-primary">Nuevo Producto</a>
+        {% comment %} <a href="{% url 'adm:productoinmobiliario_pdf' %}" class="btn btn-primary">Reporte de Productos</a> {% endcomment %}
+    </div>
+    <div class="card-body">
+        {% if not productos %}
+            <div class="alert alert-info">No hay productos inmobiliarios registrados.</div>
+        {% else %}
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Clave</th>
+                        <th>Proyecto</th>
+                        <th>Proceso</th>
+                        <th>Precio</th>
+                        <th>Saldo</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in productos %}
+                        <tr>
+                            <td>{{ producto.id }}</td>
+                            <td>{{ producto.clave }}</td>
+                            <td>{{ producto.proyecto.nombre }}</td>
+                            <td>{{ producto.proceso }}</td>
+                            <td>{{ producto.precio }}</td>
+                            <td>{{ producto.saldo }}</td>
+                            <td>
+                                <a href="{% url 'adm:productoinmobiliario_edit' producto.id %}" class="btn btn-warning btn-circle" role="button">
+                                    <i class="far fa-edit"></i>
+                                </a>
+                                <a href="{% url 'adm:vender_producto' producto.id %}" class="btn btn-success btn-icon-split">
+                                    <span class="icon text-white-50">
+                                        <i class="fas fa-dollar-sign"></i>
+                                    </span>
+                                    <span class="text">Vender</span>
+                                </a>
+                                <a href="{% url 'adm:asignar_cliente' producto.id %}" class="btn btn-info btn-icon-split">
+                                    <span class="icon text-white-50">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                    <span class="text">Asignar Cliente</span>
+                                </a>
+                                <form action="{% url 'adm:productoinmobiliario_delete' producto.id %}" method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-circle" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?');">
+                                        <i class="far fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </td>
+                            
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+</div>
+{% endblock page_content %}
+
+{% block js_page %}
+<script>
+    $(document).ready(function() {
+      $('.table').DataTable({
+        "language": {
+          "sProcessing": "Procesando...",
+          "sLengthMenu": "Mostrar _MENU_ registros",
+          "sZeroRecords": "No se encontraron resultados",
+          "sEmptyTable": "Ningún dato disponible en esta tabla",
+          "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+          "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+          "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+          "sSearch": "Buscar:",
+          "oPaginate": {
+              "sFirst": "<span class='fa fa-angle-double-left'></span>",
+              "sLast": "<span class='fa fa-angle-double-right'></span>",
+              "sNext": "<span class='fa fa-angle-right'></span>",
+              "sPrevious": "<span class='fa fa-angle-left'></span>"
+          }
+        }
+      });
+    });
+</script>
+{% endblock js_page %}

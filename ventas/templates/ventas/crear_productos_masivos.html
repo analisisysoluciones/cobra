@@ -1,0 +1,72 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Alta Masiva de Productos
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <!-- Nombre del Producto -->
+                        <div class="form-group row">
+                            <label for="id_nombre" class="col-sm-3 col-form-label">Nombre del Producto:</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="nombre" maxlength="100" class="form-control" id="id_nombre" placeholder="Nombre del Producto" required>
+                            </div>
+                        </div>
+
+                        <!-- Clave del Producto -->
+                        <div class="form-group row">
+                            <label for="id_clave" class="col-sm-3 col-form-label">Clave del Producto:</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="clave" maxlength="20" class="form-control" id="id_clave" placeholder="Clave del Producto" required>
+                            </div>
+                        </div>
+
+                        <!-- Precio -->
+                        <div class="form-group row">
+                            <label for="id_precio" class="col-sm-3 col-form-label">Precio:</label>
+                            <div class="col-sm-9">
+                                <input type="number" step="0.01" name="precio" class="form-control" id="id_precio" placeholder="Precio del Producto" required>
+                            </div>
+                        </div>
+
+                        <!-- Stock -->
+                        <div class="form-group row">
+                            <label for="id_stock" class="col-sm-3 col-form-label">Stock Inicial:</label>
+                            <div class="col-sm-9">
+                                <input type="number" name="stock" class="form-control" id="id_stock" placeholder="Cantidad Inicial" required>
+                            </div>
+                        </div>
+
+                        <!-- Estado del Producto -->
+                        <div class="form-group row">
+                            <label for="id_estado" class="col-sm-3 col-form-label">Estado:</label>
+                            <div class="col-sm-9 d-flex align-items-center">
+                                <input type="checkbox" name="estado" class="form-check-input" id="id_estado" checked>
+                                <label for="id_estado" class="form-check-label">Activo</label>
+                            </div>
+                        </div>
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-success"><span class="fa fa-save"></span> Crear Productos</button>
+                                <a href="{% url 'productos:list' %}" class="btn btn-danger"><span class="fa fa-undo"></span> Cancelar</a>
+                            </div>
+                        </div>    
+                    </div>                            
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}
+{% block js_page %}
+{% endblock js_page %}

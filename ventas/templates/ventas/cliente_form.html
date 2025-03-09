@@ -1,0 +1,58 @@
+{% extends 'base/base.html' %}
+{% load form_filters %}
+
+{% block page_content %}
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            {% if form.instance.pk %} Editar Cliente {% else %} Nuevo Cliente {% endif %}
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        {% if form.instance.pk %}
+                        <div class="form-group row">
+                            <label for="id_fecha_registro" class="col-sm-3 col-form-label">Fecha Registro:</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" readonly 
+                                       id="id_fecha_registro" value="{{ form.instance.fecha_registro|date:'Y-m-d' }}">
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% for field in form %}
+                            <div class="form-group row">
+                            <label for="{{ field.id_for_label }}" class="col-sm-3 col-form-label">{{ field.label }}:</label>
+                            <div class="col-sm-9">
+                                {{ field|add_class:"form-control-lg w-100" }} <!-- Clases adicionales aquí -->
+                                {% if field.errors %}
+                                    <div class="text-danger small">{{ field.errors }}</div>
+                                {% endif %}
+                            </div>
+                            </div>
+                        {% endfor %}
+
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fa fa-save"></i> Guardar
+                                </button>
+                                <a href="{% url 'ven:cliente_list' %}" class="btn btn-danger">
+                                    <i class="fa fa-times"></i> Cancelar
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}

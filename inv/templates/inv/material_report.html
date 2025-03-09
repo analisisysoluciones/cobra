@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Materiales</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Reporte de Materiales</h1>
+        <p>Fecha: {{ fecha }}</p>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Descripción</th>
+                <th>Unidad de Medida</th>
+                <th>Existencia</th>
+                <th>Mínimo</th>
+                <th>Máximo</th>
+                <th>Estado</th>
+                <th>F. Creado</th>
+                <th>F. Modif</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in materiales %}
+            <tr>
+                <td>{{ item.id }}</td>
+                <td>{{ item.descripcion }}</td>
+                <td>
+                    {% for unidad in item.unidad_medida.all %}
+                        {{ unidad.clave }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
+                <td>{{ item.existencia }}</td>
+                <td>{{ item.minimo }}</td>
+                <td>{{ item.maximo }}</td>
+                <td>{{ item.estado|yesno:"Activo,Inactivo" }}</td>
+                <td>{{ item.fc|date:"d/m/Y H:i:s" }}</td>
+                <td>{{ item.fm|date:"d/m/Y H:i:s" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

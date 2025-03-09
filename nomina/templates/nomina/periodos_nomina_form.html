@@ -1,0 +1,81 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        {% if obj %}
+        <div class="card border-left-warning shadow h-100 py-2">
+        {% else %}
+        <div class="card border-left-success shadow h-100 py-2">
+        {% endif %}
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            {% if obj %} Editar {% else %} Nuevo {% endif %} Período de Nómina
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <div class="form-group row">
+                            <label for="id_nombre" class="col-sm-3 col-form-label">Nombre del Período:</label>
+                            <div class="col-sm-9">
+                                {{ form.semana }}
+                            </div>
+                        </div>
+                        
+                        <div class="form-group row">
+                            <label for="id_fecha_inicio" class="col-sm-3 col-form-label">Fecha de Inicio:</label>
+                            <div class="col-sm-9">
+                                {{ form.periodo_inicio }}
+                            </div>
+                        </div>
+                        
+                        <div class="form-group row">
+                            <label for="id_fecha_fin" class="col-sm-3 col-form-label">Fecha final:</label>
+                            <div class="col-sm-9">
+                                {{ form.periodo_final }}
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id_estado" class="col-sm-3 col-form-label">Corte:</label>
+                            <div class="col-sm-9">
+                                {{ form.fecha_corte }}
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id_estado" class="col-sm-3 col-form-label">Pago:</label>
+                            <div class="col-sm-9">
+                                {{ form.dia_pago }}
+                            </div>
+                        </div>
+
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-success"><span class="fa fa-save"></span> Guardar</button>
+                                <a href="{% url 'nom:periodos_list' %}" class="btn btn-danger"><span class="fa fa-undo"></span> Cancelar</a>
+                            </div>
+                        </div>    
+                    </div>                            
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}
+
+{% block js_page %}
+<!-- Cargar Select2 para mejorar la experiencia de selección -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.full.min.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#id_estado').select2();  // Habilita búsqueda en el campo 'estado'
+    });
+</script>
+{% endblock js_page %}

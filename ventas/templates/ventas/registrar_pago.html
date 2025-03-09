@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Registrar Pago para {{ producto.clave }}</h2>
+<p><strong>Cliente:</strong> {{ cliente.nombre }}</p>
+<p><strong>Saldo Actual:</strong> ${{ producto.saldo }}</p>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ movimiento_form.as_p }}
+    <button type="submit" class="btn btn-primary">Registrar Pago</button>
+</form>
+
+{% if producto.movimientos.exists %}
+    <h3>Historial de Pagos</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Monto</th>
+                <th>Descripción</th>
+                <th>Evidencia</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for movimiento in producto.movimientos.all %}
+                <tr>
+                    <td>{{ movimiento.fecha_movimiento }}</td>
+                    <td>${{ movimiento.monto }}</td>
+                    <td>{{ movimiento.descripcion }}</td>
+                    <td>
+                        {% if movimiento.evidencia_pago %}
+                            <a href="{{ movimiento.evidencia_pago.url }}">Ver Evidencia</a>
+                        {% else %}
+                            No disponible
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No hay pagos registrados.</p>
+{% endif %}
+{% endblock %}

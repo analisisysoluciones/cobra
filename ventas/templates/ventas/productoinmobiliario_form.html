@@ -1,0 +1,63 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Alta Masiva de Productos
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <!-- Precio -->
+                        <div class="form-group row">
+                            <label for="{{ form.precio.id_for_label }}" class="col-sm-3 col-form-label">Precio:</label>
+                            <div class="col-sm-9">
+                                {{ form.precio }}
+                            </div>
+                        </div>
+
+                        <!-- Medidas -->
+                        <div class="form-group row">
+                            <label for="{{ form.medidas.id_for_label }}" class="col-sm-3 col-form-label">Medidas:</label>
+                            <div class="col-sm-9">
+                                {{ form.medidas }}
+                            </div>
+                        </div>
+
+                        <!-- Proyecto -->
+                        <div class="form-group row">
+                            <label for="{{ form.proyecto.id_for_label }}" class="col-sm-3 col-form-label">Proyecto:</label>
+                            <div class="col-sm-9">
+                                {{ form.proyecto }}
+                            </div>
+                        </div>
+
+                        <!-- Proceso -->
+                        <div class="form-group row">
+                            <label for="{{ form.proceso.id_for_label }}" class="col-sm-3 col-form-label">Proceso:</label>
+                            <div class="col-sm-9">
+                                {{ form.proceso }}
+                            </div>
+                        </div>
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-success"><span class="fa fa-save"></span>Grabar</button>
+                                <a href="{% url 'ven:productoinmobiliario_list' %}" class="btn btn-danger"><span class="fa fa-undo"></span> Cancelar</a>
+                            </div>
+                        </div>
+                    </div>                            
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}
+{% block js_page %}
+{% endblock js_page %}

@@ -1,0 +1,73 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Procesar Nómina
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <!-- Mensajes de éxito o error -->
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <!-- Fecha de la Nómina -->
+                        <div class="form-group row">
+                            <label for="fecha" class="col-sm-3 col-form-label">Fecha de Nómina:</label>
+                            <div class="col-sm-9">
+                                <input type="date" id="fecha" name="fecha" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <!-- Selección de Cuenta -->
+                        <div class="form-group row">
+                            <label for="cuenta" class="col-sm-3 col-form-label">Cuenta a Debitar:</label>
+                            <div class="col-sm-9">
+                                <select name="cuenta" class="form-control" required>
+                                    <option value="">-- Selecciona una cuenta --</option>
+                                    {% for cuenta in cuentas %}
+                                        <option value="{{ cuenta.id }}">
+                                            {{ cuenta.cuenta }} - Balance: ${{ cuenta.saldo_actual }}
+                                        </option>
+                                    {% empty %}
+                                        <option value="">No hay cuentas disponibles</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-success">
+                                    <span class="fa fa-save"></span> Procesar Nómina
+                                </button>
+                                <a href="{% url 'nom:seleccionar_fecha' %}" class="btn btn-danger">
+                                    <span class="fa fa-undo"></span> Cancelar
+                                </a>
+                            </div>
+                        </div>
+                    </div>                            
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}
+
+{% block js_page %}
+{% endblock js_page %}

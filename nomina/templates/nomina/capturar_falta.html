@@ -1,0 +1,91 @@
+{% extends 'base/base.html' %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+
+{% block page_content %}
+<form method="POST" action="{% url 'nom:capturar_falta' %}">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Capturar Falta
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <!-- Agregar campo de búsqueda -->
+                        <div class="form-group row">
+                            <label for="searchEmpleado" class="col-sm-3 col-form-label">Buscar Empleado:</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="searchEmpleado" class="form-control" placeholder="Escriba el nombre...">
+                            </div>
+                        </div>
+
+                        <!-- Combo de empleados -->
+                        {% for field in form %}
+                            {% if field.name == "empleado" %}
+                                <div class="form-group row">
+                                    <label for="{{ field.id_for_label }}" class="col-sm-3 col-form-label">{{ field.label }}:</label>
+                                    <div class="col-sm-9">
+                                        <select id="selectEmpleado" name="{{ field.name }}" class="form-control">
+                                            {% for emp in field.field.queryset %}
+                                                <option value="{{ emp.id }}">{{ emp.nombre }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        {% if field.errors %}
+                                            <div class="text-danger small">{{ field.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="form-group row">
+                                    <label for="{{ field.id_for_label }}" class="col-sm-3 col-form-label">{{ field.label }}:</label>
+                                    <div class="col-sm-9">
+                                        {{ field|add_class:"form-control" }}
+                                        {% if field.errors %}
+                                            <div class="text-danger small">{{ field.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fa fa-save"></i> Guardar
+                                </button>
+                                <a href="{% url 'nom:empleado_list' %}" class="btn btn-danger">
+                                    <i class="fa fa-times"></i> Cancelar
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Script para filtrar empleados -->
+<script>
+document.getElementById("searchEmpleado").addEventListener("keyup", function() {
+    let filter = this.value.toLowerCase();
+    let select = document.getElementById("selectEmpleado");
+    let options = select.getElementsByTagName("option");
+
+    for (let i = 0; i < options.length; i++) {
+        let txtValue = options[i].textContent || options[i].innerText;
+        if (txtValue.toLowerCase().indexOf(filter) > -1) {
+            options[i].style.display = "";
+        } else {
+            options[i].style.display = "none";
+        }
+    }
+});
+</script>
+{% endblock page_content %}

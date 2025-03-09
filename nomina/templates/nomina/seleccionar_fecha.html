@@ -1,0 +1,93 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST" action="{% url 'nom:calcular_nomina' %}">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Seleccionar Fecha
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <div class="form-group row">
+                            <label for="id_fecha_seleccionada" name="fecha" class="col-sm-3 col-form-label">Fecha:</label>
+                            <div class="col-sm-9">
+                                {{ form.fecha }}
+                            </div>
+                        </div>
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-success">
+                                    <span class="fa fa-calendar"></span> Calcular nómina
+                                </button>
+                                <a href="" class="btn btn-danger">
+                                    <span class="fa fa-undo"></span> Cancelar
+                                </a>
+                            </div>
+                        </div>    
+                    </div>                            
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% if fecha %}
+<div class="alert alert-info mt-3">
+    <strong>Fecha seleccionada:</strong> {{ fecha }}
+</div>
+
+{% if nomina %}
+<div class="card mt-4">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">Nómina Semanal</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Empleado</th>
+                        <th>Días Trabajados</th>
+                        <th>Faltas</th>
+                        <th>Sueldo Diario</th>
+                        <th>Sueldo Semanal</th>
+                        <th>Compensación</th>
+                        <th>Percepciones</th>
+                        <th>Deducciones</th>
+                        <th>Total Pago</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for registro in nomina %}
+                    <tr>
+                        <td>{{ registro.empleado }}</td>
+                        <td>{{ registro.dias_trabajados }}</td>
+                        <td>{{ registro.faltas }}</td>
+                        <td>${{ registro.sueldo_diario }}</td>
+                        <td>${{ registro.sueldo_semanal }}</td>
+                        <td>${{ registro.compensacion }}</td>
+                        <td>${{ registro.percepciones }}</td>
+                        <td>${{ registro.deducciones }}</td>
+                        <td><strong>${{ registro.total_pago }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning mt-3">
+    <strong>No hay datos de nómina para la fecha seleccionada.</strong>
+</div>
+{% endif %}
+{% endif %}
+
+{% endblock page_content %}

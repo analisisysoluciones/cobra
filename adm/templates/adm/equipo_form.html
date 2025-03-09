@@ -1,0 +1,63 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            {% if obj %} Editar {% else %} Nueva {% endif %} Maquinaria y Equipo
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <!-- Identificador -->
+                        <div class="form-group row">
+                            <label for="id_identificador" class="col-sm-3 col-form-label">Identificador:</label>
+                            <div class="col-sm-9">
+                                {{ form.identificador }}
+                            </div>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="form-group row">
+                            <label for="id_descripcion" class="col-sm-3 col-form-label">Descripción:</label>
+                            <div class="col-sm-9">
+                                {{ form.descripcion }}
+                            </div>
+                        </div>
+
+                        <!-- Modelo -->
+                        <div class="form-group row">
+                            <label for="id_modelo" class="col-sm-3 col-form-label">Modelo:</label>
+                            <div class="col-sm-9">
+                                {{ form.modelo }}
+                            </div>
+                        </div>
+
+                        <!-- Placas -->
+                        <div class="form-group row">
+                            <label for="id_placas" class="col-sm-3 col-form-label">Placas:</label>
+                            <div class="col-sm-9">
+                                {{ form.placas }}
+                            </div>
+                        </div>
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-success"><span class="fa fa-save"></span> Guardar</button>
+                                <a href="{% url 'adm:equipo_list' %}" class="btn btn-danger"><span class="fa fa-undo"></span> Cancelar</a>
+                            </div>
+                        </div>    
+                    </div>                            
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}
+{% block js_page %}
+{% endblock js_page %}

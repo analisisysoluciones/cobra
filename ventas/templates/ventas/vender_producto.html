@@ -1,0 +1,92 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Vender Producto: {{ producto.clave }}
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <!-- Información del producto -->
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label"><strong>Producto:</strong></label>
+                            <div class="col-sm-9">
+                                <p class="form-control-plaintext">{{ producto.clave }}</p>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label"><strong>Precio:</strong></label>
+                            <div class="col-sm-9">
+                                <p class="form-control-plaintext">{{ producto.precio }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Formulario para asignar cliente -->
+                        <div class="form-group row">
+                            <label for="id_cliente" class="col-sm-3 col-form-label">Cliente:</label>
+                            <div class="col-sm-9">
+                                <select id="id_cliente" name="cliente" class="form-control" required>
+                                    <option value="">Seleccione un cliente</option>
+                                    {% for cliente in clientes %}
+                                        <option value="{{ cliente.id }}">{{ cliente.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+
+                        <!-- Formulario para registrar movimiento -->
+                        <h3 class="text-success">Registrar Movimiento</h3>
+                        <div class="dropdown-divider"></div>
+                        <div class="form-group">
+                            {{ movimiento_form.as_p }}
+                        </div>
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-success"><span class="fa fa-save"></span> Registrar Venta</button>
+                                <a href="{% url 'adm:productoinmobiliario_list' %}" class="btn btn-danger"><span class="fa fa-undo"></span> Cancelar</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}
+
+{% block js_page %}
+<script>
+    $(document).ready(function() {
+        $('#id_cliente').select2({
+            placeholder: "Seleccione un cliente",
+            ajax: {
+                url: "{% url 'adm:ruta_para_buscar_clientes' %}",  // Cambia por tu ruta
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term  // Envío del término de búsqueda
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results  // Estructura de resultados
+                    };
+                },
+                cache: true
+            }
+        });
+    });
+</script>
+
+{% endblock js_page %}

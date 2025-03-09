@@ -1,0 +1,78 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Lista de Períodos de Nómina</h6>
+        <div>
+            <a href="{% url 'nom:periodos_new' %}" class="btn btn-primary">Nuevo Período</a>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if not periodos %}
+            <div class="alert alert-info">No hay períodos de nómina registrados.</div>
+        {% else %}
+            <table class="table table-striped table-hover">
+                <thead>
+                    <th>ID</th>
+                    <th>Semana</th>
+                    <th>Inicio</th>
+                    <th>Final</th>
+                    <th>Fecha de Corte</th>
+                    <th>Día de Pago</th>
+                    <th>Acciones</th>
+                </thead>
+                <tbody>
+                    {% for periodo in periodos %}
+                    <tr>
+                        <td>{{ periodo.id }}</td>
+                        <td>{{ periodo.semana }}</td>
+                        <td>{{ periodo.periodo_inicio }}</td>
+                        <td>{{ periodo.periodo_final }}</td>
+                        <td>{{ periodo.fecha_corte }}</td>
+                        <td>{{ periodo.dia_pago }}</td>
+                        <td>
+                            <a href="{% url 'nom:periodos_edit' periodo.id %}" class="btn btn-warning btn-circle" role="button">
+                                <i class="far fa-edit"></i>
+                            </a>
+                            <a href="{% url 'nom:periodos_del' periodo.id %}" class="btn btn-danger btn-circle" role="button">
+                                <i class="far fa-trash-alt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7">No hay períodos de nómina registrados.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+</div>
+{% endblock page_content %}
+
+{% block js_page %}
+<script>
+    $(document).ready(function() {
+      $('.table').DataTable({
+        "language": {
+          "sProcessing": "Procesando...",
+          "sLengthMenu": "Mostrar _MENU_ registros",
+          "sZeroRecords": "No se encontraron resultados",
+          "sEmptyTable": "Ningún dato disponible en esta tabla",
+          "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+          "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+          "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+          "sSearch": "Buscar:",
+          "oPaginate": {
+              "sFirst": "<span class='fa fa-angle-double-left'></span>",
+              "sLast": "<span class='fa fa-angle-double-right'></span>",
+              "sNext": "<span class='fa fa-angle-right'></span>",
+              "sPrevious": "<span class='fa fa-angle-left'></span>"
+          }
+        }
+      });
+    });
+</script>
+{% endblock js_page %}

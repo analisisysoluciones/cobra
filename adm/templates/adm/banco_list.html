@@ -1,0 +1,35 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Lista de Bancos</h6>
+        <a href="{% url 'adm:banco_new' %}" class="btn btn-primary">Nuevo Banco</a>
+    </div>
+    <div class="card-body">
+        {% if not bancos %}
+            <div class="alert alert-info">No hay bancos registrados.</div>
+        {% else %}
+            <table class="table table-stripped table-hover">
+                <thead>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
+                </thead>
+                <tbody>
+                    {% for banco in bancos %}
+                        <tr>
+                            <td>{{ banco.id }}</td>
+                            <td>{{ banco.nombre }}</td>
+                            <td>
+                                <a href="{% url 'adm:banco_edit' banco.id %}" class="btn btn-warning btn-circle"><i class="far fa-edit"></i></a>
+                                <a href="{% url 'adm:banco_del' banco.id %}" class="btn btn-danger btn-circle"><i class="far fa-trash-alt"></i></a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+</div>
+{% endblock page_content %}

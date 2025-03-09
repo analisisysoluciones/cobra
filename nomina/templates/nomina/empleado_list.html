@@ -1,0 +1,74 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Lista de Empleados</h6>
+        <div>
+            <a href="{% url 'nom:empleado_create' %}" class="btn btn-primary">Nuevo Empleado</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <input type="text" id="searchInput" class="form-control mb-3" placeholder="Buscar empleado...">
+        
+        {% if not empleados %}
+            <div class="alert alert-info">No hay empleados registrados.</div>
+        {% else %}
+            <table class="table table-striped table-hover" id="empleadoTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Código</th>
+                        <th>CURP</th>
+                        <th>Nombre</th>
+                        <th>Ingreso</th>
+                        <th>Sueldo Diario</th>
+                        <th>Puesto</th>
+                        <th>Estatus</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for empleado in empleados %}
+                    <tr>
+                        <td>{{ empleado.id }}</td>
+                        <td>{{ empleado.codigo }}</td>
+                        <td>{{ empleado.curp }}</td>
+                        <td>{{ empleado.nombre }}</td>
+                        <td>{{ empleado.ingreso|date:"d/m/Y" }}</td>
+                        <td>{{ empleado.sueldo_diario }}</td>
+                        <td>{{ empleado.puesto }}</td>
+                        <td>{{ empleado.estado|yesno:"Activo,Baja" }}</td>
+                        <td>
+                            <a href="{% url 'nom:empleado_edit' empleado.id %}" class="btn btn-warning btn-circle">
+                                <i class="far fa-edit"></i>
+                            </a>
+                            <a href="{% url 'nom:empleado_del' empleado.id %}" class="btn btn-danger btn-circle">
+                                <i class="far fa-trash-alt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9">No hay empleados registrados.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>    
+        {% endif %}        
+    </div>
+</div>
+
+<script>
+document.getElementById('searchInput').addEventListener('keyup', function() {
+    let filter = this.value.toLowerCase();
+    let rows = document.querySelectorAll("#empleadoTable tbody tr");
+    
+    rows.forEach(row => {
+        let text = row.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? "" : "none";
+    });
+});
+</script>
+
+{% endblock page_content %}
