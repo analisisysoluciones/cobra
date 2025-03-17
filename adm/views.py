@@ -848,7 +848,7 @@ def generar_pdf(request):
     p.drawString(2 * inch, height - 2 * inch, "Fecha")
     p.drawString(3 * inch, height - 2 * inch, "Concepto")
     p.drawString(4 * inch, height - 2 * inch, "Cantidad")
-    p.drawString(5 * inch, height - 2 * inch, "Folio Documento")
+    p.drawString(5 * inch, height - 2 * inch, "Folio Docto")
     p.drawString(6 * inch, height - 2 * inch, "Proveedor")
 
     p.line(1 * inch, height - 2.05 * inch, 7 * inch, height - 2.05 * inch)

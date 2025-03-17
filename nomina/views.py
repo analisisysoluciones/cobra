@@ -787,3 +787,16 @@ def eliminar_archivo(request, archivo_id):
     return redirect("empleado_archivos", empleado_id=empleado_id)
 
 
+
+class AsistenciaListView(generic.ListView):
+    model = Asistencia
+    template_name = "nomina/asistencia_list.html"
+    context_object_name = "asistencias"
+    ordering = ["-fecha"]  # Ordenar por fecha descendente
+
+class AsistenciaDeleteView(generic.DeleteView):
+    model = Asistencia
+    template_name = "nomina/asistencia_confirm_delete.html"
+    success_url = reverse_lazy("nom:asistencia_list") 
+
+
