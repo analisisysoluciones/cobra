@@ -157,15 +157,47 @@ class CompraEnc(ClaseModelo):
     archivo_pdf = models.FileField('archivo pdf:', upload_to='documentos/pdfs/', blank=True, null=True)
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE, related_name='documentos')
     estado = models.CharField('Estado',default='Pendiente',max_length=15)
+    dias_credito = models.PositiveIntegerField('Días de Crédito', default=0)
+    fecha_pago = models.DateField('Fecha de Pago', blank=True, null=True)
+
+    ESTATUS_PAGO_CHOICES = [
+        ('pendiente', 'Pendiente'),
+        ('proximo_vencer', 'Próximo a vencer'),
+        ('pagado', 'Pagado'),
+        ('vencido', 'Vencido'),
+    ]
+    estatus_pago = models.CharField('Estatus de Pago', max_length=15, choices=ESTATUS_PAGO_CHOICES, default='pendiente')
+
+    def calcular_fecha_pago(self):
+        """ Calcula la fecha de pago sumando los días de crédito a la fecha de la compra """
+        if self.dias_credito and self.fecha:
+            return self.fecha + timedelta(days=self.dias_credito)
+        return None
+
+    def calcular_estatus_pago(self):
+        """ Determina el estado de pago basado en la fecha actual """
+        hoy = date.today()
+        if self.fecha_pago:
+            if hoy > self.fecha_pago and self.estatus_pago == 'pendiente':
+                return 'vencido'
+            elif hoy >= self.fecha_pago - timedelta(days=5) and self.estatus_pago == 'pendiente':
+                return 'proximo_vencer'
+        return self.estatus_pago
 
     def calcular_total(self):
-        """suma los importes de todos los documentod relacionados y actualiza el campo total."""
+        """ Suma los importes de todos los documentod relacionados y actualiza el campo total. """
         self.total = sum(detalle.importe for detalle in self.documentos_d.all())
         self.save()
 
-    class meta:
-        verbose_name = "documento"
-        verbose_name_plural = "documentos"
+    def save(self, *args, **kwargs):
+        if not self.fecha_pago:
+            self.fecha_pago = self.calcular_fecha_pago()
+        self.estatus_pago = self.calcular_estatus_pago()
+        super().save(*args, **kwargs)
+
+    class Meta:  # Corregido "meta" por "Meta"
+        verbose_name = "Documento"
+        verbose_name_plural = "Documentos"
 
 class CompraDet(ClaseModelo):
      compra = models.ForeignKey(CompraEnc, on_delete=models.CASCADE, related_name='encabezado')

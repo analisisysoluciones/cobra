@@ -2,10 +2,10 @@
 {% block page_content %}
     <form method="post" id="frmCompras">
         {% csrf_token %}
-        <div class="modal-body">
+        {% comment %} <div class="modal-body">
             ¿Está seguro de que desea eliminar el producto {{ obj.producto.nombre }}?
         </div>
-        
+         {% endcomment %}
         <div class="col-xl-12 col-md-12 mb-12">
             {% if encabezado %}
             <div class="card border-left-warning shadow h-100 py-2">

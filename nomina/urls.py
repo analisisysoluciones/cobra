@@ -5,7 +5,7 @@ from . import views
 from .views import(
     EmpleadoList, EmpleadoEdit, EmpleadoNew, EmpleadoDel, calcular_nomina_semanal_todos, seleccionar_fecha, calcular_nomina_view,
     generar_nomina_pdf,  procesar_nomina, generar_nomina_individual_pdf, PeriodosNominaList, PeriodosNominaNew, 
-    PeriodosNominaEdit, PeriodosNominaDel, DocumentoEmpleadoDelete, capturar_falta    
+    PeriodosNominaEdit, PeriodosNominaDel, DocumentoEmpleadoDelete, capturar_falta, validar_curp
 ) 
 
 
@@ -30,6 +30,8 @@ urlpatterns = [
     path('periodos/nuevo/', PeriodosNominaNew.as_view(), name='periodos_new'),
     path('periodos/editar/<int:pk>/', PeriodosNominaEdit.as_view(), name='periodos_edit'),
     path('periodos/eliminar/<int:pk>/', PeriodosNominaDel.as_view(), name='periodos_del'),
+    
+    path('validar-curp/', validar_curp, name='validar_curp'),
     
      
 ] 

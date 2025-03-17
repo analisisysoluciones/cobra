@@ -8,6 +8,7 @@ import re
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.forms import inlineformset_factory, modelformset_factory, BaseModelFormSet
+from django.urls import reverse_lazy
 
 
 
@@ -17,16 +18,25 @@ class EmpleadoForm(forms.ModelForm):
         fields = ['codigo', 'curp', 'rfc', 'nombre', 'ingreso', 'sueldo_diario', 'compensacion', 'puesto', 'estado']
         widgets = {
             'codigo': forms.NumberInput(attrs={'class': 'form-control'}),
-            'curp': forms.TextInput(attrs={'class': 'form-control'}),
-            'rfc': forms.TextInput(attrs={'class': 'form-control'}),
+            'curp': forms.TextInput(attrs={
+                'class': 'form-control', 
+                'style': 'text-transform:uppercase;', 
+                'data-url': reverse_lazy('validar_curp')  # Ruta para AJAX
+            }),
+            'rfc': forms.TextInput(attrs={'class': 'form-control', 'style': 'text-transform:uppercase;'}),
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'ingreso': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
             'sueldo_diario': forms.NumberInput(attrs={'class': 'form-control'}),
             'compensacion': forms.NumberInput(attrs={'class': 'form-control'}),
             'puesto': forms.TextInput(attrs={'class': 'form-control'}),
             'estado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-
         }
+        
+    def clean_curp(self):
+        curp = self.cleaned_data.get('curp', '').upper()
+        if Empleado.objects.filter(curp=curp).exists():
+            raise forms.ValidationError("Este CURP ya está registrado.")
+        return curp
     
     
 class EmpleadoArchivoForm(forms.ModelForm):

@@ -66,8 +66,7 @@ urlpatterns = [
     path('compras/edit/<int:compra_id>',compras, name="compras_edit"),
     path('compras/<int:compra_id>/delete/<int:pk>', CompraDetDelete.as_view(), name="compras_del"),
 
-
-    
+   
     path('registrocuenta/', RegistroCuentaListView.as_view(), name='registrocuenta_list'),
     path('registrocuenta/nuevo/', RegistroCuentaCreateNew.as_view(), name='registrocuenta_new'),
     path('registrocuenta/editar/<int:pk>/', RegistroCuentaEdit.as_view(), name='registrocuenta_edit'),

@@ -133,6 +133,11 @@ class EmpleadoDel(LoginRequiredMixin, generic.DeleteView):
     success_url = reverse_lazy('nom:empleado_list')
     login_url = 'bases:login'
 
+def validar_curp(request):
+    curp = request.GET.get('curp', '').upper()  # Convertir a mayúsculas
+    existe = Empleado.objects.filter(curp=curp).exists()
+    return JsonResponse({'existe': existe})
+
     
     
     
@@ -431,7 +436,7 @@ def generar_nomina_pdf(request):
     datos.append(fila_totales)
 
     # Ajustar anchos de columna
-    col_widths = [150, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 150]
+    col_widths = [190, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 150]
     row_heights = [20] * len(datos)
 
     tabla = Table(datos, colWidths=col_widths, rowHeights=row_heights)
@@ -780,3 +785,5 @@ def eliminar_archivo(request, archivo_id):
     empleado_id = archivo.empleado.id
     archivo.delete()
     return redirect("empleado_archivos", empleado_id=empleado_id)
+
+

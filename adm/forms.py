@@ -189,34 +189,24 @@ class CompraEncForm(forms.ModelForm):
 class RegistroCuentaForm(forms.ModelForm):
     class Meta:
         model = RegistroCuenta
-        fields = ['fecha_movimiento', 'concepto', 'cantidad', 'cuenta', 'folio_documento', 'proveedor', 'reposicion_flujo']
+        fields = [
+            'fecha_movimiento',
+            'concepto',
+            'cantidad',
+            'cuenta',
+            'folio_documento',
+            'proveedor',
+            'reposicion_flujo',
+        ]
         widgets = {
-            'fecha_movimiento': forms.DateInput(attrs={'type': 'date'}),
-            'concepto': forms.TextInput(attrs={'placeholder': 'Concepto'}),
-            'cantidad': forms.NumberInput(attrs={'placeholder': 'Cantidad'}),
-            'folio_documento': forms.TextInput(attrs={'placeholder': 'Folio Documento'}),
-            'proveedor': forms.Select(attrs={'class': 'form-control'}),
+            'fecha_movimiento': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'concepto': forms.TextInput(attrs={'class': 'form-control'}),
+            'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'cuenta': forms.Select(attrs={'class': 'form-control'}),
-        }
-        labels = {
-            'fecha_movimiento': 'Fecha de Movimiento',
-            'concepto': 'Concepto',
-            'cantidad': 'Cantidad',
-            'folio_documento': 'Folio Documento',
-            'proveedor': 'Proveedor',
-            'cuenta': 'Cuenta',
-        }
-        
-    def clean(self):
-        cleaned_data = super().clean()
-        reposicion_flujo = cleaned_data.get('reposicion_flujo')
-
-        if reposicion_flujo:
-            cleaned_data['proveedor']=None
-            cleaned_data['folio_documento'] = None
-        return cleaned_data
-
-        
+            'folio_documento': forms.TextInput(attrs={'class': 'form-control'}),
+            'proveedor': forms.Select(attrs={'class': 'form-control'}),
+            'reposicion_flujo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }        
         
 
     

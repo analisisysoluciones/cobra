@@ -3,6 +3,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMix
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic.edit import FormView
 from django.views import generic
+from django.templatetags.static import static
+
 from django.http import JsonResponse
 from bases.views import SinPrivilegios
 from django.db import transaction
@@ -575,7 +577,7 @@ class RegistroCuentaListView(LoginRequiredMixin, PermissionRequiredMixin, generi
     permission_required = "adm.view_registrocuenta"
     model = RegistroCuenta
     template_name = "adm/registroCuenta_list.html"
-    context_object_name = "RegistroCuentas"
+    context_object_name = "registros"
     login_url = "bases:login"
 
 class RegistroCuentaCreateNew(LoginRequiredMixin, generic.CreateView):
@@ -799,6 +801,7 @@ def registrocuenta_report(request):
         'form': ReporteMovimientoForm(),
         'cuenta': cuenta,
         'movimientos': movimientos,
+        'logo_url': static('adm/logo_empresa.png'),
     })
 
 
@@ -824,30 +827,36 @@ def generar_pdf(request):
     p = canvas.Canvas(response, pagesize=letter)
     width, height = letter
 
+    # Ruta del logotipo
+    #logo_path = os.path.join(os.getcwd(), "static", "base/img", "inemo.png")
+    logo_path = "static/base/img/inemo.png"
+
+    # Agregar el logotipo
+    if os.path.exists(logo_path):
+        p.drawImage(logo_path, 1 * inch, height - 1.8 * inch, width=1.5 * inch, height=1.5 * inch, preserveAspectRatio=True, mask='auto')
+
     # Encabezado
     p.setFont("Helvetica-Bold", 16)
-    p.drawString(1 * inch, height - 0.5 * inch, "Reporte de Registros de Cuenta")
+    p.drawString(3 * inch, height - 0.5 * inch, "Reporte de Registros de Cuenta")
     p.setFont("Helvetica", 12)
-    p.drawString(1 * inch, height - 1 * inch, f"Cuenta ID: {cuenta_id}")
-    p.drawString(1 * inch, height - 1.2 * inch, f"Desde: {fecha_desde} Hasta: {fecha_hasta}")
+    p.drawString(3 * inch, height - 1.2 * inch, f"Cuenta ID: {cuenta_id}")
+    p.drawString(3 * inch, height - 1.4 * inch, f"Desde: {fecha_desde} Hasta: {fecha_hasta}")
 
     # Tabla de datos
     p.setFont("Helvetica-Bold", 9)
-    p.drawString(1 * inch, height - 1.5 * inch, "ID")
-    p.drawString(2 * inch, height - 1.5 * inch, "Fecha")
-    p.drawString(3 * inch, height - 1.5 * inch, "Concepto")
-    p.drawString(4 * inch, height - 1.5 * inch, "Cantidad")
-    p.drawString(5 * inch, height - 1.5 * inch, "Folio Documento")
-    p.drawString(6 * inch, height - 1.5 * inch, "Proveedor")
+    p.drawString(1 * inch, height - 2 * inch, "ID")
+    p.drawString(2 * inch, height - 2 * inch, "Fecha")
+    p.drawString(3 * inch, height - 2 * inch, "Concepto")
+    p.drawString(4 * inch, height - 2 * inch, "Cantidad")
+    p.drawString(5 * inch, height - 2 * inch, "Folio Documento")
+    p.drawString(6 * inch, height - 2 * inch, "Proveedor")
 
-    p.line(1 * inch, height - 1.55 * inch, 7 * inch, height - 1.55 * inch)
+    p.line(1 * inch, height - 2.05 * inch, 7 * inch, height - 2.05 * inch)
 
-    y = height - 1.7 * inch
+    y = height - 2.3 * inch
 
     # Rellenar la tabla con datos
     p.setFont("Helvetica", 8)
-    for registro in registros:
-        p.setFont("Helvetica", 8)
     for registro in registros:
         p.drawString(1 * inch, y, str(registro.id))
         p.drawString(2 * inch, y, registro.fecha_movimiento.strftime('%d-%m-%Y'))
@@ -943,6 +952,22 @@ class BitacoraDeleteView(LoginRequiredMixin, PermissionRequiredMixin, generic.De
     context_object_name = 'obj'
     success_url = reverse_lazy('adm:bitacora_list')
     login_url = "bases:login"
+
+
+def registro_cuenta_form(request, id=None):
+    obj = None
+    if id:
+        obj = RegistroCuenta.objects.get(pk=id)
+
+    cuentas = Cuenta.objects.all()
+    proveedores = Proveedor.objects.all()
+
+    return render(request, 'tu_template.html', {
+        'obj': obj,
+        'cuentas': cuentas,
+        'proveedores': proveedores
+    })
+
         
 
 

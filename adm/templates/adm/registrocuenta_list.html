@@ -5,10 +5,10 @@
     <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
         <h6 class="m-0 font-weight-bold text-primary">Lista de movimientos</h6>
         <a href="{% url 'adm:registrocuenta_new' %}" class="btn btn-primary">Nuevo Movimiento</a>
-        <a href="{% url 'adm:registrocuenta_report' %}" class="btn btn-primary">Reporte de Movimientos</a>
+        
     </div>
     <div class="card-body">
-        {% if not RegistroCuentas %}  <!-- Asegúrate de que este nombre coincida con el contexto -->
+        {% if not registros %}  <!-- Asegúrate de que este nombre coincida con el contexto -->
             <div class="alert alert-info">No hay movimientos registrados.</div>
         {% else %}
             <table class="table table-striped table-hover">
@@ -25,7 +25,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for rc in RegistroCuentas %}  <!-- Asegúrate de que este nombre coincida con el contexto -->
+                    {% for rc in registros %}  <!-- Asegúrate de que este nombre coincida con el contexto -->
                         <tr>
                             <td>{{ rc.id }}</td>
                             <td>{{ rc.fecha_movimiento }}</td>

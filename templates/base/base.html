@@ -76,7 +76,40 @@
                 Opciones de menú
             </div>
 
- 
+
+            <!-- Nav Item - Pages Collapse Menu -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#catalogosMenuBanco" aria-expanded="true" aria-controls="catalogosMenuBanco">
+                    <i class="fas fa-wallet icon-with-border"></i>  
+                    <span class="font-weight-bold text-white">Movimientos Bancarios</span>
+                </a>
+                <div id="catalogosMenuBanco" class="collapse" aria-labelledby="headingCatalogos" data-parent="#accordionSidebar">
+                    <div class="bg-gradient-light py-2 collapse-inner rounded">
+                        <h6 class="collapse-header text-primary">
+                            <i class="fas fa-piggy-bank mr-2"></i> Bancos y Cuentas
+                        </h6>
+
+                        {% if perms.adm.view_banco %}
+                        <a class="collapse-item" href="{% url 'adm:banco_list' %}">
+                            <i class="fas fa-university mr-2 text-dark"></i> Bancos
+                        </a>
+                        {% endif %}
+
+                        {% if perms.adm.view_cuenta %}
+                        <a class="collapse-item" href="{% url 'adm:cuenta_list' %}">
+                            <i class="fas fa-piggy-bank mr-2 text-success"></i> Cuentas Bancarias
+                        </a>
+                        {% endif %}
+
+                        {% if perms.adm.view_registrocuenta %}
+                        <a class="collapse-item" href="{% url 'adm:registrocuenta_list' %}">
+                            <i class="fas fa-exchange-alt mr-2 text-info"></i> Movtos a Cuentas
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </li>
+
             
 
             
@@ -233,18 +266,7 @@
                             </a>
                             {% endif %}
                     
-                            {% if perms.adm.view_banco %}
-                            <a class="collapse-item" href="{% url 'adm:banco_list' %}">
-                                <i class="fas fa-university mr-2 text-dark"></i> Bancos
-                            </a>
-                            {% endif %}
-                    
-                            {% if perms.adm.view_cuenta %}
-                            <a class="collapse-item" href="{% url 'adm:cuenta_list' %}">
-                                <i class="fas fa-money-check-alt mr-2 text-secondary"></i> Cuentas
-                            </a>
-                            {% endif %}
-                    
+                            
                         </div>
                     </div>
             </li>
@@ -252,11 +274,25 @@
             <!-- Divider -->
             <hr class="sidebar-divider">
 
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Accesorios
-            </div>
-
+            <!-- Nav Item - Pages Collapse Menu -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#catalogosMenuCompras" aria-expanded="true" aria-controls="catalogosMenuCompras">
+                    <i class="fas fa-shopping-cart icon-with-border"></i>  
+                    <span class="font-weight-bold text-white">Compras</span> 
+                </a>
+                <div id="catalogosMenuCompras" class="collapse" aria-labelledby="headingCatalogos" data-parent="#accordionSidebar">
+                    <div class="bg-gradient-light py-2 collapse-inner rounded">
+                        
+                        
+                        <a class="collapse-item" href="{% url 'adm:compras_list' %}">
+                            <i class="fas fa-clipboard-list mr-2 text-info"></i> Lista de compras
+                        </a>
+                        
+                        
+                    </div>
+                </div>
+            </li>
+            
             <!-- Nav Item - Pages Collapse Menu -->
             <li class="nav-item active">
                 <a class="nav-link" href="#" data-toggle="collapse" data-target="#collapsePages" aria-expanded="true"
@@ -318,7 +354,7 @@
                         <i class="fa fa-bars"></i>
                     </button>
 
-                    <!-- Topbar Search -->
+                    {% comment %} <!-- Topbar Search -->
                     <form
                         class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
                         <div class="input-group">
@@ -331,7 +367,7 @@
                             </div>
                         </div>
                     </form>
-
+ {% endcomment %}
                     <!-- Topbar Navbar -->
                     <ul class="navbar-nav ml-auto">
 
