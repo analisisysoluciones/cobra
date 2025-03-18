@@ -10,6 +10,7 @@ from django.utils import timezone
 from datetime import date, timedelta
 
 
+
 # Create your models here.
 
 escoge_tipo = [
@@ -157,7 +158,7 @@ class CompraEnc(ClaseModelo):
     archivo_pdf = models.FileField('archivo pdf:', upload_to='documentos/pdfs/', blank=True, null=True)
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE, related_name='documentos')
     estado = models.CharField('Estado',default='Pendiente',max_length=15)
-    dias_credito = models.PositiveIntegerField('Días de Crédito', default=0)
+    dias_credito = models.PositiveIntegerField('Días de Crédito', default=0, blank=True, null=True)
     fecha_pago = models.DateField('Fecha de Pago', blank=True, null=True)
 
     ESTATUS_PAGO_CHOICES = [
@@ -170,18 +171,25 @@ class CompraEnc(ClaseModelo):
 
     def calcular_fecha_pago(self):
         """ Calcula la fecha de pago sumando los días de crédito a la fecha de la compra """
-        if self.dias_credito and self.fecha:
-            return self.fecha + timedelta(days=self.dias_credito)
-        return None
+        if self.dias_credito is not None and self.fecha:
+            try:
+                dias_credito_int = int(self.dias_credito)
+                return self.fecha + timedelta(days=dias_credito_int)
+            except (ValueError, TypeError):
+                return self.fecha # Retorna la misma fecha de compra
+        return self.fecha # Retorna la misma fecha de compra
 
     def calcular_estatus_pago(self):
         """ Determina el estado de pago basado en la fecha actual """
         hoy = date.today()
         if self.fecha_pago:
-            if hoy > self.fecha_pago and self.estatus_pago == 'pendiente':
-                return 'vencido'
-            elif hoy >= self.fecha_pago - timedelta(days=5) and self.estatus_pago == 'pendiente':
-                return 'proximo_vencer'
+            if isinstance(self.fecha_pago, date):  # Verifica que self.fecha_pago sea una fecha
+                if hoy > self.fecha_pago and self.estatus_pago == 'pendiente':
+                    return 'vencido'
+                elif hoy >= self.fecha_pago - timedelta(days=5) and self.estatus_pago == 'pendiente':
+                    return 'proximo_vencer'
+            else:
+                print(f"Advertencia: fecha_pago no es un objeto datetime.date: {type(self.fecha_pago)}")
         return self.estatus_pago
 
     def calcular_total(self):

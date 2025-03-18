@@ -32,7 +32,6 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
 from django.db.models import Sum, Max
 from django.contrib.messages.views import SuccessMessageMixin
-import datetime
 import uuid
 from django.utils.timezone import now
 from io import BytesIO
@@ -436,7 +435,8 @@ def compras(request, compra_id=None):
         
         if enc:
             det = CompraDet.objects.filter(compra=enc)
-            fecha = datetime.date.isoformat(enc.fecha)
+            #fecha = datetime.date.isoformat(enc.fecha)
+            fecha = enc.fecha.isoformat()
             
             
             e = {
@@ -446,6 +446,8 @@ def compras(request, compra_id=None):
                 'proyecto':enc.proyecto.id,
                 'inventario':enc.inventario,
                 'folio_documento':enc.folio_documento,
+                'dias_credito':enc.dias_credito,
+                'orden_compra':enc.orden_compra,
                 'total':enc.total
                 
             }
@@ -462,17 +464,16 @@ def compras(request, compra_id=None):
             tipo_id = request.POST.get('tipo')
             inventario = request.POST.get('inventario')
             folio_documento = request.POST.get('folio_documento')
+            dias_credito = request.POST.get('dias_credito')
+            orden_compra = request.POST.get('orden_compra')
             total = 0
+            
             
             proveedor = Proveedor.objects.get(pk=proveedor_id)
             proyecto = Proyecto.objects.get(pk=proyecto_id)
             tipo = TipoDocumento.objects.get(pk=tipo_id)
 
-            print(request.POST.get('id_id_producto'))  # Verifica si estás recibiendo el valor esperado
-            print(request.POST.get('id_cantidad_detalle'))  # Verifica si el valor es correcto
-
-
-            
+                        
             if not compra_id:
                 
                 enc = CompraEnc(
@@ -481,6 +482,8 @@ def compras(request, compra_id=None):
                     proveedor = proveedor,
                     tipo = tipo,
                     folio_documento = folio_documento,
+                    orden_compra = orden_compra,
+                    dias_credito = dias_credito,
                     uc=request.user
                 )
                 if enc:
@@ -493,6 +496,8 @@ def compras(request, compra_id=None):
                     enc.proyecto = proyecto
                     enc.proveedor = proveedor
                     enc.folio_documento=folio_documento
+                    enc.dias_credito=dias_credito
+                    enc.orden_compra=orden_compra
                     enc.um = request.user.id
                     enc.save()
                     
@@ -511,8 +516,9 @@ def compras(request, compra_id=None):
                 return redirect('adm:compras_list')
             
             
-            material_id = request.POST.get('material.id')
-            material = Material.objects.get(pk=material_id)
+            material_id = request.POST.get('id_id_producto')
+            material = Material.objects.get(pk=material_id)            
+            print(material_id+' producto ')
             cantidad = request.POST.get('id_cantidad_detalle')
             precio_unitario=request.POST.get('id_precio_detalle')
             importe=0
