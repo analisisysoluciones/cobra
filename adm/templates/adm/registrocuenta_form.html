@@ -56,20 +56,7 @@
                             </div>
                         </div>
 
-                        <div class="form-group row">
-                            <label for="id_proveedor" class="col-sm-3 col-form-label">Proveedor:</label>
-                            <div class="col-sm-9">
-                                <select name="proveedor" class="form-control" id="id_proveedor" required>
-                                    <option value="">Seleccione un proveedor</option>
-                                    {% for proveedor in proveedores %}
-                                        <option value="{{ proveedor.id }}">
-                                            {{ proveedor.razon_social }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-
+                        
                         <div class="form-group row">
                             <label for="id_cuenta" class="col-sm-3 col-form-label">Cuenta:</label>
                             <div class="col-sm-9">

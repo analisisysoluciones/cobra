@@ -19,7 +19,6 @@
                         <th>Concepto</th>
                         <th>Cantidad</th>
                         <th>Folio Documento</th>
-                        <th>Proveedor</th>
                         <th>Cuenta</th>
                         <th>Acciones</th>
                     </tr>
@@ -32,7 +31,6 @@
                             <td>{{ rc.concepto }}</td>
                             <td>{{ rc.cantidad }}</td>
                             <td>{{ rc.folio_documento }}</td>
-                            <td>{{ rc.proveedor.razon_social }}</td>
                             <td>{{ rc.cuenta.cuenta }}</td>
                             <td>
                                 <a href="{% url 'adm:registrocuenta_edit' rc.id %}" class="btn btn-warning btn-circle" role="button">

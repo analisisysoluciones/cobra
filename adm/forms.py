@@ -196,7 +196,6 @@ class RegistroCuentaForm(forms.ModelForm):
             'cantidad',
             'cuenta',
             'folio_documento',
-            'proveedor',
             'reposicion_flujo',
         ]
         widgets = {
@@ -205,7 +204,6 @@ class RegistroCuentaForm(forms.ModelForm):
             'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'cuenta': forms.Select(attrs={'class': 'form-control'}),
             'folio_documento': forms.TextInput(attrs={'class': 'form-control'}),
-            'proveedor': forms.Select(attrs={'class': 'form-control'}),
             'reposicion_flujo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }        
         

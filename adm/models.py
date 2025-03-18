@@ -169,6 +169,13 @@ class CompraEnc(ClaseModelo):
     ]
     estatus_pago = models.CharField('Estatus de Pago', max_length=15, choices=ESTATUS_PAGO_CHOICES, default='pendiente')
 
+
+    def saldo_pendiente(self):
+        pagos_realizados = self.pagos.aggregate(models.Sum('monto'))['monto__sum'] or 0
+        return self.total - pagos_realizados
+
+
+
     def calcular_fecha_pago(self):
         """ Calcula la fecha de pago sumando los días de crédito a la fecha de la compra """
         if self.dias_credito is not None and self.fecha:
@@ -253,37 +260,12 @@ class CompraDet(ClaseModelo):
          verbose_name_plural = "documentos d"    
 
 
-
-        
-class Equipo(ClaseModelo):
-    identificador = models.IntegerField('Identificador',unique=True,default=0)
-    descripcion = models.CharField('Descripcion',max_length=60,blank=False,null=False,default='Unidad')
-    modelo=models.IntegerField('Modelo',blank=False,null=False,default=0)
-    placas=models.CharField('Placas',max_length=10,blank=True,null=True,default='S/P')
-        
-    def __str__(self):
-        return self.descripcion
-        
-    def save(self):
-        self.descripcion = self.descripcion.upper()
-        self.placas = self.placas.upper()
-        super(Equipo, self).save()
-    
-    class Meta:
-        verbose_name = 'Maquinaria y equipo'
-        verbose_name_plural = 'Maquinarias y equipos'
-
-
-        
-
-
 class RegistroCuenta(ClaseModelo):  # Cambié a `models.Model`
     fecha_movimiento = models.DateField()
     concepto = models.CharField('Concepto', max_length=120, blank=False, null=False, default='Concepto por comprobar')
     cantidad = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0.00)
     cuenta = models.ForeignKey('Cuenta', on_delete=models.CASCADE)
-    folio_documento = models.CharField('Folio documento', max_length=15, blank=True, null=True, default='S/F')
-    proveedor = models.ForeignKey('Proveedor', on_delete=models.CASCADE, null=True, blank=True)
+    folio_documento = models.CharField('Folio documento', max_length=15, blank=True, null=True, default='')
     reposicion_flujo = models.BooleanField('Reposicion de caja', default=True)
     
     def __str__(self):
@@ -319,6 +301,46 @@ class RegistroCuenta(ClaseModelo):  # Cambié a `models.Model`
 
 
 
+class TipoPago(models.Model):
+    nombre = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.nombre
+
+class Pago(models.Model):
+    compra = models.ForeignKey(CompraEnc, on_delete=models.CASCADE, related_name='pagos')
+    tipo_pago = models.ForeignKey(TipoPago, on_delete=models.PROTECT)
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('compra', 'tipo_pago', 'monto')  # Evita pagos idénticos
+
+    def save(self, *args, **kwargs):
+        saldo_pendiente = self.compra.total - sum(p.monto for p in self.compra.pagos.all())
+        if self.monto > saldo_pendiente:
+            raise ValueError("El pago excede el saldo pendiente")
+        super().save(*args, **kwargs)
+
+
+        
+class Equipo(ClaseModelo):
+    identificador = models.IntegerField('Identificador',unique=True,default=0)
+    descripcion = models.CharField('Descripcion',max_length=60,blank=False,null=False,default='Unidad')
+    modelo=models.IntegerField('Modelo',blank=False,null=False,default=0)
+    placas=models.CharField('Placas',max_length=10,blank=True,null=True,default='S/P')
+        
+    def __str__(self):
+        return self.descripcion
+        
+    def save(self):
+        self.descripcion = self.descripcion.upper()
+        self.placas = self.placas.upper()
+        super(Equipo, self).save()
+    
+    class Meta:
+        verbose_name = 'Maquinaria y equipo'
+        verbose_name_plural = 'Maquinarias y equipos'
 
     
 class Bitacora(models.Model):
