@@ -565,7 +565,7 @@ def generar_pdf(request):
     p.drawString(3 * inch, height - 2 * inch, "Concepto")
     p.drawString(4 * inch, height - 2 * inch, "Cantidad")
     p.drawString(5 * inch, height - 2 * inch, "Folio Docto")
-    p.drawString(6 * inch, height - 2 * inch, "Proveedor")
+    
 
     p.line(1 * inch, height - 2.05 * inch, 7 * inch, height - 2.05 * inch)
 
@@ -579,7 +579,7 @@ def generar_pdf(request):
         p.drawString(3 * inch, y, registro.concepto)
         p.drawString(4 * inch, y, f"{registro.cantidad:.2f}")
         p.drawString(5 * inch, y, registro.folio_documento if registro.folio_documento else "N/A")
-        p.drawString(6 * inch, y, registro.proveedor.razon_social if registro.proveedor else "N/A")
+       
         y -= 0.3 * inch  # Espacio entre filas
 
     # Mensaje si no hay registros
@@ -730,7 +730,7 @@ class RegistroCuentaDel(LoginRequiredMixin, generic.DeleteView):
 
 def generar_reporte_RegistroCuentas(request):
     # Obtener los datos de los RegistroCuentas
-    RegistroCuentas = RegistroCuenta.objects.all().values('fecha_RegistroCuenta', 'concepto', 'cantidad', 'folio_documento', 'proveedor__nombre')
+    RegistroCuentas = RegistroCuenta.objects.all().values('fecha_RegistroCuenta', 'concepto', 'cantidad', 'folio_documento')
 
     # Crear un PDF
     response = HttpResponse(content_type='application/pdf')
@@ -742,7 +742,7 @@ def generar_reporte_RegistroCuentas(request):
     # Crear tabla de datos
     data = [['Fecha', 'Concepto', 'Cantidad', 'Folio Documento', 'Proveedor']]
     for RegistroCuenta in RegistroCuentas:
-        data.append([RegistroCuenta['fecha_RegistroCuenta'], RegistroCuenta['concepto'], RegistroCuenta['cantidad'], RegistroCuenta['folio_documento'], RegistroCuenta['proveedor__nombre']])
+        data.append([RegistroCuenta['fecha_RegistroCuenta'], RegistroCuenta['concepto'], RegistroCuenta['cantidad'], RegistroCuenta['folio_documento']])
     
     table = Table(data)
     style = TableStyle([
