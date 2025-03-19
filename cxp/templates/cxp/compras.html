@@ -149,7 +149,7 @@
                                     <div class="row">
                                         <div class="col">
                                             <button type="submit" class="btn btn-danger"><span class="fa fa-save"></span>Guardar</button>
-                                            <a href="{% url 'adm:compras_list' %}" class="btn btn-success"><i class="far fa-hand-point-left"></i> Cancelar</a>
+                                            <a href="{% url 'cxp:compras_list' %}" class="btn btn-success"><i class="far fa-hand-point-left"></i> Cancelar</a>
                                         </div>
                                     </div>
                                     <!-- Fin Botones -->
@@ -179,7 +179,7 @@
                                             <td>{{ item.importe }}</td>
                                             
                                             <td>
-                                                <button class="btn btn-danger btn-circle" onclick="return abrir_modal('{% url 'adm:compras_del' compra_id=encabezado.pk pk=item.id %}')">
+                                                <button class="btn btn-danger btn-circle" onclick="return abrir_modal('{% url 'cxp:compras_del' compra_id=encabezado.pk pk=item.id %}')">
                                                 <i class="fas fa-trash-alt"></i></button>
                                             </td>
                                             </tr>

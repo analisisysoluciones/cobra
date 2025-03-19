@@ -5,7 +5,7 @@
     <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
         <h6 class="m-0 font-weight-bold text-primary">Lista de Proveedores</h6>
         <div>
-            <a href="{% url 'adm:proveedor_new' %}" class="btn btn-primary">Nuevo Proveedor</a>
+            <a href="{% url 'cxp:proveedor_new' %}" class="btn btn-primary">Nuevo Proveedor</a>
         </div>
     </div>
     <div class="card-body">
@@ -30,10 +30,10 @@
                         <td>{{ proveedor.telefono }}</td>
                         <td>{{ proveedor.email }}</td>
                         <td>
-                            <a href="{% url 'adm:proveedor_edit' proveedor.id %}" class="btn btn-warning btn-circle" role="button">
+                            <a href="{% url 'cxp:proveedor_edit' proveedor.id %}" class="btn btn-warning btn-circle" role="button">
                                 <i class="far fa-edit"></i>
                             </a>
-                            <a href="{% url 'adm:proveedor_del' proveedor.id %}" class="btn btn-danger btn-circle" role="button">
+                            <a href="{% url 'cxp:proveedor_del' proveedor.id %}" class="btn btn-danger btn-circle" role="button">
                                 <i class="far fa-trash-alt"></i>
                             </a>
                         </td>

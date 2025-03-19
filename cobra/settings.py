@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'ventas',
     'widget_tweaks',
     'nomina',
+    'cxp',
 
 ]
 

@@ -2,7 +2,7 @@ from django import forms
 import datetime
 from django.core.exceptions import ValidationError
 from .models import( Cuenta, Banco, Residente, TipoDocumento, Proyecto, Simbologia, 
-                    Proveedor, CompraEnc, CompraDet, RegistroCuenta, Equipo, Bitacora)
+                     RegistroCuenta, Equipo, Bitacora, TipoPago, Pago)
 from django_select2.forms import Select2Widget
 from django.shortcuts import render, redirect
 import re
@@ -10,24 +10,10 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 
 
-
-class ProveedorForm(forms.ModelForm):
-    experiencia = forms.ModelChoiceField(
-        queryset=Simbologia.objects.all(),
-        label="Experiencia", 
-        empty_label="Selecciona una experiencia", 
-        widget=Select2Widget(attrs={'class': 'form-control'})
-    )
-
+class TipoPagoForm(forms.ModelForm):
     class Meta:
-        model = Proveedor
-        fields = ['razon_social', 'domicilio', 'telefono', 'email', 'experiencia']
-        widgets = {
-            'razon_social': forms.TextInput(attrs={'class': 'form-control'}),
-            'domicilio': forms.TextInput(attrs={'class': 'form-control'}),
-            'telefono': forms.TextInput(attrs={'class': 'form-control'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
-        }
+        model = TipoPago
+        fields = ['nombre']
 
     
 class BancoForm(forms.ModelForm):
@@ -157,55 +143,6 @@ class SimbologiaForm(forms.ModelForm):
 
 
         
-class CompraEncForm(forms.ModelForm):
-    class Meta:
-        model = CompraEnc
-        fields = ['proveedor', 'fecha', 'orden_compra','folio_documento','dias_credito', 'proyecto', 'tipo', 'inventario', 'total']
-        widgets = {
-            'proveedor': forms.Select(attrs={'class': 'form-control select2'}),
-            'proyecto': forms.Select(attrs={'class': 'form-control select2'}),  # Campo de proyecto como dropdown
-            'tipo': forms.Select(attrs={'class': 'form-control select2'}),      # Campo de tipo como dropdown
-            'fecha': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'orden_compra': forms.NumberInput(attrs={'class': 'form-control'}),
-            'folio_documento': forms.TextInput(attrs={'class': 'form-control'}),
-            'dias_credito':forms.NumberInput(attrs={'class': 'form-control'}),
-            'inventario': forms.TextInput(attrs={'class': 'form-control'}),
-            'total': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
-        }
-        
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in iter(self.fields):
-            self.fields[field].widget.attrs.update({
-                'class':'form-control'
-            })
-        # aqui van los campos de solo lectura
-        self.fields['total'].widget.attrs['readonly'] = True
-
-    
-        
-        
-
-
-class RegistroCuentaForm(forms.ModelForm):
-    class Meta:
-        model = RegistroCuenta
-        fields = [
-            'fecha_movimiento',
-            'concepto',
-            'cantidad',
-            'cuenta',
-            'folio_documento',
-            'reposicion_flujo',
-        ]
-        widgets = {
-            'fecha_movimiento': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'concepto': forms.TextInput(attrs={'class': 'form-control'}),
-            'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'cuenta': forms.Select(attrs={'class': 'form-control'}),
-            'folio_documento': forms.TextInput(attrs={'class': 'form-control'}),
-            'reposicion_flujo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        }        
         
 
     
@@ -254,5 +191,51 @@ class TipoDocumentoForm(forms.ModelForm):
             'tipo': forms.TextInput(attrs={'class': 'form-control'}),
             'movimiento': forms.Select(attrs={'class': 'form-control'}),
         }
+
+
+class RegistroCuentaForm(forms.ModelForm):
+    class Meta:
+        model = RegistroCuenta
+        fields = [
+            'fecha_movimiento',
+            'concepto',
+            'cantidad',
+            'cuenta',
+            'folio_documento',
+            'reposicion_flujo',
+        ]
+        widgets = {
+            'fecha_movimiento': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'concepto': forms.TextInput(attrs={'class': 'form-control'}),
+            'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'cuenta': forms.Select(attrs={'class': 'form-control'}),
+            'folio_documento': forms.TextInput(attrs={'class': 'form-control'}),
+            'reposicion_flujo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }        
+
+
+class PagoForm(forms.ModelForm):
+    def __init__(self, *args, compra=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if compra:
+            self.instance.compra = compra  # ✅ Se asigna la compra al formulario
+
+    class Meta:
+        model = Pago
+        fields = ['tipo_pago', 'monto']
+    
+    def clean_monto(self):
+        monto = self.cleaned_data['monto']
+        
+        if not self.instance.compra:
+            raise forms.ValidationError("El pago no está asociado a ninguna compra.")
+
+        saldo_pendiente = self.instance.compra.saldo_pendiente()
+        
+        if monto > saldo_pendiente:
+            raise forms.ValidationError("El pago excede el saldo pendiente.")
+        
+        return monto
+
 
 

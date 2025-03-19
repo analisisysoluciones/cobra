@@ -10,15 +10,16 @@ from bases.views import SinPrivilegios
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from .models import( Banco, Cuenta, Residente, Proyecto, TipoDocumento,
-                    Simbologia, Proveedor, CompraEnc, CompraDet, RegistroCuenta,Equipo, Bitacora
+                    Simbologia, Equipo, Bitacora, RegistroCuenta, TipoPago, Pago
                     )
 
 from inv.models import Material
+from cxp.models import Proveedor, CompraEnc
 #from .calculos import calcular_nomina_semanal_todos
 
 from .forms import( BancoForm, CuentaForm, ResidenteForm, TipoDocumentoForm, ProyectoForm, 
-                   SimbologiaForm, ProveedorForm, CompraEncForm, RegistroCuentaForm, 
-                   ReporteMovimientoForm, EquipoForm, BitacoraForm)
+                   SimbologiaForm, PagoForm,
+                   ReporteMovimientoForm, EquipoForm, BitacoraForm, TipoPagoForm, RegistroCuentaForm)
 
 from xhtml2pdf import pisa
 from django.http import HttpResponse
@@ -54,60 +55,6 @@ pdfmetrics.registerFont(TTFont("Arial", "Arial.ttf"))
 
 # Establecer idioma español para los nombres de los meses
 locale.setlocale(locale.LC_TIME, "es_ES.utf8")
-
-
-# Lista de proveedores
-class ProveedorListView(LoginRequiredMixin, PermissionRequiredMixin, generic.ListView):
-    permission_required = "adm.view_proveedor"
-    model = Proveedor
-    template_name = 'adm/proveedor_list.html'  # Debes crear este archivo HTML
-    context_object_name = 'proveedores'
-    login_url = "bases:login"
-    
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        print(queryset)  # Verifica qué se está pasando
-        return queryset
-    
-    
-
-# Crear proveedor
-class ProveedorCreateView(LoginRequiredMixin, generic.CreateView):
-    model = Proveedor
-    form_class = ProveedorForm
-    template_name = 'adm/proveedor_form.html'  # Debes crear este archivo HTML
-    success_url = reverse_lazy('adm:proveedor_list')  # Ajusta la URL según sea necesario
-    login_url = "bases:login"
-    
-    def form_valid(self, form):
-        form.instance.uc = self.request.user
-        return super().form_valid(form)
-
-# Actualizar proveedor
-class ProveedorUpdateView(LoginRequiredMixin, generic.UpdateView):
-    model = Proveedor
-    form_class = ProveedorForm
-    template_name = 'adm/proveedor_form.html'
-    success_url = reverse_lazy('adm:proveedor_list')
-    login_url = "bases:login"
-    
-    def form_valid(self, form):
-        form.instance.um = self.request.user.id
-        return super().form_valid(form)
-
-# Eliminar proveedor
-class ProveedorDeleteView(LoginRequiredMixin, generic.DeleteView):
-    model = Proveedor
-    template_name = 'adm/proveedor_del.html'  # Debes crear este archivo HTML
-    context_object_name='obj'
-    success_url = reverse_lazy('adm:proveedor_list')
-    login_url = "bases:login"
-
-
-
-
-
-
 
 
 class BancoView(LoginRequiredMixin, PermissionRequiredMixin, generic.ListView):
@@ -390,193 +337,328 @@ def simbologia_pdf(request):
     return response
 
 
-#---------------------------------------------------------------------------------------------#
-# Vistas para los documentos
-#
-#---------------------------------------------------------------------------------------------#
 
 
-class ComprasView(LoginRequiredMixin, generic.ListView):
-    model = CompraEnc
-    template_name = 'adm/compras_list.html'
+  
+  
+
+
+
+
+# views.py
+
+class EquipoListView(LoginRequiredMixin, PermissionRequiredMixin, generic.ListView):
+    permission_required = "adm.view_equipo"
+    model = Equipo
+    template_name = 'adm/equipo_list.html'
+    context_object_name = 'equipos'
+
+class EquipoCreateView(LoginRequiredMixin, generic.CreateView):
+    model = Equipo
+    form_class = EquipoForm
+    template_name = 'adm/equipo_form.html'
+    success_url = '/adm/equipo/'  # Redirigir a la lista después de crear
+    
+    def form_valid(self, form):
+        form.instance.uc = self.request.user
+        return super().form_valid(form)
+
+class EquipoUpdateView(LoginRequiredMixin, generic.UpdateView):
+    model = Equipo
+    form_class = EquipoForm
+    template_name = 'adm/equipo_form.html'
+    success_url = '/adm/equipo/'  # Redirigir a la lista después de editar
+    
+    def form_valid(self, form):
+        form.instance.um = self.request.user.id
+        return super().form_valid(form)
+
+    def get_object(self):
+        return get_object_or_404(Equipo, pk=self.kwargs['pk'])
+
+class EquipoDeleteView(LoginRequiredMixin, generic.DeleteView):
+    model = Equipo
+    template_name = 'adm/equipo_confirm_delete.html'
+    success_url = '/adm/equipo/'  # Redirigir a la lista después de eliminar
+
+    def get_object(self):
+        return get_object_or_404(Equipo, pk=self.kwargs['pk'])
+    
+    
+def obtener_cuenta(cuenta_id):
+    try:
+        return Cuenta.objects.get(id=cuenta_id)
+    except Cuenta.DoesNotExist:
+        return None  # O maneja el error de la forma que desees
+
+    
+
+
+    
+class BitacoraListView(LoginRequiredMixin, PermissionRequiredMixin, generic.ListView):
+    permission_required = "adm.view_bitacora"
+    model = Bitacora
+    template_name = 'adm/bitacora_list.html'  # Debes crear este archivo HTML
+    context_object_name = 'bitacoras'
+    login_url = "bases:login"
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        print(queryset)  # Verifica qué se está pasando
+        return queryset
+
+# Crear una entrada de bitácora
+class BitacoraCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, generic.CreateView):
+    permission_required = "adm.add_bitacora"
+    model = Bitacora
+    form_class = BitacoraForm
+    template_name = 'adm/bitacora_form.html'
+    success_url = reverse_lazy('adm:bitacora_list')
+    login_url = "bases:login"
+    success_message = 'Bitácora registrada satisfactoriamente'
+    
+    def form_valid(self, form):
+        form.instance.uc = self.request.user  # Asigna al usuario actual
+        return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['proyectos'] = Proyecto.objects.all()  # Pasa todos los proyectos
+        context['residente'] = Residente.objects.all()  # Pasa todos los responsables
+        return context
+    
+# Actualizar una entrada de bitácora
+class BitacoraUpdateView(LoginRequiredMixin, PermissionRequiredMixin, generic.UpdateView):
+    permission_required = "adm.change_bitacora"
+    model = Bitacora
+    form_class = BitacoraForm
+    template_name = 'adm/bitacora_form.html'
+    success_url = reverse_lazy('adm:bitacora_list')
+    login_url = "bases:login"
+    
+    def form_valid(self, form):
+        form.instance.um = self.request.user.id  # Agrega al usuario que actualiza la bitácora
+        return super().form_valid(form)
+
+# Eliminar una entrada de bitácora
+class BitacoraDeleteView(LoginRequiredMixin, PermissionRequiredMixin, generic.DeleteView):
+    permission_required = "adm.delete_bitacora"
+    model = Bitacora
+    template_name = 'adm/bitacora_del.html'  # Debes crear este archivo HTML
     context_object_name = 'obj'
+    success_url = reverse_lazy('adm:bitacora_list')
+    login_url = "bases:login"
+
+
+def registro_cuenta_form(request, id=None):
+    obj = None
+    if id:
+        obj = RegistroCuenta.objects.get(pk=id)
+
+    cuentas = Cuenta.objects.all()
+    proveedores = Proveedor.objects.all()
+
+    return render(request, 'tu_template.html', {
+        'obj': obj,
+        'cuentas': cuentas,
+        'proveedores': proveedores
+    })
+
+        
+
+def realizar_pago(request, compra_id):
+    compra = get_object_or_404(CompraEnc, id=compra_id)
+    tipos_pago = TipoPago.objects.all()
+
+    if request.method == "POST":
+        tipo_pago_id = request.POST.get("tipo_pago")
+        monto = float(request.POST.get("monto"))
+
+        tipo_pago = get_object_or_404(TipoPago, id=tipo_pago_id)
+        saldo_pendiente = compra.total - sum(p.monto for p in compra.pagos.all())
+
+        if monto > saldo_pendiente:
+            messages.error(request, "El pago excede el saldo pendiente.")
+            return redirect('adm:detalle_compra', compra_id=compra.id)
+
+        Pago.objects.create(compra=compra, tipo_pago=tipo_pago, monto=monto)
+        messages.success(request, "Pago registrado con éxito.")
+        return redirect('adm:detalle_compra', compra_id=compra.id)
+
+    return render(request, "pagos/formulario_pago.html", {"compra": compra, "tipos_pago": tipos_pago})
+
+
+def registrocuenta_report(request):
+    cuenta_id = request.GET.get('cuenta')
+    fecha_desde = request.GET.get('fecha_inicio')
+    fecha_hasta = request.GET.get('fecha_fin')
+
+    print(f"Cuenta ID: {cuenta_id}, Fecha desde: {fecha_desde}, Fecha hasta: {fecha_hasta}")
+
+    try:
+        if fecha_desde and fecha_hasta:
+            fecha_desde = datetime.strptime(fecha_desde, '%Y-%m-%d')
+            fecha_hasta = datetime.strptime(fecha_hasta, '%Y-%m-%d')
+        else:
+            return HttpResponse("Fechas no válidas.")
+    except ValueError:
+        print("Fechas no válidas.")
+        return HttpResponse("Fechas no válidas.")
+
+    # Filtra los registros según los parámetros recibidos
+    movimientos = RegistroCuenta.objects.filter(
+        cuenta_id=cuenta_id,
+        fecha_movimiento__range=[fecha_desde, fecha_hasta]
+    )
+
+    cuenta = obtener_cuenta(cuenta_id)
+
+    return render(request, 'adm/registrocuenta_report.html', {
+        'form': ReporteMovimientoForm(),
+        'cuenta': cuenta,
+        'movimientos': movimientos,
+        'logo_url': static('adm/logo_empresa.png'),
+    })
+
+
+
+def generar_pdf(request):
+    cuenta_id = request.GET.get('cuenta')
+    fecha_desde = request.GET.get('fecha_inicio')
+    fecha_hasta = request.GET.get('fecha_fin')
+
+    # Filtrar registros
+    registros = RegistroCuenta.objects.filter(
+        cuenta_id=cuenta_id,
+        fecha_movimiento__range=[fecha_desde, fecha_hasta]
+    )
+
+    # Calcular la suma de las cantidades
+    total_cantidad = sum(registro.cantidad for registro in registros if registro.cantidad)
+
+    # Crear respuesta PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="reporte_registrocuenta.pdf"'
+
+    p = canvas.Canvas(response, pagesize=letter)
+    width, height = letter
+
+    # Ruta del logotipo
+    #logo_path = os.path.join(os.getcwd(), "static", "base/img", "inemo.png")
+    logo_path = "static/base/img/inemo.png"
+
+    # Agregar el logotipo
+    if os.path.exists(logo_path):
+        p.drawImage(logo_path, 1 * inch, height - 1.8 * inch, width=1.5 * inch, height=1.5 * inch, preserveAspectRatio=True, mask='auto')
+
+    # Encabezado
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(3 * inch, height - 0.5 * inch, "Reporte de Registros de Cuenta")
+    p.setFont("Helvetica", 12)
+    p.drawString(3 * inch, height - 1.2 * inch, f"Cuenta ID: {cuenta_id}")
+    p.drawString(3 * inch, height - 1.4 * inch, f"Desde: {fecha_desde} Hasta: {fecha_hasta}")
+
+    # Tabla de datos
+    p.setFont("Helvetica-Bold", 9)
+    p.drawString(1 * inch, height - 2 * inch, "ID")
+    p.drawString(2 * inch, height - 2 * inch, "Fecha")
+    p.drawString(3 * inch, height - 2 * inch, "Concepto")
+    p.drawString(4 * inch, height - 2 * inch, "Cantidad")
+    p.drawString(5 * inch, height - 2 * inch, "Folio Docto")
+    p.drawString(6 * inch, height - 2 * inch, "Proveedor")
+
+    p.line(1 * inch, height - 2.05 * inch, 7 * inch, height - 2.05 * inch)
+
+    y = height - 2.3 * inch
+
+    # Rellenar la tabla con datos
+    p.setFont("Helvetica", 8)
+    for registro in registros:
+        p.drawString(1 * inch, y, str(registro.id))
+        p.drawString(2 * inch, y, registro.fecha_movimiento.strftime('%d-%m-%Y'))
+        p.drawString(3 * inch, y, registro.concepto)
+        p.drawString(4 * inch, y, f"{registro.cantidad:.2f}")
+        p.drawString(5 * inch, y, registro.folio_documento if registro.folio_documento else "N/A")
+        p.drawString(6 * inch, y, registro.proveedor.razon_social if registro.proveedor else "N/A")
+        y -= 0.3 * inch  # Espacio entre filas
+
+    # Mensaje si no hay registros
+    if not registros.exists():
+        p.drawString(1 * inch, y, "No se encontraron registros para este rango.")
+    else:
+        y -= 0.25 * inch  # Espacio antes de la suma
+        p.setFont("Helvetica-Bold", 10)
+        p.drawString(1 * inch, y, f"Suma Total de Cantidad: {total_cantidad:.2f}")
+
+    p.showPage()
+    p.save()
+    return response
+
+
+class ReporteMovimientoView(LoginRequiredMixin, generic.View):
+    template_name = 'adm/reporte_movimiento.html'
+
+    def get(self, request, cuenta_id):
+        cuenta = get_object_or_404(Cuenta, id=cuenta_id)
+        form = ReporteMovimientoForm()
+        return render(request, self.template_name, {'form': form, 'movimientos': None, 'cuenta': cuenta})
+
+    def post(self, request, cuenta_id):
+        cuenta = get_object_or_404(Cuenta, id=cuenta_id)
+        form = ReporteMovimientoForm(request.POST)
+        if form.is_valid():
+            fecha_inicio = form.cleaned_data['fecha_inicio']
+            fecha_fin = form.cleaned_data['fecha_fin']
+            movimientos = RegistroCuenta.objects.filter(
+                fecha_movimiento__range=(fecha_inicio, fecha_fin),
+                cuenta=cuenta
+            )
+        return render(request, self.template_name, {'form': form, 'movimientos': movimientos, 'cuenta': cuenta})
+
+
+
+# Lista de tipos de pago
+class TipoPagoListView(LoginRequiredMixin, PermissionRequiredMixin, generic.ListView):
+    permission_required = "adm.view_tipopago"
+    model = TipoPago
+    template_name = 'adm/tipopago_list.html'  # Archivo HTML para la lista
+    context_object_name = 'tipos_pago'
+    login_url = "bases:login"
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        print(queryset)  # Verifica qué se está pasando
+        return queryset
+
+# Crear tipo de pago
+class TipoPagoCreateView(LoginRequiredMixin, generic.CreateView):
+    model = TipoPago
+    form_class = TipoPagoForm
+    template_name = 'adm/tipopago_form.html'  # Archivo HTML para el formulario
+    success_url = reverse_lazy('adm:tipopago_list')
+    login_url = "bases:login"
 
     def form_valid(self, form):
-        # Calculas el importe antes de guardar
-        compra_detalle = form.save(commit=False)
-        compra_detalle.importe = compra_detalle.cantidad * compra_detalle.precio_unitario
-        compra_detalle.save()
         return super().form_valid(form)
-  
-  
-#@login_required(login_url='/login/')
-#@permission_required('cmp.view_comprasb',login_url='bases:sin_privilegios')
 
-def compras(request, compra_id=None):
-    template_name = 'adm/compras.html'
-    materialx = Material.objects.filter(estado=True)
-    
-    # Listas de proveedores, proyectos y tipos de documento
-    proveedores = Proveedor.objects.filter(estado=True)
-    proyectos = Proyecto.objects.filter(estado=True)
-    tipos = TipoDocumento.objects.all()
-    form_compras={}
+# Actualizar tipo de pago
+class TipoPagoUpdateView(LoginRequiredMixin, generic.UpdateView):
+    model = TipoPago
+    form_class = TipoPagoForm
+    template_name = 'adm/tipopago_form.html'
+    success_url = reverse_lazy('adm:tipopago_list')
+    login_url = "bases:login"
 
-    contexto = {
-        'materiales': materialx,
-        'proveedores': proveedores,
-        'proyectos': proyectos,
-        'tipos': tipos,
-    }
+    def form_valid(self, form):
+        return super().form_valid(form)
 
-    if request.method == 'GET':
-        form_compras=CompraEncForm
-        enc = CompraEnc.objects.filter(pk=compra_id).first()
-        
-        if enc:
-            det = CompraDet.objects.filter(compra=enc)
-            #fecha = datetime.date.isoformat(enc.fecha)
-            fecha = enc.fecha.isoformat()
-            
-            
-            e = {
-                'fecha':fecha,
-                'proveedor':enc.proveedor.id,
-                'tipo':enc.tipo.id,
-                'proyecto':enc.proyecto.id,
-                'inventario':enc.inventario,
-                'folio_documento':enc.folio_documento,
-                'dias_credito':enc.dias_credito,
-                'orden_compra':enc.orden_compra,
-                'total':enc.total
-                
-            }
-            form_compras=CompraEncForm(e)
-        else:
-            det=None
-        
-        contexto={'materiales':materialx,'encabezado':enc,'detalle':det,'form_enc':form_compras}
-        
-    if request.method=='POST':
-            fecha = request.POST.get('fecha')
-            proveedor_id = request.POST.get('proveedor')
-            proyecto_id = request.POST.get('proyecto')
-            tipo_id = request.POST.get('tipo')
-            inventario = request.POST.get('inventario')
-            folio_documento = request.POST.get('folio_documento')
-            dias_credito = request.POST.get('dias_credito')
-            orden_compra = request.POST.get('orden_compra')
-            total = 0
-            
-            
-            proveedor = Proveedor.objects.get(pk=proveedor_id)
-            proyecto = Proyecto.objects.get(pk=proyecto_id)
-            tipo = TipoDocumento.objects.get(pk=tipo_id)
-
-                        
-            if not compra_id:
-                
-                enc = CompraEnc(
-                    fecha = fecha,
-                    proyecto = proyecto,
-                    proveedor = proveedor,
-                    tipo = tipo,
-                    folio_documento = folio_documento,
-                    orden_compra = orden_compra,
-                    dias_credito = dias_credito,
-                    uc=request.user
-                )
-                if enc:
-                    enc.save()
-                    compra_id=enc.id
-            else:
-                enc=CompraEnc.objects.filter(pk=compra_id).first()
-                if enc:
-                    enc.fecha = fecha
-                    enc.proyecto = proyecto
-                    enc.proveedor = proveedor
-                    enc.folio_documento=folio_documento
-                    enc.dias_credito=dias_credito
-                    enc.orden_compra=orden_compra
-                    enc.um = request.user.id
-                    enc.save()
-                    
-                    material = Material.objects.get(pk=request.POST.get('id_id_producto'))
-                    cantidad = request.POST.get('id_cantidad_detalle')
-                    precio_unitario = request.POST.get('id_precio_detalle')
-
-
-                    print(request.POST.get('id_material'))  # Verifica si estás recibiendo el valor esperado
-                    print(request.POST.get('id_cantidad_detalle'))  # Verifica si el valor es correcto
-                    print(request.POST.get('material.id'))
-                    print(request.POST.get('id_id_producto'))
-
-            
-            if not compra_id:
-                return redirect('adm:compras_list')
-            
-            
-            material_id = request.POST.get('id_id_producto')
-            material = Material.objects.get(pk=material_id)            
-            print(material_id+' producto ')
-            cantidad = request.POST.get('id_cantidad_detalle')
-            precio_unitario=request.POST.get('id_precio_detalle')
-            importe=0
-        
-            det = CompraDet(
-                compra = enc,
-                material = material,
-                cantidad = cantidad,
-                precio_unitario = precio_unitario,
-                uc = request.user
-            )
-            if det:
-                det.importe = importe
-                det.save()
-                
-                importe = CompraDet.objects.filter(compra=compra_id).aggregate(Sum('importe'))
-                enc.total = importe['importe__sum'] if ['importe__sum'] else 0
-                enc.save()
-                
-            return redirect('adm:compras_edit',compra_id=compra_id)
-            
-            
-            
-        
-    return render(request, template_name, contexto)
-
-
-
-class CompraDetDelete(LoginRequiredMixin, generic.DeleteView):
-    model = CompraDet
-    template_name = "adm/compras_det_del.html"
+# Eliminar tipo de pago
+class TipoPagoDeleteView(LoginRequiredMixin, generic.DeleteView):
+    model = TipoPago
+    template_name = 'adm/tipopago_del.html'  # Archivo HTML para confirmación
     context_object_name = 'obj'
-
-    def get_success_url(self):
-        compra_id = self.kwargs['compra_id']
-        
-        return reverse_lazy('adm:compras_edit', kwargs={'compra_id': compra_id})
-
-    
-    def delete(self, request, *args, **kwargs):
-        self.object = self.get_object()
-
-        # Agregar depuración aquí
-        print(f"Producto a eliminar: {self.object.producto.nombre}")
-
-        compra = self.object.compra
-        response = super().delete(request, *args, **kwargs)
-
-        # Actualizar el total de la compra
-        total = compra.detalle_set.aggregate(total=Sum('importe'))['total'] or 0
-        compra.total = total
-        compra.save()
-
-        return response
-
-
-  
-  
+    success_url = reverse_lazy('adm:tipopago_list')
+    login_url = "bases:login"
 
 
 class RegistroCuentaListView(LoginRequiredMixin, PermissionRequiredMixin, generic.ListView):
@@ -729,252 +811,28 @@ class RegistroCuentaReportView(generic.View):
 
 
 
-# views.py
-
-class EquipoListView(LoginRequiredMixin, PermissionRequiredMixin, generic.ListView):
-    permission_required = "adm.view_equipo"
-    model = Equipo
-    template_name = 'adm/equipo_list.html'
-    context_object_name = 'equipos'
-
-class EquipoCreateView(LoginRequiredMixin, generic.CreateView):
-    model = Equipo
-    form_class = EquipoForm
-    template_name = 'adm/equipo_form.html'
-    success_url = '/adm/equipo/'  # Redirigir a la lista después de crear
+def registrar_pago(request, compra_id):
+    compra = get_object_or_404(CompraEnc, id=compra_id)
     
-    def form_valid(self, form):
-        form.instance.uc = self.request.user
-        return super().form_valid(form)
-
-class EquipoUpdateView(LoginRequiredMixin, generic.UpdateView):
-    model = Equipo
-    form_class = EquipoForm
-    template_name = 'adm/equipo_form.html'
-    success_url = '/adm/equipo/'  # Redirigir a la lista después de editar
-    
-    def form_valid(self, form):
-        form.instance.um = self.request.user.id
-        return super().form_valid(form)
-
-    def get_object(self):
-        return get_object_or_404(Equipo, pk=self.kwargs['pk'])
-
-class EquipoDeleteView(LoginRequiredMixin, generic.DeleteView):
-    model = Equipo
-    template_name = 'adm/equipo_confirm_delete.html'
-    success_url = '/adm/equipo/'  # Redirigir a la lista después de eliminar
-
-    def get_object(self):
-        return get_object_or_404(Equipo, pk=self.kwargs['pk'])
-    
-    
-def obtener_cuenta(cuenta_id):
-    try:
-        return Cuenta.objects.get(id=cuenta_id)
-    except Cuenta.DoesNotExist:
-        return None  # O maneja el error de la forma que desees
-
-    
-
-
-def registrocuenta_report(request):
-    cuenta_id = request.GET.get('cuenta')
-    fecha_desde = request.GET.get('fecha_inicio')
-    fecha_hasta = request.GET.get('fecha_fin')
-
-    print(f"Cuenta ID: {cuenta_id}, Fecha desde: {fecha_desde}, Fecha hasta: {fecha_hasta}")
-
-    try:
-        if fecha_desde and fecha_hasta:
-            fecha_desde = datetime.strptime(fecha_desde, '%Y-%m-%d')
-            fecha_hasta = datetime.strptime(fecha_hasta, '%Y-%m-%d')
-        else:
-            return HttpResponse("Fechas no válidas.")
-    except ValueError:
-        print("Fechas no válidas.")
-        return HttpResponse("Fechas no válidas.")
-
-    # Filtra los registros según los parámetros recibidos
-    movimientos = RegistroCuenta.objects.filter(
-        cuenta_id=cuenta_id,
-        fecha_movimiento__range=[fecha_desde, fecha_hasta]
-    )
-
-    cuenta = obtener_cuenta(cuenta_id)
-
-    return render(request, 'adm/registrocuenta_report.html', {
-        'form': ReporteMovimientoForm(),
-        'cuenta': cuenta,
-        'movimientos': movimientos,
-        'logo_url': static('adm/logo_empresa.png'),
-    })
-
-
-
-def generar_pdf(request):
-    cuenta_id = request.GET.get('cuenta')
-    fecha_desde = request.GET.get('fecha_inicio')
-    fecha_hasta = request.GET.get('fecha_fin')
-
-    # Filtrar registros
-    registros = RegistroCuenta.objects.filter(
-        cuenta_id=cuenta_id,
-        fecha_movimiento__range=[fecha_desde, fecha_hasta]
-    )
-
-    # Calcular la suma de las cantidades
-    total_cantidad = sum(registro.cantidad for registro in registros if registro.cantidad)
-
-    # Crear respuesta PDF
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="reporte_registrocuenta.pdf"'
-
-    p = canvas.Canvas(response, pagesize=letter)
-    width, height = letter
-
-    # Ruta del logotipo
-    #logo_path = os.path.join(os.getcwd(), "static", "base/img", "inemo.png")
-    logo_path = "static/base/img/inemo.png"
-
-    # Agregar el logotipo
-    if os.path.exists(logo_path):
-        p.drawImage(logo_path, 1 * inch, height - 1.8 * inch, width=1.5 * inch, height=1.5 * inch, preserveAspectRatio=True, mask='auto')
-
-    # Encabezado
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(3 * inch, height - 0.5 * inch, "Reporte de Registros de Cuenta")
-    p.setFont("Helvetica", 12)
-    p.drawString(3 * inch, height - 1.2 * inch, f"Cuenta ID: {cuenta_id}")
-    p.drawString(3 * inch, height - 1.4 * inch, f"Desde: {fecha_desde} Hasta: {fecha_hasta}")
-
-    # Tabla de datos
-    p.setFont("Helvetica-Bold", 9)
-    p.drawString(1 * inch, height - 2 * inch, "ID")
-    p.drawString(2 * inch, height - 2 * inch, "Fecha")
-    p.drawString(3 * inch, height - 2 * inch, "Concepto")
-    p.drawString(4 * inch, height - 2 * inch, "Cantidad")
-    p.drawString(5 * inch, height - 2 * inch, "Folio Docto")
-    p.drawString(6 * inch, height - 2 * inch, "Proveedor")
-
-    p.line(1 * inch, height - 2.05 * inch, 7 * inch, height - 2.05 * inch)
-
-    y = height - 2.3 * inch
-
-    # Rellenar la tabla con datos
-    p.setFont("Helvetica", 8)
-    for registro in registros:
-        p.drawString(1 * inch, y, str(registro.id))
-        p.drawString(2 * inch, y, registro.fecha_movimiento.strftime('%d-%m-%Y'))
-        p.drawString(3 * inch, y, registro.concepto)
-        p.drawString(4 * inch, y, f"{registro.cantidad:.2f}")
-        p.drawString(5 * inch, y, registro.folio_documento if registro.folio_documento else "N/A")
-        p.drawString(6 * inch, y, registro.proveedor.razon_social if registro.proveedor else "N/A")
-        y -= 0.3 * inch  # Espacio entre filas
-
-    # Mensaje si no hay registros
-    if not registros.exists():
-        p.drawString(1 * inch, y, "No se encontraron registros para este rango.")
-    else:
-        y -= 0.25 * inch  # Espacio antes de la suma
-        p.setFont("Helvetica-Bold", 10)
-        p.drawString(1 * inch, y, f"Suma Total de Cantidad: {total_cantidad:.2f}")
-
-    p.showPage()
-    p.save()
-    return response
-
-
-class ReporteMovimientoView(LoginRequiredMixin, generic.View):
-    template_name = 'adm/reporte_movimiento.html'
-
-    def get(self, request, cuenta_id):
-        cuenta = get_object_or_404(Cuenta, id=cuenta_id)
-        form = ReporteMovimientoForm()
-        return render(request, self.template_name, {'form': form, 'movimientos': None, 'cuenta': cuenta})
-
-    def post(self, request, cuenta_id):
-        cuenta = get_object_or_404(Cuenta, id=cuenta_id)
-        form = ReporteMovimientoForm(request.POST)
+    if request.method == 'POST':
+        form = PagoForm(request.POST)
         if form.is_valid():
-            fecha_inicio = form.cleaned_data['fecha_inicio']
-            fecha_fin = form.cleaned_data['fecha_fin']
-            movimientos = RegistroCuenta.objects.filter(
-                fecha_movimiento__range=(fecha_inicio, fecha_fin),
-                cuenta=cuenta
-            )
-        return render(request, self.template_name, {'form': form, 'movimientos': movimientos, 'cuenta': cuenta})
+            pago = form.save(commit=False)
+            pago.compra = compra  # ✅ Asegura que la compra se asigna antes de guardar
+            
+            # Depuración
+            print(f"Compra asignada: {pago.compra}")
+            print(f"Tipo de pago: {pago.tipo_pago}")
+            print(f"Monto: {pago.monto}")
+
+            try:
+                pago.save()
+                messages.success(request, "Pago registrado correctamente.")
+                return redirect('cxp:compras_view', compra_id=compra.id)  # ✅ Redirección segura
+            except Exception as e:
+                messages.error(request, f"Error al registrar el pago: {e}")
     
-class BitacoraListView(LoginRequiredMixin, PermissionRequiredMixin, generic.ListView):
-    permission_required = "adm.view_bitacora"
-    model = Bitacora
-    template_name = 'adm/bitacora_list.html'  # Debes crear este archivo HTML
-    context_object_name = 'bitacoras'
-    login_url = "bases:login"
-    
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        print(queryset)  # Verifica qué se está pasando
-        return queryset
+    else:
+        form = PagoForm(initial={'compra': compra})  # ✅ Cargar compra en el formulario
 
-# Crear una entrada de bitácora
-class BitacoraCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, generic.CreateView):
-    permission_required = "adm.add_bitacora"
-    model = Bitacora
-    form_class = BitacoraForm
-    template_name = 'adm/bitacora_form.html'
-    success_url = reverse_lazy('adm:bitacora_list')
-    login_url = "bases:login"
-    success_message = 'Bitácora registrada satisfactoriamente'
-    
-    def form_valid(self, form):
-        form.instance.uc = self.request.user  # Asigna al usuario actual
-        return super().form_valid(form)
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['proyectos'] = Proyecto.objects.all()  # Pasa todos los proyectos
-        context['residente'] = Residente.objects.all()  # Pasa todos los responsables
-        return context
-    
-# Actualizar una entrada de bitácora
-class BitacoraUpdateView(LoginRequiredMixin, PermissionRequiredMixin, generic.UpdateView):
-    permission_required = "adm.change_bitacora"
-    model = Bitacora
-    form_class = BitacoraForm
-    template_name = 'adm/bitacora_form.html'
-    success_url = reverse_lazy('adm:bitacora_list')
-    login_url = "bases:login"
-    
-    def form_valid(self, form):
-        form.instance.um = self.request.user.id  # Agrega al usuario que actualiza la bitácora
-        return super().form_valid(form)
-
-# Eliminar una entrada de bitácora
-class BitacoraDeleteView(LoginRequiredMixin, PermissionRequiredMixin, generic.DeleteView):
-    permission_required = "adm.delete_bitacora"
-    model = Bitacora
-    template_name = 'adm/bitacora_del.html'  # Debes crear este archivo HTML
-    context_object_name = 'obj'
-    success_url = reverse_lazy('adm:bitacora_list')
-    login_url = "bases:login"
-
-
-def registro_cuenta_form(request, id=None):
-    obj = None
-    if id:
-        obj = RegistroCuenta.objects.get(pk=id)
-
-    cuentas = Cuenta.objects.all()
-    proveedores = Proveedor.objects.all()
-
-    return render(request, 'tu_template.html', {
-        'obj': obj,
-        'cuentas': cuentas,
-        'proveedores': proveedores
-    })
-
-        
-
-
-
+    return render(request, 'adm/registrar_pago.html', {'form': form, 'compra': compra})

@@ -106,6 +106,10 @@
                             <i class="fas fa-exchange-alt mr-2 text-info"></i> Movtos a Cuentas
                         </a>
                         {% endif %}
+                        <a class="collapse-item" href="{% url 'adm:tipopago_list' %}">
+                            <i class="fas fa-credit-card mr-2 text-info"></i> Tipos de Pago
+                        </a>
+                        
                     </div>
                 </div>
             </li>
@@ -212,7 +216,7 @@
                         {% endif %}
             
                         {% if perms.adm.view_proveedor %}
-                        <a class="collapse-item" href="{% url 'adm:proveedor_list' %}">
+                        <a class="collapse-item" href="{% url 'cxp:proveedor_list' %}">
                             <i class="fas fa-truck mr-2 text-warning"></i> Proveedores
                         </a>
                         {% endif %}
@@ -284,7 +288,7 @@
                     <div class="bg-gradient-light py-2 collapse-inner rounded">
                         
                         
-                        <a class="collapse-item" href="{% url 'adm:compras_list' %}">
+                        <a class="collapse-item" href="{% url 'cxp:compras_list' %}">
                             <i class="fas fa-clipboard-list mr-2 text-info"></i> Lista de compras
                         </a>
                         
@@ -323,7 +327,7 @@
 
             <!-- Nav Item - Tables -->
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'adm:compras_list' %}">
+                <a class="nav-link" href="#">
                     <i class="fas fa-fw fa-table"></i>
                     <span>Tables</span></a>
             </li>

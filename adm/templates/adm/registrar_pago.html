@@ -1,0 +1,80 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Registrar Pago para Compra #{{ compra.id }}
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <!-- Información de la compra -->
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Total de la compra:</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" value="${{ compra.total }}" readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Saldo pendiente:</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" value="${{ compra.saldo_pendiente }}" readonly>
+                            </div>
+                        </div>
+
+                        <!-- Tipo de pago -->
+                        <div class="form-group row">
+                            <label for="id_tipo_pago" class="col-sm-3 col-form-label">Tipo de Pago:</label>
+                            <div class="col-sm-9">
+                                {{ form.tipo_pago }}
+                            </div>
+                        </div>
+
+                        <!-- Monto -->
+                        <div class="form-group row">
+                            <label for="id_monto" class="col-sm-3 col-form-label">Monto:</label>
+                            <div class="col-sm-9">
+                                {{ form.monto }}
+                            </div>
+                        </div>
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-success">
+                                    <span class="fa fa-save"></span> Registrar Pago
+                                </button>
+                                <a href="{% url 'cxp:compras_list' %}" class="btn btn-danger">
+                                    <span class="fa fa-undo"></span> Cancelar
+                                </a>
+                            </div>
+                        </div>    
+                    </div>                            
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}
+
+{% block js_page %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let montoInput = document.getElementById("id_monto");
+        let saldoPendiente = parseFloat("{{ compra.saldo_pendiente }}");
+        
+        montoInput.addEventListener("input", function() {
+            if (parseFloat(montoInput.value) > saldoPendiente) {
+                alert("El monto no puede ser mayor al saldo pendiente.");
+                montoInput.value = saldoPendiente;
+            }
+        });
+    });
+</script>
+{% endblock js_page %}

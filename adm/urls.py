@@ -6,12 +6,11 @@ from .views import(
     ProyectoNew, ProyectoView, ProyectoEdit, ProyectoDel,
     ResidenteView, ResidenteNew, ResidenteEdit, ResidenteDel, proyecto_report,
     SimbologiaView, SimbologiaNew, SimbologiaEdit, SimbologiaDelete,
-    ProveedorListView, ProveedorCreateView, ProveedorUpdateView, ProveedorDeleteView, simbologia_pdf,
-    ComprasView, compras, 
+    simbologia_pdf,
     EquipoListView, EquipoCreateView, EquipoUpdateView, EquipoDeleteView,
-    RegistroCuentaListView, RegistroCuentaDel, RegistroCuentaEdit, RegistroCuentaReportView, RegistroCuentaCreateNew,
-    registrocuenta_report, ReporteMovimientoView, generar_pdf, CompraDetDelete, BitacoraListView, BitacoraCreateView,
-    BitacoraUpdateView, BitacoraDeleteView
+    registrocuenta_report, ReporteMovimientoView, generar_pdf, BitacoraListView, BitacoraCreateView,
+    BitacoraUpdateView, BitacoraDeleteView, RegistroCuentaListView,RegistroCuentaCreateNew,RegistroCuentaEdit,RegistroCuentaDel,
+    TipoPagoCreateView, TipoPagoListView, TipoPagoDeleteView, TipoPagoUpdateView, registrar_pago
 ) 
 
 
@@ -20,16 +19,11 @@ app_name = 'adm'
 
 urlpatterns = [
     
-    path('proveedor', ProveedorListView.as_view(), name='proveedor_list'),
-    path('proveedor/new/', ProveedorCreateView.as_view(), name='proveedor_new'),
-    path('proveedor/edit/<int:pk>/', ProveedorUpdateView.as_view(), name='proveedor_edit'),
-    path('proveedor/delete/<int:pk>/', ProveedorDeleteView.as_view(), name='proveedor_del'),
-    
-
     path('bancos/', BancoView.as_view(), name="banco_list"),
     path('bancos/new/', BancoNew.as_view(), name="banco_new"),
     path('bancos/edit/<pk>/', BancoEdit.as_view(), name="banco_edit"),
     path('bancos/delete/<pk>/', BancoDel.as_view(), name="banco_del"),
+    path('compra/<int:compra_id>/pago/', registrar_pago, name='registrar_pago'),
     
     path('cuentas/', CuentaView.as_view(), name="cuenta_list"),
     path('cuentas/new/', CuentaNew.as_view(), name="cuenta_new"),
@@ -39,8 +33,12 @@ urlpatterns = [
     path('reporte/registrocuenta/report/pdf/', generar_pdf, name='registrocuenta_report_pdf'),
     path('registrocuenta/report/pdf/', generar_pdf, name='generar_pdf'),
 
-
-
+    path('registrocuenta/', RegistroCuentaListView.as_view(), name='registrocuenta_list'),
+    path('registrocuenta/nuevo/', RegistroCuentaCreateNew.as_view(), name='registrocuenta_new'),
+    path('registrocuenta/editar/<int:pk>/', RegistroCuentaEdit.as_view(), name='registrocuenta_edit'),
+    path('registrocuenta/eliminar/<int:pk>/', RegistroCuentaDel.as_view(), name='registrocuenta_del'),    
+    path('registrocuenta/report/', registrocuenta_report, name='registrocuenta_report'),
+    
     path('residentes/', ResidenteView.as_view(), name='residente_list'),
     path('residente/new/', ResidenteNew.as_view(), name='residente_new'),
     path('residente/edit/<int:pk>/', ResidenteEdit.as_view(), name='residente_edit'),
@@ -59,20 +57,6 @@ urlpatterns = [
     path('simbologias/eliminar/<int:pk>/', SimbologiaDelete.as_view(), name='simbologia_delete'),
     path('simbologias/pdf/', simbologia_pdf, name='simbologia_pdf'),
     
-   
-    
-    path('compras',ComprasView.as_view(), name="compras_list"),
-    path('compras/new',compras, name="compras_new"),
-    path('compras/edit/<int:compra_id>',compras, name="compras_edit"),
-    path('compras/<int:compra_id>/delete/<int:pk>', CompraDetDelete.as_view(), name="compras_del"),
-
-   
-    path('registrocuenta/', RegistroCuentaListView.as_view(), name='registrocuenta_list'),
-    path('registrocuenta/nuevo/', RegistroCuentaCreateNew.as_view(), name='registrocuenta_new'),
-    path('registrocuenta/editar/<int:pk>/', RegistroCuentaEdit.as_view(), name='registrocuenta_edit'),
-    path('registrocuenta/eliminar/<int:pk>/', RegistroCuentaDel.as_view(), name='registrocuenta_del'),    
-    path('registrocuenta/report/', registrocuenta_report, name='registrocuenta_report'),
-    
     path('equipo/', EquipoListView.as_view(), name='equipo_list'),
     path('equipo/new/', EquipoCreateView.as_view(), name='equipo_new'),
     path('equipo/edit/<int:pk>/', EquipoUpdateView.as_view(), name='equipo_edit'),
@@ -82,9 +66,12 @@ urlpatterns = [
     path('bitacora/new/', BitacoraCreateView.as_view(), name='bitacora_new'),
     path('bitacora/edit/', BitacoraUpdateView.as_view(), name='bitacora_edit'),
 
-    
-    
+    path('tipopago/', TipoPagoListView.as_view(), name='tipopago_list'),
+    path('tipopago/nuevo/', TipoPagoCreateView.as_view(), name='tipopago_new'),
+    path('tipopago/editar/<int:pk>/', TipoPagoUpdateView.as_view(), name='tipopago_edit'),
+    path('tipopago/eliminar/<int:pk>/', TipoPagoDeleteView.as_view(), name='tipopago_delete'),
 
+    
 ]
 
    
