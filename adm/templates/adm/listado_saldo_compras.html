@@ -42,7 +42,7 @@
                         <td>{{ compra.fecha }}</td>
                         <td>${{ compra.total }}</td>
                         <td>${{ compra.total_pagado|default:0 }}</td>
-                        <td>${{ compra.total|floatformat:2|default:0 }}</td>
+                        <td>${{ compra.saldo|floatformat:2|default:0 }}</td>
                         <td>{{ compra.estado_calculado }}</td>
                         <td>
                             <a href="{% url 'cxp:compras_list' %}" class="btn btn-info btn-circle" role="button">

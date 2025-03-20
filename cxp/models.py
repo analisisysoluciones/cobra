@@ -57,61 +57,55 @@ class CompraEnc(ClaseModelo):
     ]
     estatus_pago = models.CharField('Estatus de Pago', max_length=15, choices=ESTATUS_PAGO_CHOICES, default='pendiente')
 
-
-    def obtener_tipodocumento(self):
-        tipodocumento = apps.get_model('adm', 'TipoDocumento')  # 🔹 Evita el import circular
-        return tipodocumento.objects.all()
-    
-
-    def obtener_proyecto(self):
-        proyecto = apps.get_model('adm', 'Proyecto')  # 🔹 Evita el import circular
-        return proyecto.objects.all()
-    
-
-
     def saldo_pendiente(self):
         pagos_realizados = self.pagos.aggregate(models.Sum('monto'))['monto__sum'] or 0
         return self.total - pagos_realizados
 
 
-
     def calcular_fecha_pago(self):
         """ Calcula la fecha de pago sumando los días de crédito a la fecha de la compra """
-        if self.dias_credito is not None and self.fecha:
+        if isinstance(self.fecha, date) and self.dias_credito is not None:
             try:
-                dias_credito_int = int(self.dias_credito)
-                return self.fecha + timedelta(days=dias_credito_int)
-            except (ValueError, TypeError):
-                return self.fecha # Retorna la misma fecha de compra
-        return self.fecha # Retorna la misma fecha de compra
+                dias_credito_int = int(self.dias_credito)  # Convertimos a entero
+                return self.fecha + timedelta(days=dias_credito_int)  # Sumamos días
+            except (ValueError, TypeError) as e:
+                print(f"Error al calcular fecha de pago: {e}")
+                return self.fecha  # Si hay error, usamos la misma fecha
+        return self.fecha
+
 
     def calcular_estatus_pago(self):
-        """ Determina el estado de pago basado en la fecha actual """
+        """ Determina el estado de pago basado en la fecha actual. """
         hoy = date.today()
         if self.fecha_pago:
-            if isinstance(self.fecha_pago, date):  # Verifica que self.fecha_pago sea una fecha
-                if hoy > self.fecha_pago and self.estatus_pago == 'pendiente':
-                    return 'vencido'
-                elif hoy >= self.fecha_pago - timedelta(days=5) and self.estatus_pago == 'pendiente':
-                    return 'proximo_vencer'
-            else:
-                print(f"Advertencia: fecha_pago no es un objeto datetime.date: {type(self.fecha_pago)}")
-        return self.estatus_pago
+            if hoy > self.fecha_pago:
+                return 'vencido'
+            elif hoy >= self.fecha_pago - timedelta(days=5):
+                return 'proximo_vencer'
+        return 'pendiente'
+
+    def save(self, *args, **kwargs):
+        self.fecha_pago = self.calcular_fecha_pago()
+        
+        # Verifica que `fecha_pago` se almacene como `date`
+        if isinstance(self.fecha_pago, str):
+            try:
+                self.fecha_pago = date.fromisoformat(self.fecha_pago)
+            except ValueError:
+                print(f"Error al convertir fecha_pago antes de guardar: {self.fecha_pago}")
+        
+        self.estatus_pago = self.calcular_estatus_pago()
+        super().save(*args, **kwargs)
 
     def calcular_total(self):
         """ Suma los importes de todos los documentod relacionados y actualiza el campo total. """
         self.total = sum(detalle.importe for detalle in self.documentos_d.all())
         self.save()
 
-    def save(self, *args, **kwargs):
-        if not self.fecha_pago:
-            self.fecha_pago = self.calcular_fecha_pago()
-        self.estatus_pago = self.calcular_estatus_pago()
-        super().save(*args, **kwargs)
-
+    
     class Meta:  # Corregido "meta" por "Meta"
-        verbose_name = "Documento"
-        verbose_name_plural = "Documentos"
+            verbose_name = "Documento"
+            verbose_name_plural = "Documentos"
 
 class CompraDet(ClaseModelo):
      compra = models.ForeignKey(CompraEnc, on_delete=models.CASCADE, related_name='encabezado')

@@ -833,7 +833,7 @@ def registrar_pago(request, compra_id):
             try:
                 pago.save()
                 messages.success(request, "Pago registrado correctamente.")
-                return redirect('cxp:compras_list', compra_id=compra.id)  # ✅ Redirección segura
+                return redirect('cxp:compras_list')  # ✅ Redirección segura
             except Exception as e:
                 messages.error(request, f"Error al registrar el pago: {e}")
     
@@ -886,7 +886,8 @@ from django.db.models import Sum, F, Case, When, Value, CharField
 
 def compras_pagadas(request):
     compras = CompraEnc.objects.annotate(
-        total_pagado=Sum('pagos__monto'),  # Suma de pagos relacionados
+        total_pagado=Sum('pagos__monto', default=0),  # Suma de pagos relacionados
+        saldo=F('total') - Sum('pagos__monto', default=0),  # Calcular saldo
         proveedor_nombre=F('proveedor__razon_social'),  # Nombre del proveedor
         estado_calculado=Case(
             When(total_pagado__gte=F('total'), then=Value('pagado')),
@@ -896,4 +897,3 @@ def compras_pagadas(request):
     ).filter(total_pagado__gt=0)  # Solo compras con pagos
 
     return render(request, 'adm/listado_saldo_compras.html', {'compras': compras})
-
