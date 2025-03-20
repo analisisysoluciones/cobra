@@ -1,0 +1,32 @@
+{% extends 'base/base.html' %}
+{% block content %}
+<div class="container">
+    <h2 class="mt-4">Tablero de Estadísticas</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5>Ventas</h5>
+                    <p>${{ total_ventas }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5>Compras</h5>
+                    <p>${{ total_compras }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5>Nómina</h5>
+                    <p>${{ total_nomina }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

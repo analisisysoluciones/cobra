@@ -62,7 +62,7 @@
 
             <!-- Nav Item - Dashboard -->
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'bases:home' %}">
+                <a class="nav-link" href="{% url 'adm:dashboard' %}">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Tablero</span></a>
             </li>
@@ -295,6 +295,13 @@
                         <a class="collapse-item" href="{% url 'adm:listado_pagos' %}">
                             <i class="fas fa-money-check-alt mr-2 text-success"></i> Listado de Pagos
                         </a>
+
+                        
+                            <a class="nav-link" href="{% url 'adm:compras_pagadas' %}">
+                                <i class="fas fa-receipt"></i> Compras Pagadas
+                            </a>
+                        
+                        
                         
                     </div>
                 </div>

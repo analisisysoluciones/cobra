@@ -869,3 +869,31 @@ def listado_pagos(request):
 
     return render(request, 'adm/listado_pagos.html', {'pagos': pagos, 'proveedores': proveedores})
 
+
+def dashboard(request):
+    #total_ventas = Venta.objects.aggregate(Sum('monto'))['monto__sum'] or 0
+    #total_nomina = Nomina.objects.aggregate(Sum('monto'))['monto__sum'] or 0
+    total_compras = CompraEnc.objects.aggregate(Sum('total'))['total__sum'] or 0
+
+    context = {
+    #    'total_ventas': total_ventas,
+    #    'total_nomina': total_nomina,
+        'total_compras': total_compras,
+    }
+    return render(request, 'adm/dashboard.html', context)
+
+from django.db.models import Sum, F, Case, When, Value, CharField
+
+def compras_pagadas(request):
+    compras = CompraEnc.objects.annotate(
+        total_pagado=Sum('pagos__monto'),  # Suma de pagos relacionados
+        proveedor_nombre=F('proveedor__razon_social'),  # Nombre del proveedor
+        estado_calculado=Case(
+            When(total_pagado__gte=F('total'), then=Value('pagado')),
+            default=Value('pendiente'),
+            output_field=CharField()
+        )
+    ).filter(total_pagado__gt=0)  # Solo compras con pagos
+
+    return render(request, 'adm/listado_saldo_compras.html', {'compras': compras})
+
