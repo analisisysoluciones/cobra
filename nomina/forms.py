@@ -21,7 +21,7 @@ class EmpleadoForm(forms.ModelForm):
             'curp': forms.TextInput(attrs={
                 'class': 'form-control', 
                 'style': 'text-transform:uppercase;', 
-                'data-url': reverse_lazy('validar_curp')  # Ruta para AJAX
+                'data-url': reverse_lazy('nom:validar_curp')  # Ruta para AJAX
             }),
             'rfc': forms.TextInput(attrs={'class': 'form-control', 'style': 'text-transform:uppercase;'}),
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
@@ -32,11 +32,11 @@ class EmpleadoForm(forms.ModelForm):
             'estado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         
-    def clean_curp(self):
-        curp = self.cleaned_data.get('curp', '').upper()
-        if Empleado.objects.filter(curp=curp).exists():
-            raise forms.ValidationError("Este CURP ya está registrado.")
-        return curp
+    # def clean_curp(self):
+    #     curp = self.cleaned_data.get('curp', '').upper()
+    #     if Empleado.objects.filter(curp=curp).exists():
+    #         raise forms.ValidationError("Este CURP ya está registrado.")
+    #     return curp
     
     
 class EmpleadoArchivoForm(forms.ModelForm):

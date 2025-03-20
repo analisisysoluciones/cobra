@@ -26,6 +26,7 @@ urlpatterns = [
     path('nomina-semanal/pdf/', generar_nomina_pdf, name='nomina_pdf'),
     path('procesar-nomina/', procesar_nomina, name='procesar_nomina'),
     path('nomina-individual/pdf/', generar_nomina_individual_pdf, name='nomina_ind_pdf'),
+    
 
     path('periodos/', PeriodosNominaList.as_view(), name='periodos_list'),
     path('periodos/nuevo/', PeriodosNominaNew.as_view(), name='periodos_new'),

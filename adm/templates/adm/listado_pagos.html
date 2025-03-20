@@ -1,0 +1,87 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="container-fluid">
+    <div class="col-xl-12 col-md-12 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Listado de Pagos a Proveedores
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <!-- Formulario de Filtros -->
+                        <form method="GET" class="row g-3">
+                            {% csrf_token %}
+                            <div class="col-md-4">
+                                <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
+                                <input type="date" name="fecha_inicio" class="form-control" value="{{ request.GET.fecha_inicio }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="fecha_fin" class="form-label">Fecha Fin</label>
+                                <input type="date" name="fecha_fin" class="form-control" value="{{ request.GET.fecha_fin }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="proveedor" class="form-label">Proveedor</label>
+                                <select name="proveedor" class="form-control">
+                                    <option value="">Todos</option>
+                                    {% for proveedor in proveedores %}
+                                        <option value="{{ proveedor.id }}" {% if request.GET.proveedor == proveedor.id|stringformat:"s" %}selected{% endif %}>
+                                            {{ proveedor.razon_social }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-12 text-end mt-3">
+                                <button type="submit" class="btn btn-info">
+                                    <span class="fa fa-filter"></span> Filtrar
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="dropdown-divider"></div>
+
+                        <!-- Tabla de Pagos -->
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Proveedor</th>
+                                        <th>Compra</th>
+                                        <th>Monto</th>
+                                        <th>Tipo de Pago</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for pago in pagos %}
+                                        <tr>
+                                            <td>{{ pago.fecha|date:"d-m-Y H:i" }}</td>
+                                            <td>{{ pago.compra.proveedor.razon_social }}</td>
+                                            <td>#{{ pago.compra.id }}</td>
+                                            <td>${{ pago.monto }}</td>
+                                            <td>{{ pago.tipo_pago }}</td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted">No hay pagos registrados.</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="dropdown-divider"></div>
+                        <a href="{% url 'cxp:compras_list' %}" class="btn btn-danger">
+                            <span class="fa fa-undo"></span> Regresar
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock page_content %}

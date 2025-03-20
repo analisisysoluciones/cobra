@@ -10,7 +10,7 @@ from .views import(
     EquipoListView, EquipoCreateView, EquipoUpdateView, EquipoDeleteView,
     registrocuenta_report, ReporteMovimientoView, generar_pdf, BitacoraListView, BitacoraCreateView,
     BitacoraUpdateView, BitacoraDeleteView, RegistroCuentaListView,RegistroCuentaCreateNew,RegistroCuentaEdit,RegistroCuentaDel,
-    TipoPagoCreateView, TipoPagoListView, TipoPagoDeleteView, TipoPagoUpdateView, registrar_pago
+    TipoPagoCreateView, TipoPagoListView, TipoPagoDeleteView, TipoPagoUpdateView, registrar_pago, listado_pagos
 ) 
 
 
@@ -23,7 +23,8 @@ urlpatterns = [
     path('bancos/new/', BancoNew.as_view(), name="banco_new"),
     path('bancos/edit/<pk>/', BancoEdit.as_view(), name="banco_edit"),
     path('bancos/delete/<pk>/', BancoDel.as_view(), name="banco_del"),
-    path('compra/<int:compra_id>/pago/', registrar_pago, name='registrar_pago'),
+    path('compra/pago/<int:compra_id>/', registrar_pago, name='registrar_pago'),
+    path('pagos/', listado_pagos, name='listado_pagos'),
     
     path('cuentas/', CuentaView.as_view(), name="cuenta_list"),
     path('cuentas/new/', CuentaNew.as_view(), name="cuenta_new"),

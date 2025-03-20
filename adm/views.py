@@ -48,6 +48,11 @@ import locale
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 from django.utils.formats import number_format
+from django.utils.dateparse import parse_date
+
+
+
+
 
 
 pdfmetrics.registerFont(TTFont("Arial", "Arial.ttf"))
@@ -815,7 +820,7 @@ def registrar_pago(request, compra_id):
     compra = get_object_or_404(CompraEnc, id=compra_id)
     
     if request.method == 'POST':
-        form = PagoForm(request.POST)
+        form = PagoForm(request.POST, compra=compra)
         if form.is_valid():
             pago = form.save(commit=False)
             pago.compra = compra  # ✅ Asegura que la compra se asigna antes de guardar
@@ -828,7 +833,7 @@ def registrar_pago(request, compra_id):
             try:
                 pago.save()
                 messages.success(request, "Pago registrado correctamente.")
-                return redirect('cxp:compras_view', compra_id=compra.id)  # ✅ Redirección segura
+                return redirect('cxp:compras_list', compra_id=compra.id)  # ✅ Redirección segura
             except Exception as e:
                 messages.error(request, f"Error al registrar el pago: {e}")
     
@@ -836,3 +841,31 @@ def registrar_pago(request, compra_id):
         form = PagoForm(initial={'compra': compra})  # ✅ Cargar compra en el formulario
 
     return render(request, 'adm/registrar_pago.html', {'form': form, 'compra': compra})
+
+
+
+def listado_pagos(request):
+    pagos = Pago.objects.select_related('compra__proveedor')
+
+    # Capturar filtros de fecha y proveedor
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    proveedor_id = request.GET.get('proveedor')
+
+    if fecha_inicio:
+        fecha_inicio = parse_date(fecha_inicio)
+        pagos = pagos.filter(fecha__date__gte=fecha_inicio)
+
+    if fecha_fin:
+        fecha_fin = parse_date(fecha_fin)
+        pagos = pagos.filter(fecha__date__lte=fecha_fin)
+
+    if proveedor_id:
+        pagos = pagos.filter(compra__proveedor_id=proveedor_id)
+
+    # Obtener lista de proveedores
+    from cxp.models import Proveedor  # Ajusta según tu estructura
+    proveedores = Proveedor.objects.all()
+
+    return render(request, 'adm/listado_pagos.html', {'pagos': pagos, 'proveedores': proveedores})
+

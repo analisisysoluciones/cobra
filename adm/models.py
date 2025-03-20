@@ -220,3 +220,6 @@ class Pago(models.Model):
         if self.monto > saldo_pendiente:
             raise ValueError("El pago excede el saldo pendiente")
         super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"Pago de {self.monto} a {self.compra.proveedor.razon_social}"

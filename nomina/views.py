@@ -57,6 +57,13 @@ pdfmetrics.registerFont(TTFont("Arial", "Arial.ttf"))
 # Establecer idioma español para los nombres de los meses
 #locale.setlocale(locale.LC_TIME, "es_ES.utf8")
 
+
+def validar_curp(request):
+    curp = request.GET.get('curp', '').upper()  # Convertir a mayúsculas
+    existe = Empleado.objects.filter(curp=curp).exists()
+    return JsonResponse({'existe': existe})
+
+
 class EmpleadoList(LoginRequiredMixin, PermissionRequiredMixin, generic.ListView):
     permission_required = "nomina.view_empleados"
     model = Empleado
@@ -107,11 +114,15 @@ class EmpleadoEdit(LoginRequiredMixin, generic.UpdateView):
         context['archivos'] = EmpleadoArchivo.objects.filter(empleado=self.object)
         return context
 
-    def form_valid(self, form):
+def form_valid(self, form):
+    try:
         # Guardar el formulario del empleado
         empleado = form.save(commit=False)
         empleado.um = self.request.user.id
         empleado.save()
+
+        # 🔥 DEBUG: Imprimir lo que se está guardando
+        print(f"Empleado actualizado: {empleado}")
 
         # Procesar archivo si se sube uno
         if 'archivo' in self.request.FILES:
@@ -123,9 +134,13 @@ class EmpleadoEdit(LoginRequiredMixin, generic.UpdateView):
                 archivo.empleado = empleado  # Relacionar con el empleado
                 archivo.save()
             else:
-                print(archivo_form.errors)  # 🔥 Debug: Ver errores en consola
+                print(f"Errores en archivo: {archivo_form.errors}")  # 🔥 Debug
+                return self.form_invalid(form)  # <-- IMPORTANTE: Manejar errores correctamente
 
-        return super().form_valid(form)
+        return super().form_valid(form)  # 🔥 Esto debería hacer la redirección
+    except Exception as e:
+        print(f"❌ Error en form_valid: {e}")
+        return self.form_invalid(form)
 
 class EmpleadoDel(LoginRequiredMixin, generic.DeleteView):
     model = Empleado
@@ -133,12 +148,7 @@ class EmpleadoDel(LoginRequiredMixin, generic.DeleteView):
     success_url = reverse_lazy('nom:empleado_list')
     login_url = 'bases:login'
 
-def validar_curp(request):
-    curp = request.GET.get('curp', '').upper()  # Convertir a mayúsculas
-    existe = Empleado.objects.filter(curp=curp).exists()
-    return JsonResponse({'existe': existe})
-
-    
+ 
     
     
 
