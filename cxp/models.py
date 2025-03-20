@@ -75,16 +75,17 @@ class CompraEnc(ClaseModelo):
 
 
     def calcular_estatus_pago(self):
-        """ Determina el estado de pago basado en la fecha actual. """
+        
         hoy = date.today()
+        print(f"self.fecha_pago: {self.fecha_pago}, type: {type(self.fecha_pago)}") #agregado
         if self.fecha_pago:
-            if hoy > self.fecha_pago:
+            if hoy > date.fromisoformat(self.fecha_pago):
                 return 'vencido'
             elif hoy >= self.fecha_pago - timedelta(days=5):
                 return 'proximo_vencer'
         return 'pendiente'
 
-    def save(self, *args, **kwargs):
+    """ def save(self, *args, **kwargs):
         self.fecha_pago = self.calcular_fecha_pago()
         
         # Verifica que `fecha_pago` se almacene como `date`
@@ -94,6 +95,16 @@ class CompraEnc(ClaseModelo):
             except ValueError:
                 print(f"Error al convertir fecha_pago antes de guardar: {self.fecha_pago}")
         
+        self.estatus_pago = self.calcular_estatus_pago()
+        super().save(*args, **kwargs) """
+    
+    def save(self, *args, **kwargs):
+        self.fecha_pago = self.calcular_fecha_pago()
+
+        # Verifica que fecha_pago no sea None antes de guardar
+        if self.fecha_pago is None:
+            print("Advertencia: fecha_pago no se pudo calcular.")
+
         self.estatus_pago = self.calcular_estatus_pago()
         super().save(*args, **kwargs)
 

@@ -838,7 +838,9 @@ def registrar_pago(request, compra_id):
                 messages.error(request, f"Error al registrar el pago: {e}")
     
     else:
-        form = PagoForm(initial={'compra': compra})  # ✅ Cargar compra en el formulario
+        form = PagoForm(initial={'compra': compra})
+        form.fields['cuenta_bancaria'].queryset = Cuenta.objects.filter(estado=True)  # ✅ Solo cuentas activas
+
 
     return render(request, 'adm/registrar_pago.html', {'form': form, 'compra': compra})
 

@@ -222,7 +222,10 @@ class PagoForm(forms.ModelForm):
 
     class Meta:
         model = Pago
-        fields = ['tipo_pago', 'monto']
+        fields = ['tipo_pago', 'monto', 'cuenta_bancaria']
+        widgets = {
+            'cuenta_bancaria': forms.Select(attrs={'class': 'form-control'}),  # Aplica un estilo si usas Bootstrap
+        }
     
     def clean_monto(self):
         monto = self.cleaned_data['monto']

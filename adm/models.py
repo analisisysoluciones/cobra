@@ -211,15 +211,23 @@ class Pago(models.Model):
     tipo_pago = models.ForeignKey(TipoPago, on_delete=models.PROTECT)
     monto = models.DecimalField(max_digits=10, decimal_places=2)
     fecha = models.DateTimeField(auto_now_add=True)
+    cuenta_bancaria = models.ForeignKey(Cuenta, on_delete=models.SET_NULL, null=True, blank=True)  # ✅ Nuevo campo
+
 
     class Meta:
         unique_together = ('compra', 'tipo_pago', 'monto')  # Evita pagos idénticos
 
     def save(self, *args, **kwargs):
         saldo_pendiente = self.compra.total - sum(p.monto for p in self.compra.pagos.all())
+
         if self.monto > saldo_pendiente:
             raise ValueError("El pago excede el saldo pendiente")
+        
         super().save(*args, **kwargs)
-    
+
+        # Descontar el monto de la cuenta bancaria
+        self.cuenta_bancaria.saldo_actual -= self.monto
+        self.cuenta_bancaria.save()
+
     def __str__(self):
         return f"Pago de {self.monto} a {self.compra.proveedor.razon_social}"
