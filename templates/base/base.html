@@ -285,10 +285,11 @@
                     <span class="font-weight-bold text-white">Compras</span> 
                 </a>
                 <div id="catalogosMenuCompras" class="collapse" aria-labelledby="headingCatalogos" data-parent="#accordionSidebar">
-                    <div class="bg-gradient-light py-2 collapse-inner rounded">
+                    <div class="bg-gradient-light py-2 collapse-inner rounded text-dark">
                         
                         
-                        <a class="collapse-item" href="{% url 'cxp:compras_list' %}">
+                        <a class="collapse-item text-dark font-weight-bold" href="{% url 'cxp:compras_list' %}">
+
                             <i class="fas fa-clipboard-list mr-2 text-info"></i> Lista de compras
                         </a>
                         
@@ -297,9 +298,13 @@
                         </a>
 
                         
-                            <a class="nav-link" href="{% url 'adm:compras_pagadas' %}">
-                                <i class="fas fa-receipt"></i> Compras Pagadas
-                            </a>
+                        <a class="collapse-item text-white bg-primary rounded py-1 px-2" href="{% url 'adm:compras_pagadas' %}">
+                            <i class="fas fa-receipt text-white"></i> Compras Pagadas
+                        </a>
+                        
+                        
+                        
+                        
                         
                         
                         
@@ -307,7 +312,7 @@
                 </div>
             </li>
             
-            <!-- Nav Item - Pages Collapse Menu -->
+            {% comment %} <!-- Nav Item - Pages Collapse Menu -->
             <li class="nav-item active">
                 <a class="nav-link" href="#" data-toggle="collapse" data-target="#collapsePages" aria-expanded="true"
                     aria-controls="collapsePages">
@@ -326,11 +331,11 @@
                 </div>
 
                 
-            </li>
+            </li> {% endcomment %}
 
             <!-- Nav Item - Charts -->
             <li class="nav-item">
-                <a class="nav-link" href="charts.html">
+                <a class="nav-link" href="#">
                     <i class="fas fa-fw fa-chart-area"></i>
                     <span>Charts</span></a>
             </li>

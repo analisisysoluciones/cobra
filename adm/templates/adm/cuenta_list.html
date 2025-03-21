@@ -42,6 +42,7 @@
                                 {% endif %}
                             </td>
                             <td>
+                                <a href="{% url 'adm:estado_cuenta_pdf' cuenta.id %}" class="btn btn-primary"><i class="fa fa-file-pdf"></i></a>
                                 <a href="{% url 'adm:cuenta_edit' cuenta.id %}" class="btn btn-warning btn-circle"><i class="far fa-edit"></i></a>
                                 <a href="#" class="btn btn-danger btn-circle"><i class="far fa-trash-alt"></i></a>
                                 <a href="{% url 'adm:reporte_movimiento' cuenta.id %}" class="btn btn-primary">
@@ -57,3 +58,5 @@
     </div>
 </div>
 {% endblock page_content %}
+
+    

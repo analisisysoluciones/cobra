@@ -4,13 +4,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic.edit import FormView
 from django.views import generic
 from django.templatetags.static import static
-
+from reportlab.lib.utils import simpleSplit
 from django.http import JsonResponse
 from bases.views import SinPrivilegios
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from .models import( Banco, Cuenta, Residente, Proyecto, TipoDocumento,
-                    Simbologia, Equipo, Bitacora, RegistroCuenta, TipoPago, Pago
+                    Simbologia, Equipo, Bitacora, RegistroCuenta, TipoPago, Pago, MovimientoCuenta
                     )
 
 from inv.models import Material
@@ -822,25 +822,30 @@ def registrar_pago(request, compra_id):
     if request.method == 'POST':
         form = PagoForm(request.POST, compra=compra)
         if form.is_valid():
-            pago = form.save(commit=False)
-            pago.compra = compra  # ✅ Asegura que la compra se asigna antes de guardar
-            
-            # Depuración
-            print(f"Compra asignada: {pago.compra}")
-            print(f"Tipo de pago: {pago.tipo_pago}")
-            print(f"Monto: {pago.monto}")
+            with transaction.atomic():  # 🔹 Asegura que ambas operaciones se guarden juntas
+                pago = form.save(commit=False)
+                pago.compra = compra  # ✅ Asigna la compra
+                pago.save()  # 🔹 Guarda el pago en la base de datos
 
-            try:
-                pago.save()
+                # 🔹 Obtener la cuenta bancaria asociada al pago
+                cuenta_bancaria = pago.cuenta_bancaria  
+
+                # 🔹 Crear el MovimientoCuenta con los valores correctos
+                MovimientoCuenta.objects.create(
+                    cuenta=cuenta_bancaria,
+                    fecha=timezone.now(),  # 🔹 Fecha actual del pago
+                    descripcion=f"Pago a {compra.proveedor.razon_social}",  
+                    cargo=pago.monto,  # 🔹 Salida de dinero
+                    abono=0.00,  
+                    saldo=cuenta_bancaria.saldo_actual - pago.monto  # 🔹 Restar el pago del saldo actual
+                )
+
                 messages.success(request, "Pago registrado correctamente.")
-                return redirect('cxp:compras_list')  # ✅ Redirección segura
-            except Exception as e:
-                messages.error(request, f"Error al registrar el pago: {e}")
-    
+                return redirect('cxp:compras_list')
+
     else:
         form = PagoForm(initial={'compra': compra})
         form.fields['cuenta_bancaria'].queryset = Cuenta.objects.filter(estado=True)  # ✅ Solo cuentas activas
-
 
     return render(request, 'adm/registrar_pago.html', {'form': form, 'compra': compra})
 
@@ -899,3 +904,192 @@ def compras_pagadas(request):
     ).filter(total_pagado__gt=0)  # Solo compras con pagos
 
     return render(request, 'adm/listado_saldo_compras.html', {'compras': compras})
+
+
+
+def estado_cuenta_pdf(request):
+    cuenta_id = request.GET.get('cuenta')
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+
+    # Filtrar pagos según los parámetros
+    pagos = Pago.objects.all()
+    if cuenta_id:
+        pagos = pagos.filter(cuenta_bancaria_id=cuenta_id)
+
+    if fecha_inicio and fecha_fin:
+        pagos = pagos.filter(fecha__range=[fecha_inicio, fecha_fin])
+
+    total_egresos = pagos.aggregate(total=Sum('monto'))['total'] or 0
+    cuenta_nombre = Cuenta.objects.get(id=cuenta_id).nombre if cuenta_id else "Todas"
+
+    # Crear la respuesta HTTP con contenido PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="estado_cuenta.pdf"'
+
+    # Configurar ReportLab
+    p = canvas.Canvas(response, pagesize=letter)
+    width, height = letter
+    y_position = height - 40  # Margen superior
+
+    # Encabezado
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(200, y_position, "Estado de Cuenta - Egresos")
+    y_position -= 20
+    p.setFont("Helvetica", 12)
+    p.drawString(100, y_position, f"Cuenta Bancaria: {cuenta_nombre}")
+    y_position -= 20
+    if fecha_inicio and fecha_fin:
+        p.drawString(100, y_position, f"Periodo: {fecha_inicio} a {fecha_fin}")
+        y_position -= 20
+    p.drawString(100, y_position, f"Total Egresos: ${total_egresos:,.2f}")
+    y_position -= 30
+
+    # Encabezados de tabla
+    p.setFont("Helvetica-Bold", 10)
+    p.drawString(100, y_position, "Fecha")
+    p.drawString(200, y_position, "Tipo de Pago")
+    p.drawString(350, y_position, "Monto")
+    y_position -= 15
+    p.line(100, y_position, 500, y_position)
+    y_position -= 15
+
+    # Listado de pagos
+    p.setFont("Helvetica", 10)
+    for pago in pagos:
+        p.drawString(100, y_position, pago.fecha.strftime('%Y-%m-%d'))
+        p.drawString(200, y_position, pago.tipo_pago.nombre)
+        p.drawString(350, y_position, f"${pago.monto:,.2f}")
+        y_position -= 15
+        if y_position < 50:  # Nueva página si no hay espacio
+            p.showPage()
+            p.setFont("Helvetica", 10)
+            y_position = height - 50
+
+    # Guardar el PDF
+    p.showPage()
+    p.save()
+    return response
+
+
+
+def reporte_egresos_pdf(request):
+    # Crear la respuesta HTTP con el tipo de contenido PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="estado_egresos.pdf"'
+
+    # Crear el objeto PDF
+    p = canvas.Canvas(response, pagesize=letter)
+    width, height = letter
+
+    # Encabezado
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(200, height - 50, "Estado de Cuenta - Egresos")
+
+    # Fecha de generación
+    p.setFont("Helvetica", 10)
+    p.drawString(450, height - 70, f"Fecha: {now().strftime('%d/%m/%Y')}")
+
+    # Columnas
+    y = height - 100
+    p.setFont("Helvetica-Bold", 10)
+    p.drawString(50, y, "ID")
+    p.drawString(100, y, "Fecha")
+    p.drawString(180, y, "Proveedor")
+    p.drawString(300, y, "Folio")
+    p.drawString(400, y, "Monto")
+    p.drawString(480, y, "Estado")
+    
+    # Línea separadora
+    p.line(50, y - 5, 550, y - 5)
+    
+    # Obtener datos de compras (egresos)
+    compras = CompraEnc.objects.all()
+    
+    # Dibujar cada compra
+    y -= 20
+    p.setFont("Helvetica", 9)
+    for compra in compras:
+        p.drawString(50, y, str(compra.id))
+        p.drawString(100, y, compra.fecha.strftime('%d/%m/%Y'))
+        p.drawString(180, y, str(compra.proveedor))
+        p.drawString(300, y, compra.folio_documento)
+        p.drawString(400, y, f"${compra.total:,.2f}")
+        p.drawString(480, y, "Activo" if compra.estado else "Inactivo")
+
+        y -= 20
+        if y < 50:  # Nueva página si no hay espacio
+            p.showPage()
+            y = height - 50
+
+    p.save()
+    return response
+
+
+def generar_estado_cuenta_pdf(request, cuenta_id):
+    cuenta = get_object_or_404(Cuenta, id=cuenta_id)
+    movimientos = cuenta.movimientos.all().order_by('fecha')
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="estado_cuenta_{cuenta.id}.pdf"'
+
+    p = canvas.Canvas(response, pagesize=letter)
+    width, height = letter
+
+    # 🔹 Buscar logotipo en STATICFILES_DIRS
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'base', 'img', 'inemo.png')
+
+    # 🔹 Verificar si el logotipo existe
+    if os.path.exists(logo_path):
+        p.drawImage(logo_path, 40, height - 80, width=100, height=50, preserveAspectRatio=True, mask='auto')
+    else:
+        print("⚠ No se encontró el logotipo en:", logo_path)
+
+    # 🔹 Título del reporte
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(200, height - 50, f"Estado de Cuenta - {cuenta.cuenta}")
+    p.setFont("Helvetica", 12)
+    p.drawString(200, height - 65, f"Saldo Inicial: ${cuenta.saldo_inicial:.2f}")
+
+    # 🔹 Encabezados de la tabla
+    y = height - 100
+    p.setFont("Helvetica-Bold", 10)
+    p.drawString(50, y, "Fecha")
+    p.drawString(150, y, "Descripción")
+    p.drawString(350, y, "Cargo")
+    p.drawString(420, y, "Abono")
+    p.drawString(490, y, "Saldo")
+    
+    # 🔹 Línea separadora
+    p.line(50, y - 5, 550, y - 5)
+    y -= 20
+
+    # 🔹 Alternar colores en filas
+    p.setFont("Helvetica", 9)
+    row_colors = [colors.lightgrey, colors.whitesmoke]  # Alterna entre gris claro y blanco
+
+    for index, movimiento in enumerate(movimientos):
+        # Aplicar color de fondo
+        p.setFillColorRGB(*row_colors[index % 2].rgb())  
+        p.rect(50, y - 2, 500, 15, fill=1, stroke=0)
+
+        # Restaurar color del texto a negro
+        p.setFillColorRGB(0, 0, 0)
+
+        # 🔹 Escribir datos de la fila
+        p.drawString(50, y, movimiento.fecha.strftime("%d-%m-%Y"))
+        p.drawString(150, y, movimiento.descripcion)
+        p.drawString(350, y, f"${movimiento.cargo:.2f}")
+        p.drawString(420, y, f"${movimiento.abono:.2f}")
+        p.drawString(490, y, f"${movimiento.saldo:.2f}")
+
+        y -= 20
+
+        # 🔹 Verificar si es necesario agregar una nueva página
+        if y < 50:
+            p.showPage()
+            y = height - 50  # Reiniciar posición de impresión
+
+    # 🔹 Finalizar y guardar PDF
+    p.save()
+    return response

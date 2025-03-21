@@ -11,7 +11,7 @@ from .views import(
     registrocuenta_report, ReporteMovimientoView, generar_pdf, BitacoraListView, BitacoraCreateView,
     BitacoraUpdateView, BitacoraDeleteView, RegistroCuentaListView,RegistroCuentaCreateNew,RegistroCuentaEdit,RegistroCuentaDel,
     TipoPagoCreateView, TipoPagoListView, TipoPagoDeleteView, TipoPagoUpdateView, registrar_pago, listado_pagos, dashboard,
-    compras_pagadas
+    compras_pagadas, reporte_egresos_pdf, generar_estado_cuenta_pdf
 ) 
 
 
@@ -28,6 +28,8 @@ urlpatterns = [
     path('pagos/', listado_pagos, name='listado_pagos'),
     path('dashboard/', dashboard, name='dashboard'),
     path('compras-pagadas/', compras_pagadas, name='compras_pagadas'),
+    path('reporte-egresos/', reporte_egresos_pdf, name='reporte_egresos'),
+    path('estado_cuenta/<int:cuenta_id>/pdf/', generar_estado_cuenta_pdf, name='estado_cuenta_pdf'),
     
     path('cuentas/', CuentaView.as_view(), name="cuenta_list"),
     path('cuentas/new/', CuentaNew.as_view(), name="cuenta_new"),

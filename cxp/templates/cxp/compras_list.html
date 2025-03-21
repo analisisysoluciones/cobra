@@ -25,6 +25,8 @@
       <thead>
         <th>Id</th>        
         <th>Fecha</th>
+        <th style="width: 50px;">Semáforo</th>
+        <th>Fecha Pago</th>
         <th>Proveedor</th>
         <th>Folio Docto</th>
         <th>Proyecto</th>
@@ -33,15 +35,19 @@
         <th class="all">Acciones</th>
       </thead>
       <tbody>
-        {% for item in obj%}
+        {% for item in obj %}
         <tr>
           <td>{{ item.id }}</td>
-          <td>{{ item.fecha }}</td>
+          <td>{{ item.fecha|date:"d/m/Y" }}</td>
+          <td style="width: 50px; text-align: center;">
+            <span class="status" style="background-color: {{ item.semaforo }};"></span>
+          </td>
+          <td>{{ item.fecha_pago|date:"d/m/Y" }}</td>
           <td>{{ item.proveedor }}</td>
           <td>{{ item.folio_documento }}</td>
           <td>{{ item.proyecto }}</td>
           <td>{{ item.total }}</td>
-          <td>{{item.estado|yesno:"Activo,Inactivo"}}</td>
+          <td>{{ item.estado|yesno:"Activo,Inactivo" }}</td>
           <td>
             <a class="btn btn-info btn-circle" href="{% url 'adm:registrar_pago' item.id %}"><i class="fas fa-money-bill-wave"></i></a>          
             <a class="btn btn-warning btn-circle" href="{% url 'cxp:compras_edit' item.id %}"><i class="far fa-edit"></i></a>
@@ -51,6 +57,18 @@
         {% endfor %}
       </tbody>
     </table>
+    <style>
+      .status {
+          display: inline-block;
+          width: 15px;
+          height: 15px;
+          border-radius: 50%;
+      }
+      .status.green { background-color: green; }
+      .status.yellow { background-color: yellow; }
+      .status.red { background-color: red; }
+      .status.gray { background-color: gray; }
+  </style>
   </div>
 </div>
 {% endblock %}

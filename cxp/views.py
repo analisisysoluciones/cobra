@@ -113,8 +113,27 @@ class ProveedorDeleteView(LoginRequiredMixin, generic.DeleteView):
 class ComprasView(LoginRequiredMixin, generic.ListView):
     model = CompraEnc
     template_name = 'cxp/compras_list.html'
-    context_object_name = 'obj'
+    context_object_name = 'obj'  # Asegura que en el template se use 'obj'
 
+    def get_queryset(self):
+        compras = super().get_queryset()
+        hoy = timezone.now().date()
+        
+        for compra in compras:
+            if compra.fecha_pago:
+                dias_restantes = (compra.fecha_pago - hoy).days
+                if dias_restantes < 0:
+                    compra.semaforo = "red"
+                elif dias_restantes == 0:
+                    compra.semaforo = "red"
+                elif dias_restantes <= 3:
+                    compra.semaforo = "yellow"
+                else:
+                    compra.semaforo = "green"
+            else:
+                compra.semaforo = "gray"  # Si no tiene fecha de pago
+        return compras
+    
     def form_valid(self, form):
         # Calculas el importe antes de guardar
         compra_detalle = form.save(commit=False)

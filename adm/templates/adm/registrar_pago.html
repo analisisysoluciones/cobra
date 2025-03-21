@@ -45,18 +45,22 @@
                         </div>
 
                         <!-- Cuenta Bancaria -->
-                        <div>
-                            <label for="id_cuenta_bancaria">Cuenta Bancaria:</label>
-                            <select name="cuenta_bancaria" id="id_cuenta_bancaria" class="form-control">
-                                {% for cuenta in form.cuenta_bancaria.field.queryset %}
-                                    <option value="{{ cuenta.id }}">{{ cuenta.cuenta }} - {{ cuenta.banco.nombre }}</option>
-                                {% endfor %}
-                            </select>
+                        <div class="form-group row">
+                            <label for="id_cuenta_bancaria" class="col-sm-3 col-form-label text-left">Cuenta Bancaria:</label>
+                            <div class="col-sm-9">
+                                <select name="cuenta_bancaria" id="id_cuenta_bancaria" class="form-control">
+                                    {% for cuenta in form.cuenta_bancaria.field.queryset %}
+                                        <option value="{{ cuenta.id }}">{{ cuenta.cuenta }} - {{ cuenta.banco.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
+
+
 
                         <div class="dropdown-divider"></div>
                         <div class="row">
-                            <div class="col">
+                            <div class="col" style="margin-top: 20px;">
                                 <button type="submit" class="btn btn-success">
                                     <span class="fa fa-save"></span> Registrar Pago
                                 </button>

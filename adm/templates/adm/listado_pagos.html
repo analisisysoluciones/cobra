@@ -38,6 +38,12 @@
                                 <button type="submit" class="btn btn-info">
                                     <span class="fa fa-filter"></span> Filtrar
                                 </button>
+                                
+                                <!-- Botón para generar PDF con filtros -->
+                                <a href="{% url 'adm:reporte_egresos' %}?fecha_inicio={{ request.GET.fecha_inicio }}&fecha_fin={{ request.GET.fecha_fin }}&proveedor={{ request.GET.proveedor }}" 
+                                   target="_blank" class="btn btn-success">
+                                    <i class="fas fa-file-pdf"></i> Generar PDF
+                                </a>
                             </div>
                         </form>
 

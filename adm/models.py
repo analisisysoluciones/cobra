@@ -221,13 +221,36 @@ class Pago(models.Model):
         saldo_pendiente = self.compra.total - sum(p.monto for p in self.compra.pagos.all())
 
         if self.monto > saldo_pendiente:
-            raise ValueError("El pago excede el saldo pendiente")
-        
+            raise ValidationError("El pago excede el saldo pendiente")
+
         super().save(*args, **kwargs)
 
-        # Descontar el monto de la cuenta bancaria
-        self.cuenta_bancaria.saldo_actual -= self.monto
-        self.cuenta_bancaria.save()
+        # ✅ Si hay cuenta bancaria, registrar movimiento y actualizar saldo
+        if self.cuenta_bancaria:
+            self.cuenta_bancaria.saldo_actual -= self.monto
+            self.cuenta_bancaria.save()
+
+            # ✅ Guardar el pago como movimiento en la cuenta bancaria
+            MovimientoCuenta.objects.create(
+                cuenta=self.cuenta_bancaria,
+                fecha=self.fecha,
+                descripcion=f"Pago a {self.compra.proveedor.razon_social}",
+                cargo=self.monto,
+                abono=0.00,  # Salida de dinero
+                saldo=self.cuenta_bancaria.saldo_actual
+            )
 
     def __str__(self):
         return f"Pago de {self.monto} a {self.compra.proveedor.razon_social}"
+    
+
+class MovimientoCuenta(models.Model):
+    cuenta = models.ForeignKey(Cuenta, on_delete=models.CASCADE, related_name='movimientos')
+    fecha = models.DateTimeField(auto_now_add=True)
+    descripcion = models.CharField(max_length=255)
+    cargo = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # Salida de dinero
+    abono = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # Entrada de dinero
+    saldo = models.DecimalField(max_digits=10, decimal_places=2)  # Saldo después del movimiento
+
+    def __str__(self):
+        return f"{self.fecha.date()} - {self.descripcion} - Saldo: {self.saldo}"
