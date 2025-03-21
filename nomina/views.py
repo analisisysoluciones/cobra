@@ -14,6 +14,7 @@ from .models import(Cuenta, Empleado, Asistencia, Nomina, NominaHistorial, Nomin
                     )
 
 from inv.models import Material
+from adm.models import MovimientoCuenta
 #from .calculos import calcular_nomina_semanal_todos
 
 from .forms import(EmpleadoForm, FaltaForm, FechaForm, PeriodosNominaForm, EmpleadoArchivoForm)
@@ -525,10 +526,9 @@ def generar_nomina_pdf(request):
 
 def procesar_nomina(request):
     if request.method == "POST":
-        # Se espera que el formulario envíe la fecha y el id de la cuenta a debitar
-        fecha_str = request.POST.get("fecha")  # Fecha en formato 'YYYY-MM-DD'
-        cuenta_id = request.POST.get("cuenta")   # ID de la cuenta seleccionada
-        
+        fecha_str = request.POST.get("fecha")  
+        cuenta_id = request.POST.get("cuenta")  
+
         if not fecha_str or not cuenta_id:
             return HttpResponse("Faltan datos: fecha o cuenta", content_type="text/plain")
         
@@ -537,37 +537,47 @@ def procesar_nomina(request):
         except ValueError:
             return HttpResponse("Formato de fecha incorrecto", content_type="text/plain")
         
-        # Calcular el periodo final (suponiendo nómina semanal)
         periodo_fin = fecha_inicio + timedelta(days=6)
-
-        # Calcular la nómina para la semana indicada
         nomina_data = calcular_nomina_semanal_todos(fecha_str)
+
         if not nomina_data:
             return HttpResponse("No hay datos de nómina para procesar", content_type="text/plain")
         
-        # Calcular el total de la nómina
         total_nomina = sum(Decimal(item['total_pago']) for item in nomina_data)
         
-        # Obtener la cuenta seleccionada y descontar el total de la nómina
         try:
             cuenta = Cuenta.objects.get(id=cuenta_id)
         except Cuenta.DoesNotExist:
             return HttpResponse("Cuenta no encontrada", content_type="text/plain")
+
+        # 🔴 Verificar si la cuenta tiene saldo suficiente
+        if cuenta.saldo_actual < total_nomina:
+            return HttpResponse("Saldo insuficiente en la cuenta", content_type="text/plain")
         
-        # Actualizar el balance de la cuenta
+        # 🔹 Descontar la nómina de la cuenta
         cuenta.saldo_actual -= total_nomina
         cuenta.save()
         
-        # Guardar la nómina en la base de datos (cabecera)
+        # 🔹 Registrar el retiro en MovimientoCuenta
+        MovimientoCuenta.objects.create(
+            cuenta=cuenta,
+            fecha=fecha_inicio,
+            descripcion="Pago de nómina",
+            cargo=total_nomina,  # Porque es un retiro
+            abono=0,
+            saldo=cuenta.saldo_actual
+        )
+        
+        # 🔹 Guardar la cabecera de la nómina
         nomina_hist = NominaHistorial.objects.create(
             periodo_inicio=fecha_inicio,
-            periodo_fin=periodo_fin,  # 🔴 Se agrega el periodo_fin para evitar el error
+            periodo_fin=periodo_fin,
             total_pago=total_nomina,
             cuenta=cuenta,
             estatus='Pendiente'
         )
         
-        # Guardar cada detalle de la nómina
+        # 🔹 Guardar cada detalle de la nómina
         for item in nomina_data:
             try:
                 empleado = Empleado.objects.get(nombre=item["empleado"])
@@ -581,9 +591,8 @@ def procesar_nomina(request):
                 total_pago=item["total_pago"]
             )
         
-        messages.success(request, "🎉 ¡Éxito! La nómina ha sido procesada y guardada correctamente.")
-    
-    # Si es GET, se muestra un formulario para seleccionar fecha y cuenta
+        messages.success(request, "🎉 ¡Éxito! La nómina ha sido procesada y registrada correctamente.")
+
     cuentas = Cuenta.objects.all()
     return render(request, "nomina/procesar_nomina.html", {"cuentas": cuentas})
 

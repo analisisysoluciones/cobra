@@ -159,45 +159,54 @@ class Bitacora(models.Model):
         return f"Bitácora del {self.fecha} para {self.proyecto.nombre}"
 
 
-class RegistroCuenta(ClaseModelo):  # Cambié a `models.Model`
+class RegistroCuenta(ClaseModelo):
     fecha_movimiento = models.DateField()
     concepto = models.CharField('Concepto', max_length=120, blank=False, null=False, default='Concepto por comprobar')
     cantidad = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0.00)
     cuenta = models.ForeignKey('Cuenta', on_delete=models.CASCADE)
     folio_documento = models.CharField('Folio documento', max_length=15, blank=True, null=True, default='')
-    reposicion_flujo = models.BooleanField('Reposicion de caja', default=True)
-    
+    reposicion_flujo = models.BooleanField('Reposición de caja', default=True)  # True = Abono, False = Retiro
+
     def __str__(self):
         return f"{self.fecha_movimiento} {self.concepto} {self.cantidad}"
-    
+
     def save(self, *args, **kwargs):
         with transaction.atomic():
             is_update = self.pk is not None
 
-        if is_update:
-            original = RegistroCuenta.objects.get(pk=self.pk)
-            if original.cantidad != self.cantidad:
-                if original.cuenta:
-                    original.cuenta.saldo_actual += original.cantidad  # Revertir el antiguo
-                if self.cuenta:
-                    self.cuenta.saldo_actual -= self.cantidad  # Aplicar el nuevo
-        else:
+            if is_update:
+                original = RegistroCuenta.objects.get(pk=self.pk)
+                diferencia = self.cantidad - original.cantidad
+
+                if original.reposicion_flujo:
+                    original.cuenta.saldo_actual -= original.cantidad  # Revertimos el saldo anterior
+                else:
+                    original.cuenta.saldo_actual += original.cantidad  # Revertimos el saldo anterior
+
+            # Aplicamos el nuevo saldo
             if self.reposicion_flujo:
-                self.cuenta.saldo_actual += self.cantidad
+                self.cuenta.saldo_actual += self.cantidad  # Es un abono
+                movimiento_tipo = "abono"
             else:
-                self.cuenta.saldo_actual -= self.cantidad
+                self.cuenta.saldo_actual -= self.cantidad  # Es un retiro
+                movimiento_tipo = "retiro"
 
-        super(RegistroCuenta, self).save(*args, **kwargs)
-
-        if self.cuenta:
+            super(RegistroCuenta, self).save(*args, **kwargs)
             self.cuenta.save()
 
+            # Registrar en MovimientoCuenta
+            MovimientoCuenta.objects.create(
+                cuenta=self.cuenta,
+                fecha=self.fecha_movimiento,
+                descripcion=self.concepto,
+                cargo=self.cantidad if not self.reposicion_flujo else 0,
+                abono=self.cantidad if self.reposicion_flujo else 0,
+                saldo=self.cuenta.saldo_actual
+            )
 
-    
     class Meta:
         verbose_name = 'Registro'
         verbose_name_plural = 'Registros'
-
 
 
 class TipoPago(models.Model):
