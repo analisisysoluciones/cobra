@@ -231,12 +231,44 @@
                 </div>
             </li>
 
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+
+            <!-- Nav Item - Pages Collapse Menu -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#catalogosMenuCompras" aria-expanded="true" aria-controls="catalogosMenuCompras">
+                    <i class="fas fa-shopping-cart icon-with-border"></i>  
+                    <span class="font-weight-bold text-white">Compras</span> 
+                </a>
+                <div id="catalogosMenuCompras" class="collapse" aria-labelledby="headingCatalogos" data-parent="#accordionSidebar">
+                    <div class="bg-gradient-light py-2 collapse-inner rounded text-dark">
+                        
+                        
+                        <a class="collapse-item text-dark font-weight-bold" href="{% url 'cxp:compras_list' %}">
+
+                            <i class="fas fa-clipboard-list mr-2 text-info"></i> Lista de compras
+                        </a>
+                        
+                        <a class="collapse-item" href="{% url 'adm:listado_pagos' %}">
+                            <i class="fas fa-money-check-alt mr-2 text-success"></i> Listado de Pagos
+                        </a>
+
+                        
+                        <a class="collapse-item text-white bg-primary rounded py-1 px-2" href="{% url 'adm:compras_pagadas' %}">
+                            <i class="fas fa-receipt text-white"></i> Compras Pagadas
+                        </a>
+                        
+                    </div>
+                </div>
+            </li>
+
             <!-- Nav Item - Utilities Collapse Menu -->
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities"
                     aria-expanded="true" aria-controls="collapseUtilities">
                     <i class="fas fa-fw fa-wrench"></i>
-                    <span>Panel de administración</span>
+                    <span>Administración</span>
                 </a>
                 {% comment %} <div id="collapsePages" class="collapse show" aria-labelledby="headingPages"
                     data-parent="#accordionSidebar"> {% endcomment %}
@@ -275,42 +307,8 @@
                     </div>
             </li>
 
-            <!-- Divider -->
-            <hr class="sidebar-divider">
-
-            <!-- Nav Item - Pages Collapse Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#catalogosMenuCompras" aria-expanded="true" aria-controls="catalogosMenuCompras">
-                    <i class="fas fa-shopping-cart icon-with-border"></i>  
-                    <span class="font-weight-bold text-white">Compras</span> 
-                </a>
-                <div id="catalogosMenuCompras" class="collapse" aria-labelledby="headingCatalogos" data-parent="#accordionSidebar">
-                    <div class="bg-gradient-light py-2 collapse-inner rounded text-dark">
-                        
-                        
-                        <a class="collapse-item text-dark font-weight-bold" href="{% url 'cxp:compras_list' %}">
-
-                            <i class="fas fa-clipboard-list mr-2 text-info"></i> Lista de compras
-                        </a>
-                        
-                        <a class="collapse-item" href="{% url 'adm:listado_pagos' %}">
-                            <i class="fas fa-money-check-alt mr-2 text-success"></i> Listado de Pagos
-                        </a>
-
-                        
-                        <a class="collapse-item text-white bg-primary rounded py-1 px-2" href="{% url 'adm:compras_pagadas' %}">
-                            <i class="fas fa-receipt text-white"></i> Compras Pagadas
-                        </a>
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                    </div>
-                </div>
-            </li>
+            
+            
             
             {% comment %} <!-- Nav Item - Pages Collapse Menu -->
             <li class="nav-item active">
