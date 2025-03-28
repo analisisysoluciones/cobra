@@ -310,3 +310,23 @@ class CompraDetDelete(LoginRequiredMixin, generic.DeleteView):
 
 
 
+def imprime_compra(request, compra_id):
+    compra = CompraEnc.objects.prefetch_related("encabezado").get(id=compra_id)
+    detalles = compra.encabezado.all()
+    
+    template_path = "cxp/reporte_compra.html"
+    context = {
+        "compra": compra,
+        "detalles": detalles,
+    }
+    
+    template = get_template(template_path)
+    html = template.render(context)
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f"attachment; filename=compra_{compra.folio_documento}.pdf"
+    
+    pisa_status = pisa.CreatePDF(BytesIO(html.encode("UTF-8")), dest=response)
+    
+    if pisa_status.err:
+        return HttpResponse("Error al generar el PDF", content_type="text/plain")
+    return response

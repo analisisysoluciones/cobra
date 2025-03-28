@@ -1,0 +1,48 @@
+{% load static %}
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Compra</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; }
+        .encabezado { text-align: center; font-size: 16px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid black; padding: 8px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        tr:nth-child(odd) { background-color: #ffffff; }
+        .logo { width: 100px; height: auto; }
+    </style>
+</head>
+<body>
+    <div class="encabezado">
+        <img src="{{ request.scheme }}://{{ request.get_host }}{% static 'base/img/inemo.png' %}" class="logo">
+        <p>Reporte de Compra</p>
+    </div>
+    <p><strong>Proveedor:</strong> {{ compra.proveedor.razon_social }}</p>
+    <p><strong>Folio:</strong> {{ compra.folio_documento }}</p>
+    <p><strong>Fecha:</strong> {{ compra.fecha }}</p>
+    <p><strong>Total:</strong> ${{ compra.total }}</p>
+
+    <table>
+        <tr>
+            <th>Descripción</th>
+            <th>Cantidad</th>
+            <th>Precio Unitario</th>
+            <th>Importe</th>
+        </tr>
+        {% for detalle in detalles %}
+        <tr>
+            <td>{{ detalle.material.descripcion }}</td>
+            <td>{{ detalle.cantidad }}</td>
+            <td>${{ detalle.precio_unitario }}</td>
+            <td>${{ detalle.importe }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+</body>
+</html>

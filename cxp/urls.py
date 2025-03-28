@@ -3,7 +3,7 @@ from . import views
 from .views import(
     ProveedorListView, ProveedorCreateView, ProveedorUpdateView, ProveedorDeleteView, 
     ComprasView, compras,   
-    CompraDetDelete
+    CompraDetDelete, imprime_compra
 ) 
 
 
@@ -21,6 +21,7 @@ urlpatterns = [
     path('compras/new',compras, name="compras_new"),
     path('compras/edit/<int:compra_id>',compras, name="compras_edit"),
     path('compras/<int:compra_id>/delete/<int:pk>', CompraDetDelete.as_view(), name="compras_del"),
+    path('imprime-compra/<int:compra_id>/', imprime_compra, name='imprime_compra'),
 
    
     
