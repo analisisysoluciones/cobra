@@ -311,22 +311,33 @@ class CompraDetDelete(LoginRequiredMixin, generic.DeleteView):
 
 
 def imprime_compra(request, compra_id):
+    # Obtener la compra y sus detalles
     compra = CompraEnc.objects.prefetch_related("encabezado").get(id=compra_id)
     detalles = compra.encabezado.all()
-    
+
+    # Calcular el total de la compra sumando los importes de los detalles
+    total_compra = sum(detalle.importe for detalle in detalles)
+
+    # Pasar los valores al contexto
     template_path = "cxp/reporte_compra.html"
     context = {
         "compra": compra,
         "detalles": detalles,
+        "total_compra": total_compra,  # Se agrega el total calculado
     }
-    
+
+    # Renderizar el template HTML con los datos
     template = get_template(template_path)
     html = template.render(context)
+
+    # Configurar la respuesta como un PDF
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f"attachment; filename=compra_{compra.folio_documento}.pdf"
-    
+
+    # Generar el PDF
     pisa_status = pisa.CreatePDF(BytesIO(html.encode("UTF-8")), dest=response)
-    
+
     if pisa_status.err:
         return HttpResponse("Error al generar el PDF", content_type="text/plain")
+
     return response

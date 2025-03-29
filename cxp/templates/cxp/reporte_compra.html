@@ -5,7 +5,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reporte de Compra</title>
+    <title>Documento de Compra</title>
     <style>
         body { font-family: Arial, sans-serif; font-size: 12px; }
         .encabezado { text-align: center; font-size: 16px; font-weight: bold; }
@@ -20,7 +20,7 @@
 <body>
     <div class="encabezado">
         <img src="{{ request.scheme }}://{{ request.get_host }}{% static 'base/img/inemo.png' %}" class="logo">
-        <p>Reporte de Compra</p>
+        <p>Documento de Compra</p>
     </div>
     <p><strong>Proveedor:</strong> {{ compra.proveedor.razon_social }}</p>
     <p><strong>Folio:</strong> {{ compra.folio_documento }}</p>
