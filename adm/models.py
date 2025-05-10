@@ -262,3 +262,14 @@ class MovimientoCuenta(models.Model):
 
     def __str__(self):
         return f"{self.fecha.date()} - {self.descripcion} - Saldo: {self.saldo}"
+    
+# class CostoProyecto(models.Model):
+#     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
+#     fecha = models.DateField(auto_now_add=True)
+#     simbologia = models.ForeignObject(Simbologia, on_delete=models.PROTECT, verbose_name='Tipo de costo')
+#     descripcion = models.CharField(max_length=255)
+#     monto = models.DecimalField(max_digits=12, decimal_places=2)
+#     movimiento = models.OneToOneField(MovimientoCuenta, null=True, blank=True, on_delete=models.SET_NULL)
+
+#     def __str__(self):
+#        return f"{self.fecha.date()} - {self.descripcion} - ${self.monto}"

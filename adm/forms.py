@@ -2,7 +2,7 @@ from django import forms
 import datetime
 from django.core.exceptions import ValidationError
 from .models import( Cuenta, Banco, Residente, TipoDocumento, Proyecto, Simbologia, 
-                     RegistroCuenta, Equipo, Bitacora, TipoPago, Pago)
+                     RegistroCuenta, Equipo, Bitacora, TipoPago, Pago) #CostoProyecto)
 from django_select2.forms import Select2Widget
 from django.shortcuts import render, redirect
 import re
@@ -239,6 +239,12 @@ class PagoForm(forms.ModelForm):
             raise forms.ValidationError("El pago excede el saldo pendiente.")
         
         return monto
+
+
+# class CostoProyectoForm(forms.ModelForm):
+#     class Meta:
+#         model = CostoProyecto
+#         fields = ['proyecto', 'descripcion', 'monto', 'movimiento']
 
 
 
