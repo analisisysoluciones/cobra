@@ -7,6 +7,9 @@ from decimal import Decimal
 import re
 from django.utils import timezone
 from datetime import date, timedelta
+from django.apps import apps
+
+
 
 
 
@@ -215,6 +218,7 @@ class TipoPago(models.Model):
         return self.nombre
 
 class Pago(models.Model):
+    CompraEnc = apps.get_model('cxp', 'CompraEnc')
     compra = models.ForeignKey('cxp.CompraEnc', on_delete=models.CASCADE, related_name='pagos')
     tipo_pago = models.ForeignKey(TipoPago, on_delete=models.PROTECT)
     monto = models.DecimalField(max_digits=10, decimal_places=2)
