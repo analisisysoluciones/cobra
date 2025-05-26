@@ -53,12 +53,6 @@ importlib_metadata==8.6.1
 iniconfig==2.0.0
 itsdangerous==2.2.0
 Jinja2==3.1.5
-kivy-deps.angle==0.4.0
-kivy-deps.glew==0.3.1
-Kivy-examples==2.3.1
-Kivy-Garden==0.1.5
-kivy_deps.gstreamer==0.3.4
-kivy_deps.sdl2==0.8.0
 kiwisolver==1.4.7
 lxml==5.3.0
 MarkupSafe==3.0.2
@@ -171,8 +165,6 @@ python-bidi==0.6.0
 python-dateutil==2.9.0.post0
 python-docx==1.1.2
 pytz==2024.2
-pywin32==310
-pywin32-ctypes==0.2.3
 PyYAML==6.0.2
 qrcode==7.4.2
 reportlab==4.2.2
@@ -191,14 +183,11 @@ tzlocal==5.2
 uritools==4.0.3
 urllib3==2.2.3
 virtualenv==20.30.0
-vpos==1.0
 webencodings==0.5.1
 Werkzeug==3.0.6
 xhtml2pdf==0.2.16
 zipp==3.21.0
 zopfli==0.2.3
-pyinstaller==6.10.0
-pyinstaller-hooks-contrib==2024.8
 pyparsing==3.2.0
 pypdf==5.0.0
 PyPDF2==3.0.1
