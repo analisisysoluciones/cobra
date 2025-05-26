@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from bases.models import ClaseModelo
+from cxp.models import CompraEnc
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from decimal import Decimal
@@ -218,8 +219,8 @@ class TipoPago(models.Model):
         return self.nombre
 
 class Pago(models.Model):
-    CompraEnc = apps.get_model('cxp', 'CompraEnc')
-    compra = models.ForeignKey('cxp.CompraEnc', on_delete=models.CASCADE, related_name='pagos')
+    # CompraEnc = apps.get_model('cxp', 'CompraEnc')
+    compra = models.ForeignKey(CompraEnc, on_delete=models.CASCADE, related_name='pagos')
     tipo_pago = models.ForeignKey(TipoPago, on_delete=models.PROTECT)
     monto = models.DecimalField(max_digits=10, decimal_places=2)
     fecha = models.DateTimeField(auto_now_add=True)
@@ -228,6 +229,9 @@ class Pago(models.Model):
 
     class Meta:
         unique_together = ('compra', 'tipo_pago', 'monto')  # Evita pagos idénticos
+
+    def get_compra_enc_model(self):
+        return apps.get_model('cxp', 'CompraEnc')
 
     def save(self, *args, **kwargs):
         saldo_pendiente = self.compra.total - sum(p.monto for p in self.compra.pagos.all())
