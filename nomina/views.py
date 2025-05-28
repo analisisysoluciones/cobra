@@ -52,7 +52,8 @@ from reportlab.platypus import Paragraph
 
 # Create your views here.
 
-pdfmetrics.registerFont(TTFont("Arial", "Arial.ttf"))
+font_path = os.path.join(settings.BASE_DIR, "static/fonts/Arial.ttf")
+pdfmetrics.registerFont(TTFont("Arial", font_path))
 
 
 # Establecer idioma español para los nombres de los meses

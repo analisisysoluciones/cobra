@@ -54,9 +54,8 @@ from django.utils.dateparse import parse_date
 
 
 
-font_path = os.path.join(settings.BASE_DIR, 'static', 'fonts', 'Arial.ttf')
-pdfmetrics.registerFont(TTFont("Arial", "font_path"))
-
+font_path = os.path.join(settings.BASE_DIR, "static/fonts/Arial.ttf")
+pdfmetrics.registerFont(TTFont("Arial", font_path))
 
 # Establecer idioma español para los nombres de los meses
 locale.setlocale(locale.LC_TIME, "es_ES.utf8")
