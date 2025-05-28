@@ -58,7 +58,7 @@ from django.utils.dateparse import parse_date
 #pdfmetrics.registerFont(TTFont("Arial", font_path))
 
 # Establecer idioma español para los nombres de los meses
-locale.setlocale(locale.LC_TIME, "es_ES.utf8")
+#locale.setlocale(locale.LC_TIME, "es_ES.utf8")
 
 
 class BancoView(LoginRequiredMixin, PermissionRequiredMixin, generic.ListView):

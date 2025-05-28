@@ -51,7 +51,7 @@ from django.utils.formats import number_format
 
 
 # Establecer idioma español para los nombres de los meses
-locale.setlocale(locale.LC_TIME, "es_ES.utf8")
+#locale.setlocale(locale.LC_TIME, "es_ES.utf8")
 
 
 
