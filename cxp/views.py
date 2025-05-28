@@ -46,7 +46,8 @@ from reportlab.pdfbase import pdfmetrics
 from django.utils.formats import number_format
 
 
-pdfmetrics.registerFont(TTFont("Arial", "Arial.ttf"))
+font_path = os.path.join(settings.BASE_DIR, 'static', 'fonts', 'Arial.ttf')
+pdfmetrics.registerFont(TTFont("Arial", "font_path"))
 
 
 # Establecer idioma español para los nombres de los meses
