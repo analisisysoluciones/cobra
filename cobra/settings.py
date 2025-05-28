@@ -28,8 +28,8 @@ SECRET_KEY = 'django-insecure-u=i^e8b+gn_6kn_i3ntf)a3u(yb3vn_871o$yv!2#5pzk^&5)z
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG','False')=='True'
 
-ALLOWED_HOSTS = ['*']
-
+ALLOWED_HOSTS = ["*"]
+CSRF_TRUSTED_ORIGINS=[""."localhost"]
 
 # Application definition
 
@@ -88,8 +88,23 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-     'default': dj_database_url.config(conn_max_age=600)
+     'default': {
+
+        'ENGINE': 'django.db.backends.postgresql',
+
+        'NAME': 'railway',
+
+        'USER': 'postgres',
+
+        'PASSWORD': 'NPIUJxmrQiVIXSzHhaPFToJAvKPlwPMY',
+
+        'HOST': 'nozomi.proxy.rlwy.net',
+
+        'PORT': '14775',
+        
+    }
 }
+
 
 
 # Password validation
