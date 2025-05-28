@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-u=i^e8b+gn_6kn_i3ntf)a3u(yb3vn_871o$yv!2#5pzk^&5)z
 DEBUG = os.getenv('DEBUG','False')=='True'
 
 ALLOWED_HOSTS = ["*"]
-CSRF_TRUSTED_ORIGINS=["cobra-production-9a2e.up.railway.app"."http://127.0.0.1:8000/"]
+CSRF_TRUSTED_ORIGINS=["cobra-production-9a2e.up.railway.app","http://127.0.0.1:8000/"]
 
 # Application definition
 
