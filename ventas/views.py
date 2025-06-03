@@ -448,3 +448,15 @@ def generar_recibo_pago(request, recibo_id):
     return response
 
 
+
+def dashboard(request):
+    total_clientes = Cliente.objects.count()
+    lotes_en_venta = ProductoInmobiliario.objects.filter(estatus=True).count()
+    lotes_comprados = ProductoInmobiliario.objects.filter(estatus=False).count()
+
+    context = {
+        'total_clientes': total_clientes,
+        'lotes_en_venta': lotes_en_venta,
+        'lotes_comprados': lotes_comprados,
+    }
+    return render(request, 'ventas/dashboard.html', context)

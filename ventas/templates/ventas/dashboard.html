@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Dashboard</h1>
+
+    <div class="row">
+        <!-- Tarjetas con totales -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                        Clientes Registrados
+                    </div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                        {{ total_clientes }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                        Lotes en Venta
+                    </div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                        {{ lotes_en_venta }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                        Lotes Comprados
+                    </div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                        {{ lotes_comprados }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GRÁFICA DE BARRAS -->
+    <div class="row">
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Resumen General</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- GRÁFICA DE PASTEL -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Proporción de Lotes</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPTS DE CHART JS -->
+<script>
+    // Bar Chart
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Clientes', 'Lotes en Venta', 'Lotes Comprados'],
+            datasets: [{
+                label: 'Cantidad',
+                data: [{{ total_clientes }}, {{ lotes_en_venta }}, {{ lotes_comprados }}],
+                backgroundColor: ['#4e73df', '#1cc88a', '#f6c23e'],
+                borderColor: ['#4e73df', '#1cc88a', '#f6c23e'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    precision: 0
+                }
+            }
+        }
+    });
+
+    // Pie Chart
+    const pieCtx = document.getElementById('pieChart').getContext('2d');
+    new Chart(pieCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Lotes en Venta', 'Lotes Comprados'],
+            datasets: [{
+                data: [{{ lotes_en_venta }}, {{ lotes_comprados }}],
+                backgroundColor: ['#1cc88a', '#f6c23e'],
+                hoverBackgroundColor: ['#17a673', '#f4b619'],
+                borderColor: '#ffffff',
+            }],
+        },
+        options: {
+            responsive: true,
+        }
+    });
+</script>
+{% endblock %}
