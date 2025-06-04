@@ -21,7 +21,7 @@ urlpatterns = [
     path('vender/<int:producto_id>/', views.vender_producto, name='vender_producto'),
     path('registrar-venta/', RegistrarVentaView.as_view(), name='registrar_venta'),
     path('productos/<int:producto_id>/asignar_cliente/', views.asignar_cliente, name='asignar_cliente'),
-    path('dashboard/', dashboard, name='dashboard'),
+    path('dashboard/', views.dashboard, name='tablero'),
 
     path('clientes/', ClienteList.as_view(), name='cliente_list'),
     path('clientes/nuevo/', ClienteNew.as_view(), name='cliente_new'),
