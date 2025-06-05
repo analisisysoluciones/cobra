@@ -53,7 +53,7 @@
                         <div class="row">
                             <div class="col">
                                 <button type="submit" class="btn btn-success"><span class="fa fa-save"></span> Registrar Venta</button>
-                                <a href="{% url 'adm:productoinmobiliario_list' %}" class="btn btn-danger"><span class="fa fa-undo"></span> Cancelar</a>
+                                <a href="{% url 'ven:productoinmobiliario_list' %}" class="btn btn-danger"><span class="fa fa-undo"></span> Cancelar</a>
                             </div>
                         </div>
                     </div>
@@ -70,7 +70,7 @@
         $('#id_cliente').select2({
             placeholder: "Seleccione un cliente",
             ajax: {
-                url: "{% url 'adm:ruta_para_buscar_clientes' %}",  // Cambia por tu ruta
+                url: "{% url 'ven:ruta_para_buscar_clientes' %}",  // Cambia por tu ruta
                 dataType: 'json',
                 delay: 250,
                 data: function (params) {
