@@ -13,6 +13,7 @@ from .models import( Banco, Cuenta, Residente, Proyecto, TipoDocumento,
                     Simbologia, Equipo, Bitacora, RegistroCuenta, TipoPago, Pago, MovimientoCuenta
                     )
 
+from ventas.models import ProductoInmobiliario, Venta, Movimiento
 from inv.models import Material
 from cxp.models import Proveedor, CompraEnc
 #from .calculos import calcular_nomina_semanal_todos
@@ -49,6 +50,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 from django.utils.formats import number_format
 from django.utils.dateparse import parse_date
+from django.db.models import Count, Sum, Q
 
 
 
@@ -1092,3 +1094,41 @@ def generar_estado_cuenta_pdf(request, cuenta_id):
     # 🔹 Finalizar y guardar PDF
     p.save()
     return response
+
+
+
+
+
+
+def dashboard_proyectos(request):
+    proyectos = Proyecto.objects.all()
+    data = []
+
+    for proyecto in proyectos:
+        lotes = ProductoInmobiliario.objects.filter(proyecto=proyecto)
+        total_lotes = lotes.count()
+        vendidos = lotes.filter(proceso='Vendido').count()
+        disponibles = lotes.filter(proceso='Disponible').count()
+
+        # Ingresos por anticipos y abonos
+        ingresos = Movimiento.objects.filter(producto__proyecto=proyecto).aggregate(total=Sum('monto'))['total'] or 0
+
+        # Gastos por proyecto (reposicion_flujo = False = retiro)
+        gastos = RegistroCuenta.objects.filter(cuenta=proyecto.cuenta, reposicion_flujo=False).aggregate(total=Sum('cantidad'))['total'] or 0
+
+        saldo_cuenta = proyecto.cuenta.saldo_actual
+
+        avance = round((vendidos / total_lotes) * 100, 2) if total_lotes else 0
+
+        data.append({
+            'proyecto': proyecto,
+            'total_lotes': total_lotes,
+            'vendidos': vendidos,
+            'disponibles': disponibles,
+            'ingresos': ingresos,
+            'gastos': gastos,
+            'saldo_cuenta': saldo_cuenta,
+            'avance': avance,
+        })
+
+    return render(request, 'ventas/resumen_proyectos.html', {'proyectos': data})

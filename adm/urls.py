@@ -11,7 +11,7 @@ from .views import(
     registrocuenta_report, ReporteMovimientoView, generar_pdf, BitacoraListView, BitacoraCreateView,
     BitacoraUpdateView, BitacoraDeleteView, RegistroCuentaListView,RegistroCuentaCreateNew,RegistroCuentaEdit,RegistroCuentaDel,
     TipoPagoCreateView, TipoPagoListView, TipoPagoDeleteView, TipoPagoUpdateView, registrar_pago, listado_pagos, dashboard,
-    compras_pagadas, reporte_egresos_pdf, generar_estado_cuenta_pdf
+    compras_pagadas, reporte_egresos_pdf, generar_estado_cuenta_pdf, dashboard_proyectos
 ) 
 
 
@@ -56,6 +56,7 @@ urlpatterns = [
     path('proyecto/edit/<int:pk>/', ProyectoEdit.as_view(), name='proyecto_edit'),
     path('proyecto/delete/<int:pk>/', ProyectoDel.as_view(), name='proyecto_del'),
     path('proyecto/report/', proyecto_report, name='proyecto_report'),
+    path('dashboard-proyectos/', dashboard_proyectos, name='dashboard_proyectos'),
     
     path('simbologias/', SimbologiaView.as_view(), name='simbologia_list'),
     path('simbologias/nuevo/', SimbologiaNew.as_view(), name='simbologia_new'),

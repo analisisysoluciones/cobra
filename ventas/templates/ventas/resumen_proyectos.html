@@ -1,0 +1,38 @@
+{% extends "base/base.html" %}
+{% block page_content %}
+
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Tablero de control por proyecto</h1>
+
+    <!-- Proyectos -->
+    <div class="row">
+        {% for p in proyectos %}
+        <div class="col-xl-6 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100">
+                <div class="card-body">
+                    <h5 class="font-weight-bold text-info">{{ p.proyecto.nombre }}</h5>
+                    <div class="row">
+                        <div class="col-6">
+                            <p class="mb-1"><strong>Total Lotes:</strong> {{ p.total_lotes }}</p>
+                            <p class="mb-1"><strong>Vendidos:</strong> {{ p.vendidos }}</p>
+                            <p class="mb-1"><strong>Disponibles:</strong> {{ p.disponibles }}</p>
+                        </div>
+                        <div class="col-6">
+                            <p class="mb-1"><strong>Avance:</strong> {{ p.avance }}%</p>
+                            <p class="mb-1"><strong>Ingresos:</strong> ${{ p.ingresos|floatformat:2 }}</p>
+                            <p class="mb-1"><strong>Gastos:</strong> ${{ p.gastos|floatformat:2 }}</p>
+                            <p class="mb-1"><strong>Saldo Cuenta:</strong> ${{ p.saldo_cuenta|floatformat:2 }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-warning text-center">No hay proyectos registrados.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
