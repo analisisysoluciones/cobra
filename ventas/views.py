@@ -1,5 +1,6 @@
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth.decorators import permission_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic.edit import FormView
 from django.views import generic
@@ -46,9 +47,22 @@ import locale
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 from django.utils.formats import number_format
+from django.contrib.auth.decorators import user_passes_test
+from django.shortcuts import redirect
 
 
 # Create your views here.
+
+
+def grupo_requerido(*nombres_grupo):
+    def in_groups(user):
+        if user.is_authenticated:
+            if user.is_superuser:
+                return True
+            return user.groups.filter(name__in=nombres_grupo).exists()
+        return False
+    return user_passes_test(in_groups, login_url='/no-autorizado/')
+
 
 
 class CrearProductoInmobiliarioView(generic.View):
@@ -448,7 +462,7 @@ def generar_recibo_pago(request, recibo_id):
     return response
 
 
-
+@grupo_requerido('administrador', 'supervisor')
 def dashboard(request):
     total_clientes = Cliente.objects.count()
     

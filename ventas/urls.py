@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from django.views.generic import TemplateView
 from .views import(
     ProductoInmobiliario, CrearProductoInmobiliarioView, ProductoInmobiliarioListView, 
     ProductoInmobiliarioCreateView, ProductoInmobiliarioDeleteView, ProductoInmobiliarioUpdateView, vender_producto, 
@@ -22,6 +23,8 @@ urlpatterns = [
     path('registrar-venta/', RegistrarVentaView.as_view(), name='registrar_venta'),
     path('productos/<int:producto_id>/asignar_cliente/', views.asignar_cliente, name='asignar_cliente'),
     path('dashboard/', views.dashboard, name='tablero'),
+    path('no-autorizado/', TemplateView.as_view(template_name='403.html'), name='no_autorizado'),
+
 
     path('clientes/', ClienteList.as_view(), name='cliente_list'),
     path('clientes/nuevo/', ClienteNew.as_view(), name='cliente_new'),

@@ -95,6 +95,9 @@ class ProductoInmobiliario(ClaseModelo):
     class Meta:
         verbose_name = 'Producto inmobiliario'
         verbose_name_plural = 'Productos inmobiliarios'
+        permissions = [
+            ("puede_ver_dashboard", "Puede ver el dashboard"),
+        ]
 
 
 class Venta(ClaseModelo):

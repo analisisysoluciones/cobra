@@ -62,9 +62,11 @@
 
             <!-- Nav Item - Dashboard -->
             <li class="nav-item">
+                {% if 'administrador' in user.groups.all|join:', ' or 'supervisor' in user.groups.all|join:', ' %}
                 <a class="nav-link" href="{% url 'ven:tablero' %}">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Tablero</span></a>
+                {% endif %}
             </li>
 
             
@@ -340,11 +342,11 @@
 
             <!-- Nav Item - Tables -->
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'ven:tablero' %}">
+                <a class="nav-link" href="#">
                     <i class="fas fa-fw fa-table"></i>
                     <span>Tables</span></a>
             </li>
-
+ 
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
 

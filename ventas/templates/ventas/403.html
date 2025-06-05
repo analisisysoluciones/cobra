@@ -1,0 +1,17 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="col-xl-12 mb-4">
+    <div class="card border-left-danger shadow h-100 py-4">
+        <div class="card-body text-center">
+            <h1 class="display-4 text-danger"><i class="fas fa-ban"></i></h1>
+            <h2 class="text-danger font-weight-bold">Acceso Denegado</h2>
+            <p class="lead mt-3">No tienes permiso para acceder a esta sección.</p>
+            <hr>
+            <a href="{% url 'ven:tablero' %}" class="btn btn-outline-primary">
+                <i class="fas fa-home"></i> Volver al Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
