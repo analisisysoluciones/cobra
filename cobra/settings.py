@@ -26,12 +26,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-u=i^e8b+gn_6kn_i3ntf)a3u(yb3vn_871o$yv!2#5pzk^&5)z'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG','False')=='True'
-#DEBUF=True
+DEBUG = True
 
-#ALLOWED_HOSTS = ["*"]
-ALLOWED_HOSTS = ['.railway.app', '127.0.0.1']
-CSRF_TRUSTED_ORIGINS=["https://cobra-production-9a2e.up.railway.app","http://127.0.0.1:8000/"]
+ALLOWED_HOSTS = []
+
 
 # Application definition
 
@@ -57,7 +55,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -67,7 +64,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'cobra.urls'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 TEMPLATES = [
     {
@@ -94,22 +90,20 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 DATABASES = {
      'default': {
 
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
 
-        'NAME': 'railway',
+        'NAME': 'cobra',
 
         'USER': 'postgres',
 
-        'PASSWORD': 'SFZXMuBMFzZtAjeChOxHpSLoqfXcASGO',
+        'PASSWORD': 'pc7.pilatus',
 
-        'HOST': 'crossover.proxy.rlwy.net',
+        'HOST': 'localhost',
 
-        'PORT': '46704',
+        'PORT': '5432',
         
     }
 }
-
-
 
 
 # Password validation
@@ -154,7 +148,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (os.path.join(BASE_DIR,'static'),)
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
 # Default primary key field type
@@ -162,4 +156,3 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'  # O 'bootstrap5' si usas Bootstrap 5
-

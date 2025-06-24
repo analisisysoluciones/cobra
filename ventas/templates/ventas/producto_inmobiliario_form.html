@@ -26,7 +26,6 @@
                             </div>
                         </div>
 
-
                         <!-- Precio -->
                         <div class="form-group row">
                             <label for="id_precio" class="col-sm-3 col-form-label">Precio:</label>
@@ -43,7 +42,22 @@
                             </div>
                         </div>
 
-                        
+                        <!-- Manzana -->
+                        <div class="form-group row">
+                            <label for="id_manzana" class="col-sm-3 col-form-label">Manzana:</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="manzana" maxlength="20" class="form-control" id="id_manzana" placeholder="Ej. MZ-5" required>
+                            </div>
+                        </div>
+
+                        <!-- Lote -->
+                        <div class="form-group row">
+                            <label for="id_lote" class="col-sm-3 col-form-label">Lote:</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="lote" maxlength="20" class="form-control" id="id_lote" placeholder="Ej. LT-12" required>
+                            </div>
+                        </div>
+
                         <!-- Cantidad de Registros -->
                         <div class="form-group row">
                             <label for="id_cantidad" class="col-sm-3 col-form-label">Cantidad de Registros:</label>
@@ -66,5 +80,6 @@
     </div>
 </form>
 {% endblock page_content %}
+
 {% block js_page %}
 {% endblock js_page %}

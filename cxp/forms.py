@@ -33,7 +33,7 @@ class ProveedorForm(forms.ModelForm):
 class CompraEncForm(forms.ModelForm):
     class Meta:
         model = CompraEnc
-        fields = ['proveedor', 'fecha', 'orden_compra','folio_documento','dias_credito', 'proyecto', 'tipo', 'inventario', 'total']
+        fields = ['proveedor', 'fecha', 'orden_compra','folio_documento','dias_credito', 'proyecto', 'tipo', 'inventario', 'total', 'archivo_pdf', 'evidencia_recoge', 'evidencia_uso', 'autoriza']
         widgets = {
             'proveedor': forms.Select(attrs={'class': 'form-control select2'}),
             'proyecto': forms.Select(attrs={'class': 'form-control select2'}),  # Campo de proyecto como dropdown
@@ -44,6 +44,10 @@ class CompraEncForm(forms.ModelForm):
             'dias_credito':forms.NumberInput(attrs={'class': 'form-control'}),
             'inventario': forms.TextInput(attrs={'class': 'form-control'}),
             'total': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            'archivo_pdf': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+            'evidencia_recoge': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+            'evidencia_uso': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+            'autoriza': forms.Select(attrs={'class': 'form-control'}),
         }
         
     def __init__(self, *args, **kwargs):

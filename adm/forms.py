@@ -90,7 +90,7 @@ class TipoDocumentoForm(forms.ModelForm):
 class ProyectoForm(forms.ModelForm):
     class Meta:
         model = Proyecto
-        fields = ['nombre', 'ubicacion', 'latitud', 'longitud', 'residente', 'cuenta','mapa']
+        fields = ['nombre', 'ubicacion', 'latitud', 'longitud', 'residente', 'cuenta','mapa','presupuesto']
         labels = {
             'nombre': 'Nombre:',
             'ubicacion': 'Ubicación:',
@@ -99,6 +99,7 @@ class ProyectoForm(forms.ModelForm):
             'residente': 'Residente:',
             'cuenta': 'Cuenta:',
             'mapa':'Mapa del proyecto:',
+            'presupuesto':'Presupuesto:'
         }
         mapa_pdf = forms.FileField(required=False)
         widgets = {
@@ -109,6 +110,7 @@ class ProyectoForm(forms.ModelForm):
             'residente': forms.Select(attrs={'class': 'form-control'}),
             'cuenta': forms.Select(attrs={'class': 'form-control'}),
             'mapa': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+            'presupuesto': forms.NumberInput(attrs={'class': 'form-control'}),
         }
         
 escoge_tipo = [

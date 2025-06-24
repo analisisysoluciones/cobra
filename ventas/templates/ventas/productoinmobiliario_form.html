@@ -45,10 +45,26 @@
                             </div>
                         </div>
 
+                        <!-- Manzana -->
+                        <div class="form-group row">
+                            <label for="{{ form.manzana.id_for_label }}" class="col-sm-3 col-form-label">Manzana:</label>
+                            <div class="col-sm-9">
+                                {{ form.manzana }}
+                            </div>
+                        </div>
+
+                        <!-- Lote -->
+                        <div class="form-group row">
+                            <label for="{{ form.lote.id_for_label }}" class="col-sm-3 col-form-label">Lote:</label>
+                            <div class="col-sm-9">
+                                {{ form.lote }}
+                            </div>
+                        </div>
+
                         <div class="dropdown-divider"></div>
                         <div class="row">
                             <div class="col">
-                                <button type="submit" class="btn btn-success"><span class="fa fa-save"></span>Grabar</button>
+                                <button type="submit" class="btn btn-success"><span class="fa fa-save"></span> Grabar</button>
                                 <a href="{% url 'ven:productoinmobiliario_list' %}" class="btn btn-danger"><span class="fa fa-undo"></span> Cancelar</a>
                             </div>
                         </div>
@@ -59,5 +75,6 @@
     </div>
 </form>
 {% endblock page_content %}
+
 {% block js_page %}
 {% endblock js_page %}

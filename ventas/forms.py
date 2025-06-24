@@ -16,13 +16,15 @@ class ValoresConstantesForm(forms.Form):
     medidas = forms.CharField(max_length=100, label="Medidas")
     proyecto = forms.ModelChoiceField(queryset=Proyecto.objects.all(), label="Proyecto")
     cantidad = forms.IntegerField(min_value=1, label="Cantidad de registros")
+    manzana = forms.CharField(max_length=10, label="Manzana")
+    lote = forms.CharField(max_length=10, label="Lote")
 
 
 
 class ProductoInmobiliarioForm(forms.ModelForm):
     class Meta:
         model = ProductoInmobiliario
-        fields = ['clave', 'proyecto', 'proceso', 'precio', 'saldo', 'medidas', 'tipo']
+        fields = ['clave', 'proyecto', 'proceso', 'precio', 'saldo', 'medidas', 'tipo','manzana','lote']
         widgets = {
             'proceso': forms.Select(attrs={'class': 'form-control'}),
             'proyecto': forms.Select(attrs={'class': 'form-control'}),
@@ -32,6 +34,8 @@ class ProductoInmobiliarioForm(forms.ModelForm):
             'saldo': forms.NumberInput(attrs={'class': 'form-control', 'disabled': 'disabled'}),
             'medidas': forms.TextInput(attrs={'class': 'form-control'}),
             'tipo': forms.TextInput(attrs={'class': 'form-control'}),
+            'manzana':forms.TextInput(attrs={'class': 'form-control'}),
+            'lote':forms.TextInput(attrs={'class': 'form-control'}),
         }
 
 class VentaForm(forms.Form):

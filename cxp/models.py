@@ -44,13 +44,24 @@ class CompraEnc(ClaseModelo):
     dias_credito = models.PositiveIntegerField('Días de Crédito', default=0, blank=True, null=True)
     fecha_pago = models.DateField('Fecha de Pago', blank=True, null=True)
 
+    QUIEN_AUTORIZA=[
+        ('Jesus Quiñones','Jesus Quiñones'),
+        ('Edgar Adrian','Edgar Adrian'),
+        ('Miguel Meza','Miguel Meza'),        
+    ]
+       
+
     ESTATUS_PAGO_CHOICES = [
         ('pendiente', 'Pendiente'),
         ('proximo_vencer', 'Próximo a vencer'),
         ('pagado', 'Pagado'),
         ('vencido', 'Vencido'),
+        ('Recogido', 'Recogido'),
     ]
     estatus_pago = models.CharField('Estatus de Pago', max_length=15, choices=ESTATUS_PAGO_CHOICES, default='pendiente')
+    evidencia_recoge=models.FileField('archivo pdf:', upload_to='documentos/pdfs/', blank=True, null=True)
+    evidencia_uso=models.FileField('archivo pdf:', upload_to='documentos/pdfs/', blank=True, null=True)
+    autoriza=models.CharField('Autoriza:',max_length=25, blank=True, null=True,choices=QUIEN_AUTORIZA,default='Jesus Quiñones')
 
     def saldo_pendiente(self):
         pagos_realizados = self.pagos.aggregate(models.Sum('monto'))['monto__sum'] or Decimal('0.00')

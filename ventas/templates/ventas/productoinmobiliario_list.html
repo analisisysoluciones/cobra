@@ -4,71 +4,70 @@
 <div class="card shadow mb-4">
     <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
         <h6 class="m-0 font-weight-bold text-primary">Lista de Productos Inmobiliarios</h6>
-        <a href="{% url 'ven:crear_producto_inmobiliario' %}" class="btn btn-primary">Nuevo Producto</a>
-        {% comment %} <a href="{% url 'ven:productoinmobiliario_pdf' %}" class="btn btn-primary">Reporte de Productos</a> {% endcomment %}
+        <div class="d-flex gap-2">
+            <a href="{% url 'ven:crear_producto_inmobiliario' %}" class="btn btn-primary">Nuevo Producto</a>
+            <a href="#" class="btn btn-info btn-icon-split" data-toggle="modal" data-target="#capturaClienteModal">
+                <span class="icon text-white-50">
+                    <i class="fas fa-user"></i>
+                </span>
+                <span class="text">Capturar Cliente</span>
+            </a>
+        </div>
     </div>
+
     <div class="card-body">
         {% if not productos %}
             <div class="alert alert-info">No hay productos inmobiliarios registrados.</div>
         {% else %}
-            <table class="table table-striped table-hover">
-                <a href="#" class="btn btn-info btn-icon-split" data-toggle="modal" data-target="#capturaClienteModal">
-                    <span class="icon text-white-50">
-                        <i class="fas fa-user"></i>
-                    </span>
-                    <span class="text">Capturar Cliente</span>
-                </a>
-                
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Clave</th>
-                        <th>Proyecto</th>
-                        <th>Proceso</th>
-                        <th>Precio</th>
-                        <th>Saldo</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for producto in productos %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover datatable">
+                    <thead>
                         <tr>
-                            <td>{{ producto.id }}</td>
-                            <td>{{ producto.clave }}</td>
-                            <td>{{ producto.proyecto.nombre }}</td>
-                            <td>{{ producto.proceso }}</td>
-                            <td>{{ producto.precio }}</td>
-                            <td>{{ producto.saldo }}</td>
-                            <td>
-                                <a href="{% url 'ven:productoinmobiliario_edit' producto.id %}" class="btn btn-warning btn-circle" role="button">
-                                    <i class="far fa-edit"></i>
-                                </a>
-                                <a href="{% url 'ven:vender_producto' producto.id %}" class="btn btn-success btn-icon-split">
-                                    <span class="icon text-white-50">
-                                        <i class="fas fa-dollar-sign"></i>
-                                    </span>
-                                    <span class="text">Vender</span>
-                                </a>
-                                <a href="{% url 'ven:asignar_cliente' producto.id %}" class="btn btn-info btn-icon-split">
-                                    <span class="icon text-white-50">
-                                        <i class="fas fa-user"></i>
-                                    </span>
-                                    <span class="text">Asignar Cliente</span>
-                                </a>
-                                <form action="{% url 'ven:productoinmobiliario_delete' producto.id %}" method="post" style="display:inline;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger btn-circle" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?');">
-                                        <i class="far fa-trash-alt"></i>
-                                    </button>
-                                </form>
-                            </td>
-                            
+                            <th>ID</th>
+                            <th>Clave</th>
+                            <th>Proyecto</th>
+                            <th>Proceso</th>
+                            <th>Precio</th>
+                            <th>Saldo</th>
+                            <th>Acciones</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% for producto in productos %}
+                            <tr>
+                                <td>{{ producto.id }}</td>
+                                <td>{{ producto.clave }}</td>
+                                <td>{{ producto.proyecto.nombre }}</td>
+                                <td>{{ producto.proceso }}</td>
+                                <td>{{ producto.precio }}</td>
+                                <td>{{ producto.saldo }}</td>
+                                <td>
+                                    <a href="{% url 'ven:productoinmobiliario_edit' producto.id %}" class="btn btn-warning btn-circle" role="button">
+                                        <i class="far fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'ven:vender_producto' producto.id %}" class="btn btn-success btn-icon-split">
+                                        <span class="icon text-white-50"><i class="fas fa-dollar-sign"></i></span>
+                                        <span class="text">Vender</span>
+                                    </a>
+                                    <a href="{% url 'ven:asignar_cliente' producto.id %}" class="btn btn-info btn-icon-split">
+                                        <span class="icon text-white-50"><i class="fas fa-user"></i></span>
+                                        <span class="text">Asignar Cliente</span>
+                                    </a>
+                                    <form action="{% url 'ven:productoinmobiliario_delete' producto.id %}" method="post" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-circle" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?');">
+                                            <i class="far fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
-
+            <!-- Modal para Captura de Cliente -->
+            <!-- ... permanece igual ... -->
             <!-- Modal para Captura de Cliente -->
             <div class="modal fade" id="capturaClienteModal" tabindex="-1" role="dialog" aria-labelledby="capturaClienteModalLabel" aria-hidden="true">
                 <div class="modal-dialog" role="document">
@@ -172,7 +171,8 @@
                     </div>
                 </div>
             </div>
-            
+
+
         {% endif %}
     </div>
 </div>
@@ -181,7 +181,7 @@
 {% block js_page %}
 <script>
     $(document).ready(function() {
-        $('.table').DataTable({
+        $('.datatable').DataTable({
             "language": {
                 "sProcessing": "Procesando...",
                 "sLengthMenu": "Mostrar _MENU_ registros",
@@ -197,16 +197,17 @@
                     "sNext": "<span class='fa fa-angle-right'></span>",
                     "sPrevious": "<span class='fa fa-angle-left'></span>"
                 }
-            }
+            },
+            "order": []  // sin orden inicial
         });
-    
+
         // Manejo del formulario de cliente en el modal
         $('#capturaClienteModal form').on('submit', function(event) {
             event.preventDefault();
             const form = $(this);
             const url = form.attr('action');
             const data = new FormData(this);
-    
+
             $.ajax({
                 url: url,
                 method: 'POST',
@@ -219,14 +220,13 @@
                         text: 'Cliente creado correctamente',
                         icon: 'success',
                         confirmButtonText: 'Aceptar'
-                    }).then(() => location.reload()); // Recargar la página para actualizar la lista
+                    }).then(() => location.reload());
                 },
                 error: function(xhr) {
                     let errorText = 'Error al guardar cliente.';
                     if (xhr.responseJSON && xhr.responseJSON.errors) {
                         errorText = Object.values(xhr.responseJSON.errors).map(errList => errList.join("\n")).join("\n");
                     }
-    
                     Swal.fire({
                         title: 'Error',
                         text: errorText,
@@ -237,5 +237,5 @@
             });
         });
     });
-    
+</script>
 {% endblock js_page %}

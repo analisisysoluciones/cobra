@@ -83,6 +83,8 @@ class ProductoInmobiliario(ClaseModelo):
     saldo  = models.DecimalField('Saldo',max_digits=12,decimal_places=2,default=0.00, blank=True,null=True)
     medidas = models.CharField('Medidas', max_length=50, blank=True, null=True)
     tipo = models.IntegerField('Tipo', blank=True,null=True,default=1)
+    manzana = models.CharField('Manzana:',max_length=10, blank=True, null=True)
+    lote =  models.CharField('Lote:', max_length=10, blank=True, null=True)
     
     def __str__(self):
         return str(self.clave) + ' ' + str(self.proyecto)

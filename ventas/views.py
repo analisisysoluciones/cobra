@@ -79,6 +79,8 @@ class CrearProductoInmobiliarioView(generic.View):
             medidas = form.cleaned_data['medidas']
             proyecto = form.cleaned_data['proyecto']
             cantidad = form.cleaned_data['cantidad']
+            manzana = form.cleaned_data['manzana']
+            lote = form.cleaned_data['lote']
             
 
             # Obtener el último número único
@@ -94,6 +96,8 @@ class CrearProductoInmobiliarioView(generic.View):
                         saldo=precio,
                         medidas=medidas,
                         proyecto=proyecto,
+                        manzana = manzana,
+                        lote = lote,
                         proceso = 'Disponible',
                         estado=True,
                         fc = now(),

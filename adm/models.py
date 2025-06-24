@@ -115,6 +115,19 @@ class Proyecto(ClaseModelo):
     residente = models.ForeignKey(Residente, on_delete=models.CASCADE, related_name='proyectos')
     cuenta = models.ForeignKey(Cuenta, on_delete=models.CASCADE, related_name='proyectos')
     mapa = models.FileField('Mapa del Proyecto', upload_to='mapas/', blank=True, null=True)  # Para PDF o imágenes
+    presupuesto = models.DecimalField('Presupuesto asignado', max_digits=12, decimal_places=2, default=0)
+
+
+    @property
+    def total_usado(self):
+        return self.cuenta.movimientos.aggregate(total=Sum('importe'))['total'] or 0
+
+    @property
+    def avance_presupuesto(self):
+        if self.presupuesto > 0:
+            return round((self.total_usado / self.presupuesto) * 100, 2)
+        return 0
+
     
     def __str__(self):
         return self.nombre

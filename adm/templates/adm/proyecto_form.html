@@ -74,6 +74,14 @@
                             </div>
                         </div>
 
+                        <!-- Presupuesto -->
+                        <div class="form-group row">
+                            <label for="id_presupuesto" class="col-sm-3 col-form-label">Presupuesto:</label>
+                            <div class="col-sm-9">
+                                <input type="number" step="0.01" name="presupuesto" class="form-control" id="id_presupuesto" placeholder="Monto del presupuesto" value="{% if obj %}{{ obj.presupuesto }}{% endif %}">
+                            </div>
+                        </div>
+
                         <div class="form-group row">
                             <label for="id_estado" class="col-sm-3 col-form-label">Estado:</label>
                             <div class="col-sm-9">
