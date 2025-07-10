@@ -1,0 +1,77 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Documentos Generales</h6>
+        <form method="get" class="form-inline mt-2 mt-md-0">
+
+            <input type="text" name="q" value="{{ query|default_if_none:'' }}" class="form-control mr-2" placeholder="Buscar...">
+
+            <button type="submit" class="btn btn-primary">Buscar</button>
+        </form>
+        <a href="{% url 'adm:documento_create' %}" class="btn btn-success mt-2 mt-md-0 ml-md-2">Nuevo Documento</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>
+                            <a href="?{% if query %}q={{ query }}&{% endif %}orden={% if orden == 'tipo' %}-tipo{% else %}tipo{% endif %}">
+                                Tipo
+                                {% if orden == 'tipo' %}
+                                    <i class="fa fa-sort-up"></i>
+                                {% elif orden == '-tipo' %}
+                                    <i class="fa fa-sort-down"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?{% if query %}q={{ query }}&{% endif %}orden={% if orden == 'descripcion' %}-descripcion{% else %}descripcion{% endif %}">
+                                Descripción
+                                {% if orden == 'descripcion' %}
+                                    <i class="fa fa-sort-up"></i>
+                                {% elif orden == '-descripcion' %}
+                                    <i class="fa fa-sort-down"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>Archivo</th>
+                        <th>
+                            <a href="?{% if query %}q={{ query }}&{% endif %}orden={% if orden == 'fecha_subida' %}-fecha_subida{% else %}fecha_subida{% endif %}">
+                                Fecha
+                                {% if orden == 'fecha_subida' %}
+                                    <i class="fa fa-sort-up"></i>
+                                {% elif orden == '-fecha_subida' %}
+                                    <i class="fa fa-sort-down"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in documentos %}
+                    <tr>
+                        <td>{{ doc.get_tipo_display }}</td>
+                        <td>{{ doc.descripcion }}</td>
+                        <td><a href="{{ doc.archivo.url }}" target="_blank">Ver PDF</a></td>
+                        <td>{{ doc.fecha_subida|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <a href="{% url 'adm:documento_delete' doc.pk %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este documento?');">
+                                <i class="fa fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No hay documentos.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

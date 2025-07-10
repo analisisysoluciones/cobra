@@ -40,7 +40,7 @@
                         <td>{{ proyecto.nombre }}</td>
                         <td>{{ proyecto.ubicacion }}</td>
                         <td>{{ proyecto.residente.nombre }}</td>   
-                        <td>{{ proyecto.estado|yesno:"Cerrado,Activo" }}</td>
+                        <td>{{ proyecto.estado|yesno:"Activo,Cerrado" }}</td>
                         <td>
                             {% if proyecto.mapa %}
                                 {% if proyecto.mapa.url|lower|slice:"-4:" == ".pdf" %}

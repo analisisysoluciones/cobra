@@ -1,0 +1,79 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST" action="{% url 'adm:cargacombustible_delete' pk=obj.pk %}">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                            Confirmar Eliminación de Carga de Combustible
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <div class="alert alert-warning text-center">
+                            <i class="fas fa-exclamation-triangle fa-lg mr-2"></i>
+                            Esta acción es <strong>irreversible</strong>. ¿Estás seguro que deseas eliminar este registro?
+                        </div>
+
+                        <ul class="list-group mb-3">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Equipo:</strong>
+                                <span>{{ obj.equipo }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Fecha de Carga:</strong>
+                                <span>{{ obj.fecha_carga }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Tipo de Combustible:</strong>
+                                <span>{{ obj.get_tipo_combustible_display }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Cantidad (litros):</strong>
+                                <span>{{ obj.cantidad_litros }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Costo Total:</strong>
+                                <span>$ {{ obj.costo_total|floatformat:2 }}</span>
+                            </li>
+                            {% if obj.odometro %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Odómetro:</strong>
+                                <span>{{ obj.odometro }}</span>
+                            </li>
+                            {% endif %}
+                            {% if obj.observaciones %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Observaciones:</strong>
+                                <span>{{ obj.observaciones }}</span>
+                            </li>
+                            {% endif %}
+                        </ul>
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col text-center">
+                                <button type="submit" class="btn btn-danger btn-icon-split">
+                                    <span class="icon text-white-50">
+                                        <i class="fas fa-trash"></i>
+                                    </span>
+                                    <span class="text">Sí, Eliminar</span>
+                                </button>
+                                <a href="{% url 'adm:cargacombustible_list' %}" class="btn btn-secondary btn-icon-split">
+                                    <span class="icon text-white-50">
+                                        <i class="fas fa-times"></i>
+                                    </span>
+                                    <span class="text">Cancelar</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>                            
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}

@@ -1,38 +1,67 @@
-<div class="modal-dialog modal-lg">
-    <div class="modal-content">
-        <form role="form" action="{% url 'adm:compras_del' obj.compra.id obj.pk %}" method="post" class="form-inline">
-            <div class="col-xl-12 col-md-12 mb-12">
-                <div class="card border-left-danger shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                    Eliminar Detalle
-                                </div>
-                                <div class="dropdown-divider"></div>
-                                {% csrf_token %}
-                                <div class="row">
-                                    ¿Eliminar {{ obj.material.nombre }} de compra número <b>{{ obj.compra.id }}</b>?
-                                </div>
-                                <div class="dropdown-divider"></div>
-                                <div class="row">
-                                    <div class="col">
-                                        <button type="submit" class="btn btn-danger">
-                                            <span class="fa fa-save"></span> Sí, Eliminar
-                                        </button>
-                                        <button type="button" class="btn btn-success" data-dismiss="modal">
-                                            Cancelar
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="far fa-calendar-plus fa-2x text-gray-300"></i>
-                            </div>
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST" action="{% url 'cxp:compras_del' compra_id=obj.compra.id pk=obj.pk %}">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                            Confirmar Eliminación de Detalle
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <div class="alert alert-warning text-center">
+                            <i class="fas fa-exclamation-triangle fa-lg mr-2"></i>
+                            Esta acción es <strong>irreversible</strong>. ¿Estás seguro que deseas eliminar este detalle?
+                        </div>
+
+                        <ul class="list-group mb-3">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Material:</strong>
+                                <span>{{ obj.material.descripcion }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Cantidad:</strong>
+                                <span>{{ obj.cantidad }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Precio Unitario:</strong>
+                                <span>$ {{ obj.precio_unitario|floatformat:2 }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Importe:</strong>
+                                <span>$ {{ obj.importe|floatformat:2 }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center text-muted small">
+                                <strong>Compra #:</strong>
+                                <span>{{ obj.compra.id }} (Folio {{ obj.compra.folio_documento }})</span>
+                            </li>
+                        </ul>
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                        <div class="col text-center">
+                            <button type="submit" class="btn btn-danger btn-icon-split">
+                                <span class="icon text-white-50">
+                                    <i class="fas fa-trash"></i>
+                                </span>
+                                <span class="text">Sí, Eliminar</span>
+                            </button>
+                            <a href="{% url 'cxp:compras_edit' compra_id=obj.compra.id %}" class="btn btn-secondary btn-icon-split">
+                                <span class="icon text-white-50">
+                                    <i class="fas fa-times"></i>
+                                </span>
+                                <span class="text">Cancelar</span>
+                            </a>
                         </div>
                     </div>
+                    </div>                            
                 </div>
             </div>
-        </form>
+        </div>
     </div>
-</div>
+</form>
+{% endblock page_content %}

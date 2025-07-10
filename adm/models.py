@@ -150,7 +150,8 @@ class Equipo(ClaseModelo):
     placas=models.CharField('Placas',max_length=10,blank=True,null=True,default='S/P')
         
     def __str__(self):
-        return self.descripcion
+        return f"{self.descripcion} (Placas: {self.placas})" 
+
         
     def save(self):
         self.descripcion = self.descripcion.upper()
@@ -163,16 +164,24 @@ class Equipo(ClaseModelo):
 
     
 class Bitacora(models.Model):
-    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE, related_name="bitacoras")
-    fecha = models.DateField(auto_now_add=True)
-    actividad = models.TextField()
-    personal_involucrado = models.CharField(max_length=255)
-    maquinaria_utilizada = models.CharField(max_length=255, blank=True, null=True)
-    avance = models.TextField(blank=True, null=True)
-    material_entregado = models.TextField(blank=True, null=True)
+    proyecto = models.ForeignKey(
+        'Proyecto',
+        on_delete=models.CASCADE,
+        related_name="bitacoras"
+    )
+    fecha = models.DateField()
+    contenido = models.TextField(
+        help_text="Ingrese el contenido de la bitácora en texto libre (puede incluir HTML).",blank=True,null=True
+    )
+    documento = models.FileField(
+        upload_to='bitacoras/',
+        blank=True,
+        null=True,
+        verbose_name="Documento PDF"
+    )
 
     def __str__(self):
-        return f"Bitácora del {self.fecha} para {self.proyecto.nombre}"
+        return f"Bitácora del {self.fecha} - {self.proyecto.nombre}"
 
 
 class RegistroCuenta(ClaseModelo):
@@ -294,3 +303,70 @@ class MovimientoCuenta(models.Model):
 
 #     def __str__(self):
 #        return f"{self.fecha.date()} - {self.descripcion} - ${self.monto}"
+
+
+
+
+class DocumentoGeneral(models.Model):
+    TIPOS = (
+        ('cotizacion', 'Cotización'),
+        ('registro', 'Registro'),
+        ('bitacora', 'Bitácora'),
+        ('otro', 'Otro'),
+    )
+
+    tipo = models.CharField(max_length=20, choices=TIPOS)
+    descripcion = models.CharField(max_length=255)
+    archivo = models.FileField(upload_to='documentos_generales/')
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} - {self.descripcion}"
+
+
+
+class CargaCombustible(ClaseModelo):
+    COMBUSTIBLE_CHOICES = (
+        ('gasolina', 'Gasolina'),
+        ('diesel', 'Diésel'),
+    )
+
+    equipo = models.ForeignKey(
+        'Equipo',
+        on_delete=models.CASCADE,
+        related_name='cargas_combustible'
+    )
+    fecha_carga = models.DateField()
+    tipo_combustible = models.CharField(
+        max_length=10,
+        choices=COMBUSTIBLE_CHOICES
+    )
+    cantidad_litros = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text='Cantidad en litros'
+    )
+    costo_total = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text='Costo total de esta carga'
+    )
+    odometro = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        help_text='Lectura del odómetro si aplica'
+    )
+    observaciones = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    operador = models.CharField('Operador:',max_length=80, blank=True,null=True)
+    hora = models.CharField('Hora:',max_length=5, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.get_tipo_combustible_display()} - {self.equipo} - {self.fecha_carga}"
+    
+    
+
+

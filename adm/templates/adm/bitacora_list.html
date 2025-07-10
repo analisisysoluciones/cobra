@@ -4,8 +4,10 @@
 <div class="card shadow mb-4">
     <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
         <h6 class="m-0 font-weight-bold text-primary">Lista de Bitácoras</h6>
-        <a href="{% url 'adm:bitacora_new' %}" class="btn btn-primary">Nueva Entrada en Bitácora</a>
-        <a href="#" class="btn btn-primary">Reporte de Bitácora</a>
+        <div>
+            <a href="{% url 'adm:bitacora_new' %}" class="btn btn-primary">Nueva Entrada en Bitácora</a>
+            <a href="#" class="btn btn-primary">Reporte de Bitácora</a>
+        </div>
     </div>
     <div class="card-body">
         {% if not bitacoras %}
@@ -16,10 +18,9 @@
                     <tr>
                         <th>ID</th>
                         <th>Fecha</th>
-                        <th>Usuario</th>
-                        <th>Actividad</th>
-                        <th>Descripción</th>
-                        <th>Estatus</th>
+                        <th>Proyecto</th>
+                        <th>Contenido</th>
+                        <th>Documento</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -28,10 +29,19 @@
                         <tr>
                             <td>{{ bitacora.id }}</td>
                             <td>{{ bitacora.fecha }}</td>
-                            <td>{{ bitacora.usuario }}</td>                           
-                            <td>{{ bitacora.actividad }}</td>
-                            <td>{{ bitacora.descripcion }}</td>
-                            <td>{{ bitacora.estatus|yesno:"Activo,Inactivo" }}</td>
+                            <td>{{ bitacora.proyecto.nombre }}</td>
+                            <td>
+                                {{ bitacora.contenido|truncatewords:15 }}
+                            </td>
+                            <td>
+                                {% if bitacora.documento %}
+                                    <a href="{{ bitacora.documento.url }}" target="_blank" class="btn btn-sm btn-info">
+                                        <i class="fa fa-file-pdf"></i> Ver PDF
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">Sin documento</span>
+                                {% endif %}
+                            </td>
                             <td>
                                 <a href="{% url 'adm:bitacora_edit' bitacora.id %}" class="btn btn-warning btn-circle" role="button">
                                     <i class="far fa-edit"></i>

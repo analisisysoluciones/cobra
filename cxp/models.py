@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from decimal import Decimal
 from django.utils import timezone
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from django.apps import apps
 
 
@@ -40,7 +40,7 @@ class CompraEnc(ClaseModelo):
     total = models.DecimalField('total:', max_digits=12, decimal_places=2, default=Decimal('0.00'))
     archivo_pdf = models.FileField('archivo pdf:', upload_to='documentos/pdfs/', blank=True, null=True)
     proyecto = models.ForeignKey('adm.Proyecto', on_delete=models.CASCADE, related_name='documentos')
-    estado = models.CharField('Estado', default='Pendiente', max_length=15)
+    estado = models.CharField('Estado', default='Pendiente', max_length=15, blank=True, null=True)
     dias_credito = models.PositiveIntegerField('Días de Crédito', default=0, blank=True, null=True)
     fecha_pago = models.DateField('Fecha de Pago', blank=True, null=True)
 
@@ -58,7 +58,7 @@ class CompraEnc(ClaseModelo):
         ('vencido', 'Vencido'),
         ('Recogido', 'Recogido'),
     ]
-    estatus_pago = models.CharField('Estatus de Pago', max_length=15, choices=ESTATUS_PAGO_CHOICES, default='pendiente')
+    estatus_pago = models.CharField('Estatus de Pago', max_length=15, blank=True, null=True,choices=ESTATUS_PAGO_CHOICES, default='pendiente')
     evidencia_recoge=models.FileField('archivo pdf:', upload_to='documentos/pdfs/', blank=True, null=True)
     evidencia_uso=models.FileField('archivo pdf:', upload_to='documentos/pdfs/', blank=True, null=True)
     autoriza=models.CharField('Autoriza:',max_length=25, blank=True, null=True,choices=QUIEN_AUTORIZA,default='Jesus Quiñones')
@@ -77,11 +77,21 @@ class CompraEnc(ClaseModelo):
 
     def calcular_estatus_pago(self):
         hoy = date.today()
-        if self.fecha_pago:
-            if hoy > self.fecha_pago:
+        fecha_pago = self.fecha_pago
+
+        if fecha_pago:
+        # Convertir a date si viene como str
+            if isinstance(fecha_pago, str):
+                try:
+                    fecha_pago = datetime.strptime(fecha_pago, '%Y-%m-%d').date()
+                except ValueError:
+                    return 'pendiente'  # o 'inválido'
+
+            if hoy > fecha_pago:
                 return 'vencido'
-            elif hoy >= self.fecha_pago - timedelta(days=5):
+            elif hoy >= fecha_pago - timedelta(days=5):
                 return 'proximo_vencer'
+
         return 'pendiente'
 
     def save(self, *args, **kwargs):
@@ -92,6 +102,16 @@ class CompraEnc(ClaseModelo):
     def calcular_total(self):
         self.total = sum(detalle.importe for detalle in self.documentos_d.all())
         CompraEnc.objects.filter(pk=self.pk).update(total=self.total)
+
+    def actualizar_estado(self):
+        saldo = self.saldo_pendiente()
+        if saldo <= Decimal("0.00"):
+            self.estado = "Cerrada"
+            self.estatus_pago = "pagado"
+        else:
+            self.estado = "Pendiente"
+            self.estatus_pago = self.calcular_estatus_pago()
+        self.save()
 
     class Meta:
         verbose_name = "Documento"

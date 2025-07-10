@@ -1,0 +1,28 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Nuevo Documento</h6>
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Tipo</label>
+                {{ form.tipo }}
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                {{ form.descripcion }}
+            </div>
+            <div class="form-group">
+                <label>Archivo PDF</label>
+                {{ form.archivo }}
+            </div>
+            <button type="submit" class="btn btn-success">Guardar</button>
+            <a href="{% url 'adm:documentos_list' %}" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

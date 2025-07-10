@@ -13,6 +13,10 @@
         <div class="dropdown-header">Acciones:</div>
         <a class="dropdown-item" href="{% url 'cxp:compras_new' %}"><i class="far fa-calendar-plus"></i> Nueva</a>
         <a class="dropdown-item" href="#" target="reportes"><i class="fas fa-print"></i> Listado</a>
+        <a href="{% url 'cxp:reporte_compras' %}" class="btn btn-outline-info">
+    <i class="fas fa-chart-bar"></i> Ver Reporte
+</a>
+
       </div>
     </div>
   </div>
@@ -40,18 +44,49 @@
           <td>{{ item.id }}</td>
           <td>{{ item.fecha|date:"d/m/Y" }}</td>
           <td style="width: 50px; text-align: center;">
-            <span class="status" style="background-color: {{ item.semaforo }};"></span>
+            {% with saldo=item.saldo_pendiente %}
+              {% if saldo <= 0 %}
+                <span class="status green" title="Pagado"></span>
+              {% elif saldo < item.total %}
+                <span class="status yellow" title="Parcialmente pagado"></span>
+              {% else %}
+                <span class="status red" title="Sin pagos"></span>
+              {% endif %}
+            {% endwith %}
           </td>
           <td>{{ item.fecha_pago|date:"d/m/Y" }}</td>
           <td>{{ item.proveedor }}</td>
           <td>{{ item.folio_documento }}</td>
           <td>{{ item.proyecto }}</td>
           <td>{{ item.total }}</td>
-          <td>{{ item.estado|yesno:"Activo,Inactivo" }}</td>
           <td>
-            <a class="btn btn-info btn-circle" href="{% url 'adm:registrar_pago' item.id %}"><i class="fas fa-money-bill-wave"></i></a>          
-            <a class="btn btn-warning btn-circle" href="{% url 'cxp:compras_edit' item.id %}"><i class="far fa-edit"></i></a>
-            <a class="btn btn-success btn-circle" href="{% url 'cxp:imprime_compra' item.id %}" target="reportes"><i class="fas fa-print"></i></a>
+            {% if item.estado == "Cerrada" %}
+              <span class="badge badge-success">Cerrada</span>
+            {% else %}
+              <span class="badge badge-warning">Pendiente</span>
+            {% endif %}
+          </td>
+          <td>
+            <a class="btn btn-info btn-circle" href="{% url 'adm:registrar_pago' item.id %}">
+              <i class="fas fa-money-bill-wave"></i>
+            </a>          
+
+            {% if item.estado != "Cerrada" %}
+              <a class="btn btn-warning btn-circle" href="{% url 'cxp:compras_edit' item.id %}">
+                <i class="far fa-edit"></i>
+              </a>
+            {% else %}
+              <button class="btn btn-secondary btn-circle" disabled title="Compra cerrada">
+                <i class="far fa-edit"></i>
+              </button>
+            {% endif %}
+
+            <a class="btn btn-success btn-circle" href="{% url 'cxp:imprime_compra' item.id %}" target="reportes">
+              <i class="fas fa-print"></i>
+            </a>
+            <a href="{% url 'cxp:subir_todos_los_archivos' item.id %}" class="btn btn-sm btn-outline-primary">
+              <i class="fa fa-file-upload"></i>
+            </a>
           </td>
         </tr>
         {% endfor %}
@@ -68,13 +103,13 @@
       .status.yellow { background-color: yellow; }
       .status.red { background-color: red; }
       .status.gray { background-color: gray; }
-  </style>
+    </style>
   </div>
 </div>
 {% endblock %}
+
 {% block js_page %}
 <script>
-// Call the dataTables jQuery plugin
 $(document).ready(function() {
   $('.table').DataTable({
     "language": {
@@ -85,11 +120,7 @@ $(document).ready(function() {
       "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
       "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
       "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-      "sInfoPostFix": "",
       "sSearch": "Buscar:",
-      "sUrl": "",
-      "sInfoThousands": ",",
-      "sLoadingRecords": "Cargando...",
       "oPaginate": {
           "sFirst": "<span class='fa fa-angle-double-left'></span>",
           "sLast": "<span class='fa fa-angle-double-right'></span>",

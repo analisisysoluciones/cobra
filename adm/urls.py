@@ -11,7 +11,8 @@ from .views import(
     registrocuenta_report, ReporteMovimientoView, generar_pdf, BitacoraListView, BitacoraCreateView,
     BitacoraUpdateView, BitacoraDeleteView, RegistroCuentaListView,RegistroCuentaCreateNew,RegistroCuentaEdit,RegistroCuentaDel,
     TipoPagoCreateView, TipoPagoListView, TipoPagoDeleteView, TipoPagoUpdateView, registrar_pago, listado_pagos, dashboard,
-    compras_pagadas, reporte_egresos_pdf, generar_estado_cuenta_pdf, dashboard_proyectos
+    compras_pagadas, reporte_egresos_pdf, generar_estado_cuenta_pdf, dashboard_proyectos, CargaCombustibleListView, CargaCombustibleCreateView,
+    CargaCombustibleUpdateView, CargaCombustibleDeleteView
 ) 
 
 
@@ -69,14 +70,28 @@ urlpatterns = [
     path('equipo/edit/<int:pk>/', EquipoUpdateView.as_view(), name='equipo_edit'),
     path('equipo/delete/<int:pk>/', EquipoDeleteView.as_view(), name='equipo_del'),
 
+    
     path('bitacora/', BitacoraListView.as_view(), name='bitacora_list'),
     path('bitacora/new/', BitacoraCreateView.as_view(), name='bitacora_new'),
-    path('bitacora/edit/', BitacoraUpdateView.as_view(), name='bitacora_edit'),
+    path('bitacora/edit/<int:pk>/', BitacoraUpdateView.as_view(), name='bitacora_edit'),
+    path('bitacora/delete/<int:pk>/', BitacoraDeleteView.as_view(), name='bitacora_delete'),
+
 
     path('tipopago/', TipoPagoListView.as_view(), name='tipopago_list'),
     path('tipopago/nuevo/', TipoPagoCreateView.as_view(), name='tipopago_new'),
     path('tipopago/editar/<int:pk>/', TipoPagoUpdateView.as_view(), name='tipopago_edit'),
     path('tipopago/eliminar/<int:pk>/', TipoPagoDeleteView.as_view(), name='tipopago_delete'),
+
+    path('documentos/', views.documentos_list, name='documentos_list'),
+    path('documentos/nuevo/', views.documento_create, name='documento_create'),
+    path('documentos/eliminar/<int:pk>/', views.documento_delete, name='documento_delete'),
+
+    path('combustible/', CargaCombustibleListView.as_view(), name='cargacombustible_list'),
+    path('combustible/new/', CargaCombustibleCreateView.as_view(), name='cargacombustible_new'),
+    path('combustible/edit/<int:pk>/', CargaCombustibleUpdateView.as_view(), name='cargacombustible_edit'),
+    path('combustible/delete/<int:pk>/', CargaCombustibleDeleteView.as_view(), name='cargacombustible_delete'),
+    path('reporte_combustible/', views.reporte_carga_combustible, name='reporte_combustible'),
+
 
     
 ]

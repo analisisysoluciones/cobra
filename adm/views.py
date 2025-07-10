@@ -3,6 +3,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMix
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic.edit import FormView
 from django.views import generic
+from openpyxl import Workbook
 from django.templatetags.static import static
 from reportlab.lib.utils import simpleSplit
 from django.http import JsonResponse
@@ -10,7 +11,8 @@ from bases.views import SinPrivilegios
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from .models import( Banco, Cuenta, Residente, Proyecto, TipoDocumento,
-                    Simbologia, Equipo, Bitacora, RegistroCuenta, TipoPago, Pago, MovimientoCuenta
+                    Simbologia, Equipo, Bitacora, RegistroCuenta, TipoPago, Pago, MovimientoCuenta, DocumentoGeneral,
+                    CargaCombustible
                     )
 
 from ventas.models import ProductoInmobiliario, Venta, Movimiento
@@ -20,7 +22,8 @@ from cxp.models import Proveedor, CompraEnc
 
 from .forms import( BancoForm, CuentaForm, ResidenteForm, TipoDocumentoForm, ProyectoForm, 
                    SimbologiaForm, PagoForm,
-                   ReporteMovimientoForm, EquipoForm, BitacoraForm, TipoPagoForm, RegistroCuentaForm)
+                   ReporteMovimientoForm, EquipoForm, BitacoraForm, TipoPagoForm, RegistroCuentaForm, DocumentoGeneralForm,
+                   CargaCombustibleForm, FiltroCombustibleForm)
 
 from xhtml2pdf import pisa
 from django.http import HttpResponse
@@ -83,7 +86,7 @@ class BancoNew(LoginRequiredMixin, generic.CreateView):
 class BancoEdit(LoginRequiredMixin, generic.UpdateView):
     model = Banco
     template_name = "adm/banco_form.html"
-    form_class = BancoForm
+    form_class = Banco
     success_url = reverse_lazy("adm:banco_list")
     login_url = "bases:login"
 
@@ -430,7 +433,7 @@ class BitacoraCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['proyectos'] = Proyecto.objects.all()  # Pasa todos los proyectos
-        context['residente'] = Residente.objects.all()  # Pasa todos los responsables
+        
         return context
     
 # Actualizar una entrada de bitácora
@@ -822,7 +825,26 @@ def registrar_pago(request, compra_id):
     
     if request.method == 'POST':
         form = PagoForm(request.POST, compra=compra)
+
+
+        
         if form.is_valid():
+             
+            tipo_pago = form.cleaned_data['tipo_pago']
+            monto = form.cleaned_data['monto']
+
+            # 🔹 Verificar si YA existe un pago idéntico
+            if Pago.objects.filter(
+                compra=compra,
+                tipo_pago=tipo_pago,
+                monto=monto
+            ).exists():
+                messages.error(
+                    request,
+                    "Ya existe un pago con el mismo tipo y monto para esta compra."
+                )
+                return redirect(request.path)  # O la URL que prefieras volver
+
             with transaction.atomic():  # 🔹 Asegura que ambas operaciones se guarden juntas
                 pago = form.save(commit=False)
                 pago.compra = compra  # ✅ Asigna la compra
@@ -840,6 +862,8 @@ def registrar_pago(request, compra_id):
                     abono=0.00,  
                     saldo=cuenta_bancaria.saldo_actual - pago.monto  # 🔹 Restar el pago del saldo actual
                 )
+
+                compra.actualizar_estado() # Quitar por si acaso
 
                 messages.success(request, "Pago registrado correctamente.")
                 return redirect('cxp:compras_list')
@@ -1132,3 +1156,172 @@ def dashboard_proyectos(request):
         })
 
     return render(request, 'ventas/resumen_proyectos.html', {'proyectos': data})
+
+
+
+
+
+def documentos_list(request):
+    query = request.GET.get('q')
+    orden = request.GET.get('orden', '-fecha_subida')  # Orden por defecto: más recientes
+
+    documentos = DocumentoGeneral.objects.all()
+
+    if query:
+        documentos = documentos.filter(
+            Q(descripcion__icontains=query) |
+            Q(tipo__icontains=query)
+        )
+
+    documentos = documentos.order_by(orden)
+
+    context = {
+        'documentos': documentos,
+        'orden': orden,
+        'query': query,
+    }
+    return render(request, 'adm/documentos_list.html', context)
+
+
+def documento_create(request):
+    if request.method == 'POST':
+        form = DocumentoGeneralForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Documento creado correctamente.')
+            return redirect('adm:documentos_list')
+    else:
+        form = DocumentoGeneralForm()
+    return render(request, 'adm/documento_form.html', {'form': form})
+
+def documento_delete(request, pk):
+    documento = get_object_or_404(DocumentoGeneral, pk=pk)
+    documento.delete()
+    messages.success(request, 'Documento eliminado.')
+    return redirect('adm:documentos_list')
+
+
+class CargaCombustibleListView(LoginRequiredMixin, PermissionRequiredMixin, generic.ListView):
+    permission_required = 'adm.view_cargacombustible'
+    model = CargaCombustible
+    template_name = 'adm/cargacombustible_list.html'
+    context_object_name = 'cargas'
+
+class CargaCombustibleCreateView(LoginRequiredMixin, PermissionRequiredMixin, generic.CreateView):
+    permission_required = 'adm.add_cargacombustible'
+    model = CargaCombustible
+    form_class = CargaCombustibleForm
+    template_name = 'adm/cargacombustible_form.html'
+    success_url = reverse_lazy('adm:cargacombustible_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['equipos'] = Equipo.objects.all().order_by('descripcion')
+        return context
+
+    def form_valid(self, form):
+        form.instance.uc = self.request.user
+        if form.instance.operador:
+            form.instance.operador = form.instance.operador.upper()
+        return super().form_valid(form)
+    
+class CargaCombustibleUpdateView(LoginRequiredMixin, PermissionRequiredMixin, generic.UpdateView):
+    permission_required = 'adm.change_cargacombustible'
+    model = CargaCombustible
+    form_class = CargaCombustibleForm
+    template_name = 'adm/cargacombustible_form.html'
+    success_url = reverse_lazy('adm:cargacombustible_list')
+
+    def form_valid(self, form):
+        form.instance.um = self.request.user.id
+        return super().form_valid(form)
+
+class CargaCombustibleDeleteView(LoginRequiredMixin, PermissionRequiredMixin, generic.DeleteView):
+    permission_required = 'adm.delete_cargacombustible'
+    model = CargaCombustible
+    template_name = 'adm/cargacombustible_del.html'
+    context_object_name = 'obj'
+    success_url = reverse_lazy('adm:cargacombustible_list')
+
+
+
+def reporte_carga_combustible(request):
+    form = FiltroCombustibleForm(request.GET or None)
+    cargas = CargaCombustible.objects.select_related('equipo')
+
+    if form.is_valid():
+        fecha_inicio = form.cleaned_data.get('fecha_inicio')
+        fecha_fin = form.cleaned_data.get('fecha_fin')
+        equipo = form.cleaned_data.get('equipo')
+        operador = form.cleaned_data.get('operador')
+        tipo_combustible = form.cleaned_data.get('tipo_combustible')
+
+        if tipo_combustible:
+            cargas = cargas.filter(tipo_combustible=tipo_combustible)
+
+
+        if fecha_inicio and fecha_fin:
+            cargas = cargas.filter(fecha_carga__range=(fecha_inicio, fecha_fin))
+        if equipo:
+            cargas = cargas.filter(equipo=equipo)
+        if operador:
+            cargas = cargas.filter(operador__icontains=operador)
+
+    # Totales
+    total_litros = cargas.aggregate(total=Sum('cantidad_litros'))['total'] or 0
+    total_costo = cargas.aggregate(total=Sum('costo_total'))['total'] or 0
+
+    # Exportación
+    export_format = request.GET.get('export')
+
+    if export_format == 'excel':
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Reporte Combustible"
+
+        ws.append([
+            'Fecha', 'Equipo', 'Tipo Combustible', 'Litros', 'Costo Total',
+            'Odómetro', 'Operador', 'Hora', 'Observaciones'
+        ])
+
+        for carga in cargas:
+            ws.append([
+                carga.fecha_carga.strftime('%Y-%m-%d'),
+                str(carga.equipo),
+                carga.get_tipo_combustible_display(),
+                float(carga.cantidad_litros),
+                float(carga.costo_total),
+                carga.odometro or '',
+                carga.operador or '',
+                carga.hora or '',
+                carga.observaciones or ''
+            ])
+
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename=reporte_combustible.xlsx'
+        wb.save(response)
+        return response
+
+    elif export_format == 'pdf':
+        html = render_to_string('adm/reporte_combustible_pdf.html', {
+            'cargas': cargas,
+            'total_litros': total_litros,
+            'total_costo': total_costo,
+        })
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'inline; filename="reporte_combustible.pdf"'
+
+        pisa_status = pisa.CreatePDF(html, dest=response)
+        if pisa_status.err:
+            return HttpResponse('Error al generar el PDF', status=500)
+        return response
+
+    # Vista normal en HTML
+    return render(request, 'adm/reporte_combustible.html', {
+        'form': form,
+        'cargas': cargas,
+        'total_litros': total_litros,
+        'total_costo': total_costo,
+    })
+
+

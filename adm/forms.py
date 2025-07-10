@@ -2,7 +2,7 @@ from django import forms
 import datetime
 from django.core.exceptions import ValidationError
 from .models import( Cuenta, Banco, Residente, TipoDocumento, Proyecto, Simbologia, 
-                     RegistroCuenta, Equipo, Bitacora, TipoPago, Pago) #CostoProyecto)
+                     RegistroCuenta, Equipo, Bitacora, TipoPago, Pago, DocumentoGeneral, CargaCombustible) #CostoProyecto)
 from django_select2.forms import Select2Widget
 from django.shortcuts import render, redirect
 import re
@@ -15,17 +15,8 @@ class TipoPagoForm(forms.ModelForm):
         model = TipoPago
         fields = ['nombre']
 
-    
-class BancoForm(forms.ModelForm):
-    class Meta:
-        model = Banco
-        fields = ['nombre']
-        labels = {
-            'nombre': 'Nombre del Banco:',
-        }
-        widgets = {
-            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
-        }
+ 
+
 
 
 t_cuenta = [
@@ -117,6 +108,8 @@ escoge_tipo = [
     ('Padre','Padre'),
     ('Hijo','Hijo')
 ]
+
+
 class SimbologiaForm(forms.ModelForm):
     class Meta:
         model = Simbologia
@@ -139,6 +132,15 @@ class SimbologiaForm(forms.ModelForm):
         }
         escoge_tipo = forms.ChoiceField(choices=escoge_tipo, label='Tipo', required=True)
 
+class DocumentoGeneralForm(forms.ModelForm):
+    class Meta:
+        model = DocumentoGeneral
+        fields = ['tipo', 'descripcion', 'archivo']
+        widgets = {
+            'tipo': forms.Select(attrs={'class': 'form-control'}),
+            'descripcion': forms.TextInput(attrs={'class': 'form-control'}),
+            'archivo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }
 
 
 
@@ -174,12 +176,12 @@ class EquipoForm(forms.ModelForm):
 class BitacoraForm(forms.ModelForm):
     class Meta:
         model = Bitacora
-        fields = ['proyecto', 'actividad', 'personal_involucrado', 'maquinaria_utilizada', 'avance', 'material_entregado']
+        fields = ['proyecto', 'fecha', 'contenido', 'documento']
         widgets = {
-            'actividad': forms.Textarea(attrs={'rows': 3}),
-            'avance': forms.Textarea(attrs={'rows': 3}),
-            'material_entregado': forms.Textarea(attrs={'rows': 3}),
+            'fecha': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'contenido': forms.Textarea(attrs={'rows': 10, 'class': 'form-control'}),
         }
+
 
 class TipoDocumentoForm(forms.ModelForm):
     class Meta:
@@ -249,4 +251,87 @@ class PagoForm(forms.ModelForm):
 #         fields = ['proyecto', 'descripcion', 'monto', 'movimiento']
 
 
+class DocumentoGeneralForm(forms.ModelForm):
+    class Meta:
+        model = DocumentoGeneral
+        fields = ['tipo', 'descripcion', 'archivo']
+        widgets = {
+            'tipo': forms.Select(attrs={'class': 'form-control'}),
+            'descripcion': forms.TextInput(attrs={'class': 'form-control'}),
+            'archivo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }
 
+
+class BancoForm(forms.ModelForm):
+    class Meta:
+        model = Banco
+        fields = ['nombre']  # o los campos que quieras
+
+
+class CargaCombustibleForm(forms.ModelForm):
+    class Meta:
+        model = CargaCombustible
+        fields = [
+            'equipo',
+            'fecha_carga',
+            'tipo_combustible',
+            'cantidad_litros',
+            'costo_total',
+            'odometro',
+            'operador',
+            'hora',
+            'observaciones',
+        ]
+        widgets = {
+            'equipo': forms.Select(attrs={'class': 'form-control'}),
+            'fecha_carga': forms.DateInput(
+                attrs={'type': 'date', 'class': 'form-control'},
+                format='%Y-%m-%d'   # <-- AQUÍ el formato que el input espera
+            ),
+            'tipo_combustible': forms.Select(attrs={'class': 'form-control'}),
+            'cantidad_litros': forms.NumberInput(attrs={'class': 'form-control'}),
+            'costo_total': forms.NumberInput(attrs={'class': 'form-control'}),
+            'odometro': forms.NumberInput(attrs={'class': 'form-control'}),
+            'operador': forms.TextInput(attrs={'class': 'form-control'}),
+            'hora': forms.TextInput(attrs={'class': 'form-control'}),
+            'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows':3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Opcional: filtrar o ajustar queryset si es necesario
+        self.fields['equipo'].queryset = Equipo.objects.all()  #
+        self.fields['fecha_carga'].input_formats = ['%Y-%m-%d']
+
+
+class FiltroCombustibleForm(forms.Form):
+    fecha_inicio = forms.DateField(
+        label="Desde", 
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    fecha_fin = forms.DateField(
+        label="Hasta", 
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    equipo = forms.ModelChoiceField(
+        queryset=Equipo.objects.all(), 
+        required=False, 
+        label="Equipo o Vehículo"
+    )
+    operador = forms.CharField(
+        max_length=80, 
+        required=False, 
+        label="Operador (Conductor)"
+    )
+
+    TIPO_COMBUSTIBLE_CHOICES = [
+    ('', '---------'),
+    ('gasolina', 'Gasolina'),
+    ('diesel', 'Diésel'),
+    ]
+
+    tipo_combustible = forms.ChoiceField(
+        choices=TIPO_COMBUSTIBLE_CHOICES,
+        required=False,
+        label='Tipo de Combustible',
+    )

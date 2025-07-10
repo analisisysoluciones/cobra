@@ -1,0 +1,15 @@
+{% extends "base/base.html" %}
+{% block page_content %}
+<div class="container mt-4">
+    <h3>Subir Archivo Principal - Compra {{ compra.id }}</h3>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="archivo_pdf">Seleccionar Archivo:</label>
+            <input type="file" name="archivo_pdf" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Subir</button>
+        <a href="{% url 'cxp:compras_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

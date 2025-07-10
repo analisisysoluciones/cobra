@@ -30,7 +30,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+        <!-- jQuery primero -->
     
     <link href="{% static 'base/css/styles.css' %}" rel="stylesheet">
 
@@ -303,7 +304,15 @@
                                 <i class="fas fa-file-alt mr-2 text-danger"></i> Bitácora
                             </a>
                             {% endif %}
-                    
+
+                            <a class="collapse-item" href="{% url 'adm:documentos_list' %}">
+                                <i class="fas fa-file-alt mr-2 text-danger"></i> Expedientes
+                            </a>
+
+                            <a class="collapse-item" href="{% url 'adm:cargacombustible_list' %}">
+                                <i class="fas fa-gas-pump mr-2 text-warning"></i> Combustible
+                            </a>
+
                             
                         </div>
                     </div>
@@ -635,6 +644,11 @@
   <!-- Bootstrap core JavaScript-->
   <script src="{% static  'base/vendor/jquery/jquery.min.js' %}"></script>
   <script src="{% static  'base/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  <!-- Bootstrap CSS -->
+    {% comment %} <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet"> {% endcomment %}
+
+    <!-- Bootstrap JS -->
+    {% comment %} <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script> {% endcomment %}
 
   <!-- Core plugin JavaScript-->
   <script src="{% static  'base/vendor/jquery-easing/jquery.easing.min.js' %}"></script>
@@ -659,7 +673,7 @@
   
 
   {% comment %} <script src="{% static  'base/js/jquery.chained.min.js' %}"></script> {% endcomment %}
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+  {% comment %} <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script> {% endcomment %}
   
 
 
@@ -715,13 +729,20 @@
     {% if messages %}
       {% for message in messages %}
         console.log("{{ message.tags }}");
-        mensaje("{{ message }}","{{ message.tags }}");
+        mensaje("{{ message }}","{{ message.tags }}");<!-- jQuery primero -->
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+        <!-- Popper.js -->
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+        <!-- Bootstrap JS -->
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
       {% endfor %}
     {% endif %}
 
   </script>
   {% endblock%}
   {% block js_page %} {% endblock %}
+
 </body>
 
 </html>

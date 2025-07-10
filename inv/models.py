@@ -70,7 +70,4 @@ class Material(ClaseModelo):
 #     tipo = models.CharField('Tipo',choices=tipo_gastos,default='Fijo')
     
 
-    
-    
-
 
