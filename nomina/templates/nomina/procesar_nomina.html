@@ -13,7 +13,6 @@
                         </div>
                         <div class="dropdown-divider"></div>
 
-                        <!-- Mensajes de éxito o error -->
                         {% if messages %}
                             {% for message in messages %}
                                 <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
@@ -25,23 +24,21 @@
                             {% endfor %}
                         {% endif %}
 
-                        <!-- Fecha de la Nómina -->
                         <div class="form-group row">
-                            <label for="fecha" class="col-sm-3 col-form-label">Fecha de Nómina:</label>
+                            <label for="fecha" class="col-sm-3 col-form-label">Fecha de Inicio de Semana</label>
                             <div class="col-sm-9">
-                                <input type="date" id="fecha" name="fecha" class="form-control" required>
+                                <input type="date" class="form-control" id="fecha" name="fecha" required>
                             </div>
                         </div>
 
-                        <!-- Selección de Cuenta -->
                         <div class="form-group row">
-                            <label for="cuenta" class="col-sm-3 col-form-label">Cuenta a Debitar:</label>
+                            <label for="cuenta" class="col-sm-3 col-form-label">Cuenta de Pago</label>
                             <div class="col-sm-9">
-                                <select name="cuenta" class="form-control" required>
+                                <select name="cuenta" id="cuenta" class="form-control" required>
                                     <option value="">-- Selecciona una cuenta --</option>
                                     {% for cuenta in cuentas %}
                                         <option value="{{ cuenta.id }}">
-                                            {{ cuenta.cuenta }} - Balance: ${{ cuenta.saldo_actual }}
+                                            {{ cuenta.cuenta }} - Balance: ${{ cuenta.saldo_actual|floatformat:2 }}
                                         </option>
                                     {% empty %}
                                         <option value="">No hay cuentas disponibles</option>
@@ -70,4 +67,5 @@
 {% endblock page_content %}
 
 {% block js_page %}
+{# Aquí puedes añadir JavaScript si es necesario, por ejemplo para Datepickers #}
 {% endblock js_page %}

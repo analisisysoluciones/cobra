@@ -1,0 +1,45 @@
+{# nomina/templates/nomina/detalles_procesados.html #}
+{% extends 'base/base.html' %}
+{% block page_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Detalles de Nómina Procesada ({{ nomina_hist.periodo_inicio }} - {{ nomina_hist.periodo_fin }})</h6>
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered text-center">
+            <thead>
+                <tr>
+                    <th>Empleado</th>
+                    <th>Total Pago</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in detalles %}
+                <tr>
+                    <td>{{ detalle.empleado.nombre }}</td>
+                    <td>{{ detalle.total_pago|floatformat:2 }}</td>
+                    <td>
+                        {% if not detalle.proyecto %}
+                            <a href="{% url 'nom:asignar_proyecto_individual' detalle_id=detalle.id %}" class="btn btn-sm btn-outline-warning">
+                                <i class="fas fa-tasks"></i> Asignar Proyecto
+                            </a>
+                        {% else %}
+                            <span class="badge bg-info text-white">{{ detalle.proyecto.nombre }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {# Añade un botón de regreso si es necesario #}
+        {% if nomina_hist %}
+        <div class="text-right mt-3">
+            <a href="{% url 'nom:listar_detalles_nomina_procesada' nomina_historial_id=nomina_hist.id %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-circle-left"></i> Volver a Detalles
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock page_content %}

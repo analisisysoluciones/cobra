@@ -168,3 +168,16 @@ class FiltroCompraForm(forms.Form):
         label='Proyecto',
         widget=forms.Select(attrs={'class': 'form-control'})
     )
+
+
+
+class FiltroReporteForm(forms.Form):
+    fecha_inicio = forms.DateField(label="Desde", required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+    fecha_fin = forms.DateField(label="Hasta", required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+    proveedores = forms.ModelMultipleChoiceField(
+        label="Proveedores", 
+        queryset=Proveedor.objects.all(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'form-control'})
+    )
+

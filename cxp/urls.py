@@ -4,7 +4,7 @@ from .views import(
     ProveedorListView, ProveedorCreateView, ProveedorUpdateView, ProveedorDeleteView, 
     ComprasView, compras,   
     CompraDetDelete, imprime_compra, subir_archivo_pdf, subir_evidencia_recoge, subir_evidencia_uso, subir_todos_los_archivos,
-    compras_add_detalle_view, reporte_compras
+    compras_add_detalle_view, reporte_compras, reporte_compras_materiales, exportar_excel_materiales, exportar_pdf_materiales
 ) 
 
 
@@ -30,6 +30,9 @@ urlpatterns = [
     path('compra/<int:compra_id>/subir-todos/', views.subir_todos_los_archivos, name='subir_todos_los_archivos'),
     path('compras/<int:compra_id>/add-detalle/', views.compras_add_detalle_view, name='compras_add_detalle'),
     path('reporte-compras/', reporte_compras, name='reporte_compras'),
+    path('reporte-materiales/', reporte_compras_materiales, name='reporte_materiales'),
+    path('reporte-materiales/excel/', exportar_excel_materiales, name='exportar_excel_materiales'),
+    path('reporte-materiales/pdf/', exportar_pdf_materiales, name='exportar_pdf_materiales'),
 
 
    

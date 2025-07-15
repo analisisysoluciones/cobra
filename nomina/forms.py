@@ -1,7 +1,11 @@
+# nomina/forms.py
 from django import forms
 import datetime
 from django.core.exceptions import ValidationError
-from .models import( Cuenta, Empleado, Asistencia, Nomina, PeriodosNomina, EmpleadoArchivo)
+from adm.models import Proyecto # <-- CORREGIDO: Importar Proyecto desde adm.models
+from .models import (
+    Cuenta, Empleado, Asistencia, Nomina, PeriodosNomina, EmpleadoArchivo, NominaDetalle
+)
 from django_select2.forms import Select2Widget
 from django.shortcuts import render, redirect
 import re
@@ -11,7 +15,6 @@ from django.forms import inlineformset_factory, modelformset_factory, BaseModelF
 from django.urls import reverse_lazy
 
 
-
 class EmpleadoForm(forms.ModelForm):
     class Meta:
         model = Empleado
@@ -19,8 +22,8 @@ class EmpleadoForm(forms.ModelForm):
         widgets = {
             'codigo': forms.NumberInput(attrs={'class': 'form-control'}),
             'curp': forms.TextInput(attrs={
-                'class': 'form-control', 
-                'style': 'text-transform:uppercase;', 
+                'class': 'form-control',
+                'style': 'text-transform:uppercase;',
                 'data-url': reverse_lazy('nom:validar_curp')  # Ruta para AJAX
             }),
             'rfc': forms.TextInput(attrs={'class': 'form-control', 'style': 'text-transform:uppercase;'}),
@@ -29,65 +32,66 @@ class EmpleadoForm(forms.ModelForm):
             'sueldo_diario': forms.NumberInput(attrs={'class': 'form-control'}),
             'compensacion': forms.NumberInput(attrs={'class': 'form-control'}),
             'puesto': forms.TextInput(attrs={'class': 'form-control'}),
-            'estado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'estado': forms.TextInput(attrs={'class': 'form-control'}),
         }
-        
-    # def clean_curp(self):
-    #     curp = self.cleaned_data.get('curp', '').upper()
-    #     if Empleado.objects.filter(curp=curp).exists():
-    #         raise forms.ValidationError("Este CURP ya está registrado.")
-    #     return curp
-    
-    
+
 class EmpleadoArchivoForm(forms.ModelForm):
     class Meta:
         model = EmpleadoArchivo
-        fields = ['nombre', 'archivo']
-
-    def clean_archivo(self):
-        nombre = self.cleaned_data.get('nombre_archivo')
-        archivo = self.cleaned_data.get('archivo')
-
-        # Validar que el archivo sea PDF
-        if archivo and not archivo.name.endswith('.pdf'):
-            raise forms.ValidationError("Solo se permiten archivos en formato PDF.")
-
-        return archivo
-
-
-
+        # Eliminado 'nombre_archivo' de aquí porque no existe en el modelo EmpleadoArchivo
+        fields = ['archivo'] # <-- CORREGIDO
+        widgets = {
+            'archivo': forms.FileInput(attrs={'class': 'form-control-file'}),
+        }
 
 class FaltaForm(forms.ModelForm):
     class Meta:
         model = Asistencia
-        fields = ['empleado', 'fecha'] # Solo necesitamos empleado y fecha
+        fields = ['empleado', 'fecha']
         widgets = {
-            'fecha': forms.DateInput(attrs={'type': 'date'}),  # Widget para seleccionar la fecha
+            'empleado': forms.Select(attrs={'class': 'form-control select2'}), # Usa select2 si lo tienes configurado
+            'fecha': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['empleado'].queryset = Empleado.objects.filter(estado=True)
 
 class FechaForm(forms.Form):
     fecha = forms.DateField(
         widget=forms.DateInput(attrs={
-            'type': 'date', 
-            'class': 'form-control', 
+            'type': 'date',
+            'class': 'form-control',
             'id': 'id_fecha'
         }),
         label="Fecha"
     )
-
 
 class PeriodosNominaForm(forms.ModelForm):
     class Meta:
         model = PeriodosNomina
         fields = ['semana', 'periodo_inicio', 'periodo_final', 'fecha_corte', 'dia_pago']
         widgets = {
-            'periodo_inicio': forms.DateInput(attrs={'type': 'date'}),
-            'periodo_final': forms.DateInput(attrs={'type': 'date'}),
-            'fecha_corte': forms.DateInput(attrs={'type': 'date'}),
-            'dia_pago': forms.DateInput(attrs={'type': 'date'}),
+            'periodo_inicio': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}, format='%Y-%m-%d'), # <-- Añadir format
+            'periodo_final': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}, format='%Y-%m-%d'),   # <-- Añadir format
+            'fecha_corte': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}, format='%Y-%m-%d'),     # <-- Añadir format
+            'dia_pago': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}, format='%Y-%m-%d'),        # <-- Añadir format
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in ['periodo_inicio', 'periodo_final', 'fecha_corte', 'dia_pago']:
+            # El input_formats debe incluir el formato que el widget va a producir y otros posibles de entrada
+            self.fields[field_name].input_formats = ['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y']
+
+
+class AsignarProyectoForm(forms.ModelForm):
+    class Meta:
+        model = NominaDetalle
+        fields = ['proyecto'] # Solo necesitamos el campo 'proyecto'
+
+        widgets = {
+            'proyecto': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Asegura que el queryset sea de todos los proyectos o filtra si es necesario
+        self.fields['proyecto'].queryset = Proyecto.objects.all()
+        self.fields['proyecto'].empty_label = "--- Seleccione un Proyecto ---" # Opcional

@@ -4,6 +4,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic.edit import FormView
 from django.views import generic
 from django.templatetags.static import static
+from django.db.models.functions import Coalesce
+
 
 import openpyxl
 import tempfile
@@ -18,7 +20,7 @@ from adm.models import(Proyecto, TipoDocumento, Cuenta)
 from inv.models import Material
 #from .calculos import calcular_nomina_semanal_todos
 
-from .forms import( ProveedorForm, CompraEncForm, CompraDetForm, FiltroCompraForm )
+from .forms import( ProveedorForm, CompraEncForm, CompraDetForm, FiltroCompraForm, FiltroReporteForm )
 
 
 from xhtml2pdf import pisa
@@ -571,4 +573,129 @@ def reporte_compras(request):
         'total_registros': total_registros,
     }
     return render(request, 'cxp/reporte_compras.html', context)
-        
+
+
+def reporte_compras_materiales(request):
+    detalles = CompraDet.objects.select_related('material', 'compra', 'compra__proveedor')
+
+    # Filtros desde GET
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    proveedor_id = request.GET.get('proveedor')
+
+    if fecha_inicio:
+        detalles = detalles.filter(compra__fecha__gte=fecha_inicio)
+    if fecha_fin:
+        detalles = detalles.filter(compra__fecha__lte=fecha_fin)
+    if proveedor_id:
+        detalles = detalles.filter(compra__proveedor_id=proveedor_id)
+
+    resumen = detalles.values(
+        'material__id',
+        'material__descripcion'
+    ).annotate(
+        cantidad_total=Sum('cantidad', output_field=DecimalField()),
+        importe_total=Sum('importe', output_field=DecimalField()),
+        precio_promedio=ExpressionWrapper(
+            Sum('importe', output_field=DecimalField()) / Sum('cantidad', output_field=DecimalField()),
+            output_field=DecimalField(max_digits=12, decimal_places=2)
+        )
+    ).order_by('material__descripcion')
+
+    proveedores = Proveedor.objects.all()
+
+    return render(request, 'cxp/reporte_materiales.html', {
+        'resumen': resumen,
+        'proveedores': proveedores,
+    })
+
+
+def exportar_excel_materiales(request):
+    form = FiltroReporteForm(request.GET or None)
+    detalles = CompraDet.objects.select_related('material', 'compra', 'compra__proveedor')
+
+    if form.is_valid():
+        if form.cleaned_data.get('fecha_inicio'):
+            detalles = detalles.filter(compra__fecha__gte=form.cleaned_data['fecha_inicio'])
+        if form.cleaned_data.get('fecha_fin'):
+            detalles = detalles.filter(compra__fecha__lte=form.cleaned_data['fecha_fin'])
+        if form.cleaned_data.get('proveedores'):
+            detalles = detalles.filter(compra__proveedor__in=form.cleaned_data['proveedores'])
+
+    resumen = detalles.values(
+    'material__id',
+    'material__descripcion'
+    ).annotate(
+        cantidad_total=Sum('cantidad', output_field=DecimalField()),
+        importe_total=Sum('importe', output_field=DecimalField())
+    ).order_by('material__descripcion')
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Reporte Materiales"
+
+    ws.append(["Material", "Cantidad Total", "Importe Total"])
+    for row in resumen:
+        ws.append([
+            row["material__descripcion"],
+            float(row["cantidad_total"] or 0),
+            float(row["importe_total"] or 0),
+        ])
+
+    response = HttpResponse(content_type="application/ms-excel")
+    response["Content-Disposition"] = 'attachment; filename="reporte_materiales.xlsx"'
+    wb.save(response)
+    return response
+
+
+
+def exportar_pdf_materiales(request):
+    form = FiltroReporteForm(request.GET or None)
+    detalles = CompraDet.objects.select_related('material', 'compra', 'compra__proveedor', 'compra__proyecto')
+
+    nombre_proyecto = None
+    fecha_inicio = None
+    fecha_fin = None
+    proveedor_nombres = []
+
+    if form.is_valid():
+        fecha_inicio = form.cleaned_data.get('fecha_inicio')
+        fecha_fin = form.cleaned_data.get('fecha_fin')
+        proveedores = form.cleaned_data.get('proveedores')
+
+        if fecha_inicio:
+            detalles = detalles.filter(compra__fecha__gte=fecha_inicio)
+        if fecha_fin:
+            detalles = detalles.filter(compra__fecha__lte=fecha_fin)
+        if proveedores:
+            detalles = detalles.filter(compra__proveedor__in=proveedores)
+            proveedor_nombres = list(proveedores.values_list('nombre', flat=True))
+
+        # Si todos los detalles pertenecen al mismo proyecto
+        proyectos = detalles.values_list('compra__proyecto__nombre', flat=True).distinct()
+        if len(proyectos) == 1:
+            nombre_proyecto = proyectos[0]
+
+        resumen = detalles.values(
+            'material__id',
+            'material__descripcion'
+        ).annotate(
+            cantidad_total=Sum('cantidad', output_field=DecimalField()),
+            importe_total=Sum('importe', output_field=DecimalField())
+        ).order_by('material__descripcion')
+
+    template = get_template("cxp/pdf_reporte_materiales.html")
+    html = template.render({
+        'resumen': resumen,
+        'fecha_impresion': now().strftime('%d/%m/%Y %H:%M'),
+        'logo_path': static('base/img/inemo.png'),
+        'proyecto_nombre': nombre_proyecto,
+        'fecha_inicio': fecha_inicio.strftime('%d/%m/%Y') if fecha_inicio else None,
+        'fecha_fin': fecha_fin.strftime('%d/%m/%Y') if fecha_fin else None,
+        'proveedores': proveedor_nombres,
+    })
+
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = 'attachment; filename="reporte_materiales.pdf"'
+    pisa.CreatePDF(html, dest=response)
+    return response

@@ -1,7 +1,7 @@
 {% extends 'base/base.html' %}
 
 {% block page_content %}
-<form method="POST" action="{% url 'nom:calcular_nomina' %}">
+<form method="POST" action="{% url 'nom:seleccionar_fecha' %}">
     {% csrf_token %}
     <div class="col-xl-12 mb-4">
         <div class="card border-left-success shadow h-100 py-2">
@@ -9,14 +9,32 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Seleccionar Fecha
+                            Seleccionar Fecha para Calcular Nómina
                         </div>
                         <div class="dropdown-divider"></div>
 
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
                         <div class="form-group row">
-                            <label for="id_fecha_seleccionada" name="fecha" class="col-sm-3 col-form-label">Fecha:</label>
+                            <label for="{{ form.fecha.id_for_label }}" class="col-sm-3 col-form-label">Fecha de Inicio de Semana:</label>
                             <div class="col-sm-9">
                                 {{ form.fecha }}
+                                {% if form.fecha.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.fecha.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -24,10 +42,10 @@
                         <div class="row">
                             <div class="col">
                                 <button type="submit" class="btn btn-success">
-                                    <span class="fa fa-calendar"></span> Calcular nómina
+                                    <span class="fa fa-calculator"></span> Calcular Nómina
                                 </button>
-                                <a href="{% url 'nom:empleado_list' %}" class="btn btn-danger">
-                                    <span class="fa fa-undo"></span> Cancelar
+                                <a href="{% url 'nom:empleado_list' %}" class="btn btn-secondary">
+                                    <span class="fa fa-arrow-left"></span> Volver a Empleados
                                 </a>
                             </div>
                         </div>    
@@ -38,56 +56,46 @@
     </div>
 </form>
 
-{% if fecha %}
-<div class="alert alert-info mt-3">
-    <strong>Fecha seleccionada:</strong> {{ fecha }}
-</div>
-
-{% if nomina %}
-<div class="card mt-4">
-    <div class="card-header bg-success text-white">
-        <h5 class="mb-0">Nómina Semanal</h5>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered table-striped">
-                <thead class="thead-dark">
-                    <tr>
-                        <th>Empleado</th>
-                        <th>Días Trabajados</th>
-                        <th>Faltas</th>
-                        <th>Sueldo Diario</th>
-                        <th>Sueldo Semanal</th>
-                        <th>Compensación</th>
-                        <th>Percepciones</th>
-                        <th>Deducciones</th>
-                        <th>Total Pago</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for registro in nomina %}
-                    <tr>
-                        <td>{{ registro.empleado }}</td>
-                        <td>{{ registro.dias_trabajados }}</td>
-                        <td>{{ registro.faltas }}</td>
-                        <td>${{ registro.sueldo_diario }}</td>
-                        <td>${{ registro.sueldo_semanal }}</td>
-                        <td>${{ registro.compensacion }}</td>
-                        <td>${{ registro.percepciones }}</td>
-                        <td>${{ registro.deducciones }}</td>
-                        <td><strong>${{ registro.total_pago }}</strong></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h6 class="m-0 font-weight-bold">Instrucciones</h6>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li>Seleccione la fecha de <strong>inicio de la semana</strong> para calcular la nómina.</li>
+                    <li>La nómina se calculará para 7 días consecutivos a partir de la fecha seleccionada.</li>
+                    <li>Se considerarán las faltas registradas en el período.</li>
+                    <li>Solo se incluirán empleados con estado <strong>"Activo"</strong>.</li>
+                </ul>
+            </div>
         </div>
     </div>
 </div>
-{% else %}
-<div class="alert alert-warning mt-3">
-    <strong>No hay datos de nómina para la fecha seleccionada.</strong>
-</div>
-{% endif %}
-{% endif %}
 
 {% endblock page_content %}
+
+{% block js_page %}
+<script>
+    // Establecer la fecha de hoy como valor por defecto
+    document.addEventListener('DOMContentLoaded', function() {
+        var today = new Date();
+        var day = today.getDay(); // 0 = Domingo, 1 = Lunes, etc.
+        
+        // Calcular el lunes de esta semana
+        var mondayOffset = day === 0 ? -6 : 1 - day; // Si es domingo, retroceder 6 días
+        var monday = new Date(today);
+        monday.setDate(today.getDate() + mondayOffset);
+        
+        // Formatear la fecha como YYYY-MM-DD
+        var formattedDate = monday.toISOString().split('T')[0];
+        
+        // Establecer como valor por defecto
+        var fechaInput = document.getElementById('{{ form.fecha.id_for_label }}');
+        if (fechaInput && !fechaInput.value) {
+            fechaInput.value = formattedDate;
+        }
+    });
+</script>
+{% endblock js_page %}

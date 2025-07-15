@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: letter;
+            margin: 1cm;
+            @bottom-right {
+                content: "Página " counter(page) " de " counter(pages);
+                font-size: 10px;
+            }
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            height: 50px;
+        }
+
+        .meta-info {
+            margin-top: 10px;
+            font-size: 11px;
+        }
+
+        .filters {
+            margin-top: 5px;
+            font-size: 11px;
+        }
+
+        h2 {
+            text-align: center;
+            margin: 20px 0 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #000;
+            padding: 4px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <img src="{{ logo_path }}" class="logo">
+    <div class="meta-info">
+        <p><strong>Fecha de impresión:</strong> {{ fecha_impresion }}</p>
+        {% if proyecto_nombre %}
+        <p><strong>Proyecto:</strong> {{ proyecto_nombre }}</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="filters">
+    {% if fecha_inicio or fecha_fin %}
+        <p><strong>Rango de fechas:</strong>
+            {% if fecha_inicio %}Desde {{ fecha_inicio }}{% endif %}
+            {% if fecha_inicio and fecha_fin %} - {% endif %}
+            {% if fecha_fin %}Hasta {{ fecha_fin }}{% endif %}
+        </p>
+    {% endif %}
+    {% if proveedores %}
+        <p><strong>Proveedores:</strong> {{ proveedores|join:", " }}</p>
+    {% endif %}
+</div>
+
+<h2>Reporte de Compras por Material</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Material</th>
+            <th>Cantidad Total</th>
+            <th>Importe Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in resumen %}
+        <tr>
+            <td>{{ row.material__nombre }}</td>
+            <td>{{ row.cantidad_total|floatformat:2 }}</td>
+            <td>${{ row.importe_total|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3">No hay datos</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+</body>
+</html>

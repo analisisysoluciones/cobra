@@ -1,85 +1,110 @@
 {% extends 'base/base.html' %}
 {% load custom_filters %}
+
 {% block page_content %}
 <div class="card shadow mb-4">
     <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-        <h6 class="m-0 font-weight-bold text-primary">Reporte de Nómina Semanal</h6>
+        <h6 class="m-0 font-weight-bold text-primary">
+            Nómina Semanal
+            {% if fecha_inicio %}
+                - Del {{ fecha_inicio|date:"d/m/Y" }} al {{ fecha_fin|date:"d/m/Y" }}
+            {% endif %}
+        </h6>
 
-        
+        <div class="btn-group" role="group">
+            {% if fecha_inicio %}
+                <a href="{% url 'nom:nomina_pdf' %}?fecha_inicio={{ fecha_inicio|date:'Y-m-d' }}{% if fecha_fin %}&fecha_fin={{ fecha_fin|date:'Y-m-d' }}{% endif %}" class="btn btn-danger btn-sm">
+                    <i class="fas fa-file-pdf"></i> PDF Resumen
+                </a>
+                <a href="{% url 'nom:nomina_ind_pdf' %}?fecha_inicio={{ fecha_inicio|date:'Y-m-d' }}{% if fecha_fin %}&fecha_fin={{ fecha_fin|date:'Y-m-d' }}{% endif %}" class="btn btn-warning btn-sm">
+                    <i class="fas fa-file-download"></i> Recibos
+                </a>
+                {# ESTA ES LA SECCIÓN A MODIFICAR/VERIFICAR #}
+                {% if not nomina_existente and fecha_inicio %} {# Aseguramos que haya una fecha para procesar #}
+                    <form action="{% url 'nom:procesar_nomina' %}" method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="fecha_inicio_nomina" value="{{ fecha_inicio|date:'Y-m-d' }}">
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="fas fa-save"></i> Procesar Nómina
+                        </button>
+                    </form>
+                {% endif %}
+                {# FIN DE LA SECCIÓN A MODIFICAR/VERIFICAR #}
 
-        <a href="{% url 'nom:nomina_pdf' %}?fecha={{fecha|date:'Y-m-d'|cut:' '}}" class="btn btn-danger">
-            <i class="fas fa-file-pdf"></i> Descargar PDF
-        </a>
-
-        <a href="{% url 'nom:nomina_ind_pdf' %}?fecha_inicio={{ fecha|date:'Y-m-d'|cut:' ' }}" class="btn btn-warning">
-            <i class="fas fa-file-download"></i> Descargar Recibos Individuales
-        </a>
-    
-        <a href="{% url 'nom:procesar_nomina' %}" class="btn btn-success">
-            <i class="fas fa-desktop"></i> Procesar nómina
-        </a>
-        
-        
+            {% endif %}
+            <a href="{% url 'nom:seleccionar_fecha' %}" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-left"></i> Seleccionar otra fecha
+            </a>
+        </div>
     </div>
-    
-    
+
     <div class="card-body">
         {% if not nomina %}
             <div class="alert alert-info">No hay datos de nómina para esta semana.</div>
         {% else %}
-            <table class="table table-bordered text-center">
-                <thead>
-                    <tr class="bg-primary text-white">
-                        <th rowspan="2" class="text-center">Nombre</th>
-                        <th colspan="5">Percepciones</th>
-                        <th colspan="5">Deducciones</th>
-                        <th rowspan="2">Total Neto</th>
-                    </tr>
-                    <tr class="bg-light">
-                        <th>Sueldo Diario</th>
-                        <th>Días de Sueldo</th>
-                        <th>Sueldo Percibido</th>
-                        <th>7mo Día</th>
-                        <th>Compensación</th>
-                        <th>Total Percepciones</th>
-                        <th>Faltas</th>
-                        <th>Importe Faltas</th>
-                        <th>Proporción 7mo Día</th>
-                        <th>Total Deducciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    
-                    {% for item in nomina %}
-                    <tr>
-                        <td class="text-start">{{ item.empleado }}</td>
-                        <td>{{ item.sueldo_diario|floatformat:2 }}</td>
-                        <td>{{ item.dias_trabajados }}</td>
-                        <td>{{ item.dias_trabajados|multiply:item.sueldo_diario|floatformat:2 }}</td>
-                        <td>{{ item.septimo_dia|floatformat:2 }}</td>
-                        <td>{{ item.compensacion|floatformat:2 }}</td>
-                        <td>{{ item.sueldo_diario|multiply:item.dias_trabajados|add:item.septimo_dia|add:item.compensacion|floatformat:2 }}</td>
-                        <td>{{ item.faltas }}</td>
-                        <td>{{ item.faltas|multiply:item.sueldo_diario|floatformat:2 }}</td>
-                        <td>{{ item.descuento_septimo_dia|floatformat:2 }}</td>
-                        <td>{{ item.faltas|multiply:item.sueldo_diario|add:item.descuento_septimo_dia|floatformat:2}}</td>
-                        <td>{{ item.total_pago|floatformat:2 }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="14">No hay datos de nómina para esta semana.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-                <tfoot class="bg-light">
-                    <tr>
-                        <th class="text-start">Total</th>
-                        <th colspan="5">{{ total_percepciones }}</th>
-                        <th colspan="5">{{ total_deducciones }}</th>
-                        <th>{{ total_neto_general }}</th>
-                    </tr>
-                </tfoot>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-bordered text-center table-sm">
+                    <thead>
+                        <tr class="bg-primary text-white">
+                            <th rowspan="2">Nombre</th>
+                            <th colspan="5">Percepciones</th>
+                            <th colspan="4">Deducciones</th>
+                            <th rowspan="2">Total Neto</th>
+                            <th rowspan="2">Proyecto</th>
+                        </tr>
+                        <tr class="bg-light">
+                            <th>Sueldo Diario</th>
+                            <th>Días de Sueldo</th>
+                            <th>Sueldo Percibido</th>
+                            <th>7mo Día</th>
+                            <th>Compensación</th>
+                            <th>Faltas</th>
+                            <th>Importe Faltas</th>
+                            <th>Proporción 7mo Día</th>
+                            <th>Total Deducciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in nomina %}
+                        <tr>
+                            <td class="text-start">{{ item.empleado }}</td>
+                            <td>{{ item.sueldo_diario|floatformat:2 }}</td>
+                            <td>{{ item.dias_trabajados }}</td>
+                            <td>{{ item.sueldo_semanal|floatformat:2 }}</td>
+                            <td>{{ item.septimo_dia|floatformat:2 }}</td>
+                            <td>{{ item.compensacion|floatformat:2 }}</td>
+                            <td>{{ item.faltas }}</td>
+                            <td>{{ item.importe_faltas|floatformat:2 }}</td>
+                            <td>{{ item.descuento_septimo_dia|floatformat:2 }}</td>
+                            <td>{{ item.deducciones|floatformat:2 }}</td>
+                            <td><strong>{{ item.total_pago|floatformat:2 }}</strong></td>
+                            <td>
+                                {% if item.id %}
+                                <a href="{% url 'nom:asignar_proyecto_individual' detalle_id=item.id %}" class="btn btn-sm btn-outline-warning">
+                                    <i class="fas fa-tasks"></i> Proyecto
+                                </a>
+                                {% else %}
+                                <span class="text-muted">Sin detalle</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="12">No hay datos de nómina para esta semana.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="bg-light">
+                        <tr>
+                            <th>Total</th>
+                            <th colspan="5">{{ total_percepciones|floatformat:2 }}</th>
+                            <th colspan="4">{{ total_deducciones|floatformat:2 }}</th>
+                            <th><strong>{{ total_neto_general|floatformat:2 }}</strong></th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
         {% endif %}
     </div>
 </div>

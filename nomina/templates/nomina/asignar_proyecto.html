@@ -1,0 +1,46 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        <div class="card shadow h-100 py-2">
+            <div class="card-body">
+                <h5 class="mb-3 text-primary">Asignar Proyecto a Empleado</h5>
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">Empleado</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" value="{{ detalle.empleado }}" disabled>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">Total a Pagar</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control" value="$ {{ detalle.total_pago|floatformat:2 }}" disabled>
+                    </div>
+                    <label class="col-sm-2 col-form-label">Días Trabajados</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control" value="{{ detalle.dias_trabajados }}" disabled>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">Proyecto</label>
+                    <div class="col-sm-10">
+                        {{ form.proyecto }}
+                    </div>
+                </div>
+
+                <div class="text-right">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    {# URL corregida para volver a la lista de detalles de la nómina procesada #}
+                    <a href="{% url 'nom:listar_detalles_nomina_procesada' nomina_historial_id=nomina_historial_id %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}

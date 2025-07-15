@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: DejaVu Sans, sans-serif;
+            font-size: 11px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #444;
+            padding: 4px;
+            text-align: left;
+        }
+        th {
+            background-color: #f0f0f0;
+        }
+        .totales {
+            margin-top: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <img src="{{ STATIC_ROOT }}/img/logo_empresa.png" width="100">
+
+    <h2>Reporte de Carga de Combustible</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Equipo</th>
+                <th>Tipo</th>
+                <th>Litros</th>
+                <th>Costo</th>
+                <th>Odómetro</th>
+                <th>Operador</th>
+                <th>Hora</th>
+                <th>Observaciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for carga in cargas %}
+            <tr>
+                <td>{{ carga.fecha_carga }}</td>
+                <td>{{ carga.equipo }}</td>
+                <td>{{ carga.get_tipo_combustible_display }}</td>
+                <td align="right">{{ carga.cantidad_litros }}</td>
+                <td align="right">${{ carga.costo_total }}</td>
+                <td align="right">{{ carga.odometro }}</td>
+                <td>{{ carga.operador }}</td>
+                <td>{{ carga.hora }}</td>
+                <td>{{ carga.observaciones|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="9" align="center">No se encontraron registros.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p class="totales">
+        Total Litros: {{ total_litros|floatformat:2 }} &nbsp;&nbsp;&nbsp;
+        Total Costo: ${{ total_costo|floatformat:2 }}
+    </p>
+</body>
+</html>

@@ -1,0 +1,68 @@
+{# nomina/templates/nomina/detalles_nomina_procesada.html #}
+{% extends 'base/base.html' %}
+{% load custom_filters %} {# Si necesitas los filtros personalizados #}
+
+{% block page_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Detalles de Nómina Procesada</h6>
+        <div>
+            <small>Período: {{ nomina_historial.periodo_inicio|date:"d M Y" }} - {{ nomina_historial.periodo_fin|date:"d M Y" }}</small><br>
+            <small>Total: ${{ nomina_historial.total_pago|floatformat:2 }}</small>
+        </div>
+        <div>
+            {# La URL para nomina_pdf usa 'fecha' como parámetro de query #}
+            <a href="{% url 'nom:nomina_pdf' %}?fecha={{nomina_historial.periodo_inicio|date:'Y-m-d'|cut:' '}}" class="btn btn-danger btn-sm">
+                <i class="fas fa-file-pdf"></i> PDF Resumen
+            </a>
+            {# La URL para nomina_ind_pdf usa 'fecha_inicio' como parámetro de query #}
+            <a href="{% url 'nom:nomina_ind_pdf' %}?fecha_inicio={{ nomina_historial.periodo_inicio|date:'Y-m-d'|cut:' ' }}" class="btn btn-warning btn-sm">
+                <i class="fas fa-file-download"></i> Recibos Individuales
+            </a>
+            <a href="{% url 'nom:seleccionar_fecha' %}" class="btn btn-info btn-sm">
+                <i class="fas fa-arrow-circle-left"></i> Volver a Seleccionar Fecha
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if not detalles_nomina %}
+            <div class="alert alert-info">No hay detalles de nómina para este período.</div>
+        {% else %}
+            <table class="table table-bordered text-center">
+                <thead>
+                    <tr class="bg-light">
+                        <th class="text-start">Empleado</th>
+                        <th>Sueldo Diario</th>
+                        <th>Días Trabajados</th>
+                        <th>Total Pago</th>
+                        <th>Proyecto Asignado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in detalles_nomina %}
+                    <tr>
+                        <td class="text-start">{{ detalle.empleado.nombre }}</td>
+                        <td>{{ detalle.sueldo_diario|floatformat:2 }}</td>
+                        <td>{{ detalle.dias_trabajados }}</td>
+                        <td>{{ detalle.total_pago|floatformat:2 }}</td>
+                        <td>
+                            {% if detalle.proyecto %}
+                                <span class="badge bg-success text-white">{{ detalle.proyecto.nombre }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary text-white">Sin asignar</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'nom:asignar_proyecto_individual' detalle_id=detalle.id %}" class="btn btn-sm btn-outline-warning">
+                                <i class="fas fa-tasks"></i> Asignar Proyecto
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+</div>
+{% endblock page_content %}

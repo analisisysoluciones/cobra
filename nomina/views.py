@@ -1,26 +1,23 @@
-from django.shortcuts import render
+# nomina/views.py
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic.edit import FormView
 from django.views import generic
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from bases.views import SinPrivilegios
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required
-from .models import(Cuenta, Empleado, Asistencia, Nomina, NominaHistorial, NominaDetalle, 
-                    PeriodosNomina, EmpleadoArchivo
-                    )
-
+from .models import (
+    Cuenta, Empleado, Asistencia, Nomina, NominaHistorial, NominaDetalle,
+    PeriodosNomina, EmpleadoArchivo)
 from inv.models import Material
 from adm.models import MovimientoCuenta
-#from .calculos import calcular_nomina_semanal_todos
-
-from .forms import(EmpleadoForm, FaltaForm, FechaForm, PeriodosNominaForm, EmpleadoArchivoForm)
-
+from .forms import (
+    EmpleadoForm, FaltaForm, FechaForm, PeriodosNominaForm, EmpleadoArchivoForm, AsignarProyectoForm
+)
 from xhtml2pdf import pisa
-from django.http import HttpResponse
 from django.template.loader import render_to_string, get_template
 from django.contrib import messages
 from django.utils import timezone
@@ -29,283 +26,79 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter, legal
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
-from django.db.models import Sum, Max
-from django.contrib.messages.views import SuccessMessageMixin
-import datetime
-import uuid
-from django.utils.timezone import now
-from io import BytesIO
-from django.http import FileResponse
-from datetime import timedelta, datetime, date
-from io import BytesIO
+from django.db.models import Sum, Max, Q
+from datetime import datetime, timedelta
 from decimal import Decimal
-from reportlab.lib.pagesizes import letter, legal, landscape
-from reportlab.lib.utils import ImageReader
-import os
-from django.conf import settings
-import locale
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfbase import pdfmetrics
-from django.utils.formats import number_format
-from reportlab.platypus import Paragraph
-
-
-# Create your views here.
-
-#font_path = os.path.join(settings.BASE_DIR, "static/fonts/Arial.ttf")
-#pdfmetrics.registerFont(TTFont("Arial", font_path))
-
-
-# Establecer idioma español para los nombres de los meses
-#locale.setlocale(locale.LC_TIME, "es_ES.utf8")
-
-
-def validar_curp(request):
-    curp = request.GET.get('curp', '').upper()  # Convertir a mayúsculas
-    existe = Empleado.objects.filter(curp=curp).exists()
-    return JsonResponse({'existe': existe})
-
-
-class EmpleadoList(LoginRequiredMixin, PermissionRequiredMixin, generic.ListView):
-    permission_required = "nomina.view_empleados"
-    model = Empleado
-    template_name = 'nomina/empleado_list.html'
-    context_object_name = 'empleados'
-    login_url = "bases:login"
-    ordering = ['codigo']
-
-
-class EmpleadoNew(LoginRequiredMixin, generic.CreateView):
-    model = Empleado
-    fields =['codigo','rfc','curp','nombre','ingreso','sueldo_diario','compensacion','puesto']
-    template_name = 'nomina/empleado_form.html'
-    success_url = reverse_lazy('nom:empleado_list')
-    login_url = 'bases:login'
-
-       
-    def form_valid(self, form):
-            form.cleaned_data
-            form.instance.uc = self.request.user  # Asigna el usuario creador
-            self.object = form.save()  # Guarda el empleado y lo asigna a self.object
-            
-            # Guardar archivos relacionados con el empleado
-            archivos = self.request.FILES.getlist('archivo')  
-            nombres = self.request.POST.getlist('nombre')  # Captura los nombres
-
-            for archivo, nombre in zip(archivos,nombres):
-                EmpleadoArchivo.objects.create(empleado=self.object, archivo=archivo, nombre = nombres)
-
-            return super().form_valid(form)
-
-    def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs)
-            context['empleado'] = self.object if self.object else None  # Evitar error en el template
-            return context
-    
-
-class EmpleadoEdit(LoginRequiredMixin, generic.UpdateView):
-    model = Empleado
-    form_class = EmpleadoForm
-    context_object_name = 'obj'
-    template_name = 'nomina/empleado_form.html'
-    success_url = reverse_lazy('nom:empleado_list')
-    login_url = 'bases:login'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['archivos'] = EmpleadoArchivo.objects.filter(empleado=self.object)
-        return context
-
-def form_valid(self, form):
-    try:
-        # Guardar el formulario del empleado
-        empleado = form.save(commit=False)
-        empleado.um = self.request.user.id
-        empleado.save()
-
-        # 🔥 DEBUG: Imprimir lo que se está guardando
-        print(f"Empleado actualizado: {empleado}")
-
-        # Procesar archivo si se sube uno
-        if 'archivo' in self.request.FILES:
-            archivo_form = EmpleadoArchivoForm(self.request.POST, self.request.FILES)
-
-            if archivo_form.is_valid():
-                archivo = archivo_form.save(commit=False)
-                archivo.nombre = self.request.POST.get("nombre_archivo", "").strip()
-                archivo.empleado = empleado  # Relacionar con el empleado
-                archivo.save()
-            else:
-                print(f"Errores en archivo: {archivo_form.errors}")  # 🔥 Debug
-                return self.form_invalid(form)  # <-- IMPORTANTE: Manejar errores correctamente
-
-        return super().form_valid(form)  # 🔥 Esto debería hacer la redirección
-    except Exception as e:
-        print(f"❌ Error en form_valid: {e}")
-        return self.form_invalid(form)
-
-class EmpleadoDel(LoginRequiredMixin, generic.DeleteView):
-    model = Empleado
-    template_name = 'nomina/empleado_del.html'
-    success_url = reverse_lazy('nom:empleado_list')
-    login_url = 'bases:login'
-
- 
-    
-    
-
-
-class DocumentoEmpleadoDelete(LoginRequiredMixin, generic.DeleteView):
-    model = EmpleadoArchivo
-    template_name = "nomina/documento_confirm_delete.html"
-    login_url = 'bases:login'
-
-    def get_success_url(self):
-        empleado = self.object.empleado
-        return reverse_lazy('nom:empleado_edit', kwargs={'pk': empleado.pk})
-
-
-
-def vacaciones_empleado(request, empleado_id):
-    empleado = Empleado.objects.get(pk=empleado_id)
-    return JsonResponse({
-        "nombre": empleado.nombre,
-        "años_servicio": empleado.años_servicio(),
-        "días_vacaciones": empleado.dias_vacaciones(),
-    })
-
-
-# def calcular_nomina_semanal_todos(fecha_inicio_semana):
-#     fecha_fin_semana = fecha_inicio_semana + timedelta(days=6)
-    
-#     empleados = Empleado.objects.all()
-#     nomina_lista = []
-
-#     for empleado in empleados:
-#         # Contamos la cantidad de días no trabajados (faltas)
-#         faltas = Asistencia.objects.filter(
-#             empleado=empleado,
-#             fecha__range=[fecha_inicio_semana, fecha_fin_semana],            
-#         ).count()
-
-#         sueldo_diario = Decimal(empleado.sueldo_diario)
-#         dias_trabajados = Decimal(6)  # Se asume que siempre trabajó 6 días
-#         sueldo_semanal = dias_trabajados * sueldo_diario
-
-#         # Calcular séptimo día completo
-#         septimo_dia = sueldo_diario
-
-#         # Calcular el importe total por faltas
-#         importe_faltas = faltas * sueldo_diario
-#         descuento_septimo_dia = (faltas / Decimal(6)) * sueldo_diario
-
-
-#         # Parte proporcional del séptimo día según asistencias
-#         if faltas > 0:
-#             proporcion_septimo = (dias_trabajados - faltas) / Decimal(6) * sueldo_diario
-#         else:
-#             proporcion_septimo = Decimal(0)
-
-#         compensacion = Decimal(empleado.compensacion or 0)
-
-#         # Total a pagar después de descuentos
-#         total_pago = sueldo_semanal + septimo_dia + compensacion - importe_faltas - descuento_septimo_dia
-
-
-#         # Calcular el descuento proporcional del séptimo día según faltas
-#         descuento_septimo_dia = (faltas / Decimal(6)) * sueldo_diario
-
-#         # Si el usuario espera ver 85.71, entonces esta es la variable correcta
-#         diferencia_septimo_dia = descuento_septimo_dia
-
-#         # Percepciones y deducciones desglosadas
-#         percepciones = sueldo_semanal + septimo_dia + compensacion
-#         deducciones = importe_faltas + descuento_septimo_dia
-
-#         # Total neto
-#         total_pago = percepciones - deducciones
-#         if total_pago is None:
-#             total_pago = Decimal(0)
-
-
-            
-
-#         # Añadir los datos a la lista de nómina
-#         nomina_lista.append({
-#             'empleado': empleado,
-#             'sueldo_diario': float(sueldo_diario),
-#             'dias_trabajados': int(dias_trabajados),
-#             'faltas': faltas,  # Número de días de falta
-#             'importe_faltas': float(importe_faltas),  # Importe de las faltas
-#             'sueldo_semanal': float(sueldo_semanal - importe_faltas),
-#             'septimo_dia': float(septimo_dia),
-#             'proporcion_septimo': float(proporcion_septimo),  # Parte proporcional del séptimo día
-#             'compensacion': float(compensacion),
-#             'total_pago': float(total_pago),
-#             'diferencia_septimo_dia': float(diferencia_septimo_dia),  # Ahora mostrará 85.71 si falta 1 día
-#             'descuento_septimo_dia': float(descuento_septimo_dia),
-#             'percepciones': float(percepciones),
-#             'deducciones': float(deducciones),
-#             'total_pago': float(total_pago), 
-#         })
-
-#     return nomina_lista
 
 def calcular_nomina_semanal_todos(fecha_inicio_semana):
-    
+    # Convertir la fecha de inicio de la semana a objeto date si es una cadena
     if isinstance(fecha_inicio_semana, str):
         try:
             fecha_inicio_semana = datetime.strptime(fecha_inicio_semana, "%Y-%m-%d").date()
         except ValueError:
             print("Error: Formato de fecha incorrecto. Debe ser 'YYYY-MM-DD'.")
-            return []
+            return [] # Retorna una lista vacía si el formato es incorrecto
 
+    # Calcular la fecha de fin de la semana (6 días después de la fecha de inicio, cubriendo 7 días en total)
     fecha_fin_semana = fecha_inicio_semana + timedelta(days=6)
+    
+    # Obtener todos los empleados activos
     empleados = Empleado.objects.filter(estado=True)
     
     nomina_lista = []
+    DIAS_LABORALES_SEMANA = Decimal(6) # Definimos la constante para los días laborales esperados
 
     for empleado in empleados:
         print(f"Procesando empleado: {empleado.nombre}")
-        # Contamos los días que aparecen en Asistencia (son faltas)
-        dias_faltados = Asistencia.objects.filter(
-            empleado=empleado,
-            fecha__range=[fecha_inicio_semana, fecha_fin_semana]            
-        ).count()
-
         
+        # Contar los días registrados en Asistencia para este empleado en el rango de la semana.
+        # Dado que Asistencia registra FALTAS, este count nos da directamente el número de faltas.
+        dias_faltados_registrados = Asistencia.objects.filter(
+            empleado=empleado,
+            fecha__range=[fecha_inicio_semana, fecha_fin_semana] 
+        ).count()
+        
+        # Aseguramos que el número de faltas no exceda los días laborales esperados
+        faltas = min(dias_faltados_registrados, DIAS_LABORALES_SEMANA)
 
-        # Si no hay faltas registradas, significa que trabajó todos los días
-        if dias_faltados == 0:
-            faltas = 0
-        else:
-            faltas = dias_faltados  # Ya que asistencia guarda faltas, no asistencias.
+        sueldo_diario = Decimal(empleado.sueldo_diario or 0) # Asegurar que sea Decimal y no None
+        compensacion = Decimal(empleado.compensacion or 0) # Asegurar que sea Decimal y no None
+        
+        # Días trabajados para el cálculo del sueldo semanal: Días laborales esperados - Faltas
+        dias_trabajados_para_sueldo = DIAS_LABORALES_SEMANA - faltas
+        sueldo_semanal = dias_trabajados_para_sueldo * sueldo_diario
 
-        sueldo_diario = Decimal(empleado.sueldo_diario)
-        dias_trabajados = Decimal(6) # Decimal(6 - faltas)
-        sueldo_semanal = dias_trabajados * sueldo_diario
-
-        # Se paga el séptimo día solo si no hubo faltas
+        # Cálculo del Séptimo Día: Se paga el séptimo día solo si no hubo faltas (trabajó los 6 días).
         septimo_dia = sueldo_diario if faltas == 0 else Decimal(0)
+        
+        # Importe de las faltas: Número de faltas * sueldo diario
         importe_faltas = faltas * sueldo_diario
 
-        # Descuento proporcional del séptimo día si hubo faltas
-        descuento_septimo_dia = (faltas / Decimal(6)) * sueldo_diario if faltas > 0 else Decimal(0)
-        print(descuento_septimo_dia)
+        # Descuento del Séptimo Día si hubo faltas.
+        # Si la política es que se pierde *todo* el 7mo día si hay *cualquier* falta:
+        # descuento_septimo_dia = sueldo_diario if faltas > 0 else Decimal(0)
+        # Si la política es un descuento proporcional (como tenías):
+        descuento_septimo_dia = (faltas / DIAS_LABORALES_SEMANA) * sueldo_diario if faltas > 0 else Decimal(0)
+        
+        print(f"Descuento séptimo día para {empleado.nombre}: {descuento_septimo_dia}")
 
-        compensacion = Decimal(empleado.compensacion or 0)
+        # Percepciones: Sueldo semanal (por días trabajados) + Séptimo Día + Compensación
         percepciones = sueldo_semanal + septimo_dia + compensacion
+        
+        # Deducciones: Importe de las faltas + Descuento del Séptimo Día
         deducciones = importe_faltas + descuento_septimo_dia
+        
+        # Total a pagar
         total_pago = percepciones - deducciones
 
         nomina_lista.append({
             'empleado': empleado.nombre,
-            'ingreso': empleado.ingreso,
+            'ingreso': empleado.ingreso, # Asumo que 'ingreso' es un campo en tu modelo Empleado
             'sueldo_diario': float(sueldo_diario),
-            'dias_trabajados': int(dias_trabajados),
-            'faltas': faltas,
+            'dias_trabajados': int(dias_trabajados_para_sueldo), # Días pagados por sueldo base
+            'faltas': faltas, # Días de falta contados
             'importe_faltas': float(importe_faltas),
-            'sueldo_semanal': float(sueldo_semanal),
+            'sueldo_semanal': float(sueldo_semanal), # Sueldo por los días efectivamente trabajados
             'septimo_dia': float(septimo_dia),
             'compensacion': float(compensacion),
             'total_pago': float(total_pago),
@@ -314,448 +107,360 @@ def calcular_nomina_semanal_todos(fecha_inicio_semana):
             'deducciones': float(deducciones),
         })
     
+    # Calcular los totales generales para el pie de tabla
+    total_percepciones_general = sum(item['percepciones'] for item in nomina_lista)
+    total_deducciones_general = sum(item['deducciones'] for item in nomina_lista)
+    total_neto_general = sum(item['total_pago'] for item in nomina_lista)
 
-    return nomina_lista
+    return {
+        'nomina': nomina_lista,
+        'fecha_inicio': fecha_inicio_semana,
+        'fecha_fin': fecha_fin_semana,
+        'total_percepciones_general': total_percepciones_general,
+        'total_deducciones_general': total_deducciones_general,
+        'total_neto_general': total_neto_general,
+    }
 
-def calcular_nomina_view(request):
-    form = FechaForm()
-    nomina = []
-    fecha_seleccionada = None
-    
+# --- Vistas existentes y corregidas ---
 
+class EmpleadoList(LoginRequiredMixin, generic.ListView):
+    model = Empleado
+    template_name = "nomina/empleado_list.html"
+    context_object_name = "empleados"
+    login_url = 'bases:login'
 
-    if request.method == "POST":
-        form = FechaForm(request.POST)
-        if form.is_valid():
-            
-            fecha_seleccionada = form.cleaned_data['fecha']
-            nomina = calcular_nomina_semanal_todos(str(fecha_seleccionada))
-            
-    return render(request, "nomina/nomina_semanal.html", {
-        "form": form,
-        "nomina": nomina,
-        "fecha": fecha_seleccionada
-    })
+class EmpleadoNew(LoginRequiredMixin, generic.CreateView):
+    model = Empleado
+    template_name = "nomina/empleado_form.html"
+    context_object_name = "obj"
+    form_class = EmpleadoForm
+    success_url = reverse_lazy("nom:empleado_list")
+    login_url = "bases:login"
 
+class EmpleadoEdit(LoginRequiredMixin, generic.UpdateView):
+    model = Empleado
+    template_name = "nomina/empleado_form.html"
+    form_class = EmpleadoForm
+    success_url = reverse_lazy("nom:empleado_list")
+    login_url = "bases:login"
 
+class EmpleadoDel(LoginRequiredMixin, generic.DeleteView):
+    model = Empleado
+    template_name = "nomina/empleado_del.html"
+    context_object_name = "obj"
+    success_url = reverse_lazy("nom:empleado_list")
+    login_url = "bases:login"
+
+@login_required(login_url='bases:login')
+def DocumentoEmpleadoDelete(request, pk):
+    doc = get_object_or_404(EmpleadoArchivo, pk=pk)
+    empleado_pk = doc.empleado.pk
+    doc.delete()
+    messages.success(request, f"Documento eliminado correctamente.")
+    return redirect('nom:empleado_edit', pk=empleado_pk)
+
+@login_required(login_url='bases:login')
 def capturar_falta(request):
     if request.method == 'POST':
         form = FaltaForm(request.POST)
         if form.is_valid():
-            falta = form.save()
-            messages.success(request, 'Falta registrada correctamente.')
-            return redirect('nom:capturar_falta')  # Redirige a la misma página para capturar más faltas
+            asistencia = form.save(commit=False)
+            asistencia.tipo = 'F'
+            asistencia.save()
+            messages.success(request, 'Falta registrada exitosamente.')
+            return redirect('nom:capturar_falta')
         else:
-            messages.error(request, 'Error al registrar la falta. Verifica los campos.')
+            messages.error(request, 'Error al registrar la falta. Verifique los datos.')
     else:
         form = FaltaForm()
     return render(request, 'nomina/capturar_falta.html', {'form': form})
 
-
+# ✅ Vista para seleccionar la fecha
+@login_required(login_url='bases:login')
 def seleccionar_fecha(request):
-    fecha_seleccionada = None  # Variable para almacenar la fecha
-    
-    if request.method == "POST":
+    if request.method == 'POST':
         form = FechaForm(request.POST)
         if form.is_valid():
-            fecha_seleccionada = form.cleaned_data['fecha']
-            print(f"Fecha seleccionada: {fecha_seleccionada}")  # Ver en consola
-
+            fecha_seleccionada = form.cleaned_data['fecha'].strftime('%Y-%m-%d')
+            return redirect(reverse('nom:calcular_nomina') + f'?fecha={fecha_seleccionada}')
     else:
         form = FechaForm()
+    return render(request, 'nomina/seleccionar_fecha.html', {'form': form})
+
+
+# ✅ Vista para mostrar el cálculo de nómina
+@login_required(login_url='bases:login')
+def calcular_nomina_view(request):
+    fecha_str = request.GET.get('fecha')
     
-    return render(request, 'nomina/seleccionar_fecha.html', {'form': form, 'fecha': fecha_seleccionada})
+    print("[DEBUG] calcular_nomina_view ejecutada")
+    print("Fecha GET:", fecha_str) # Cambiado a fecha_str directamente
 
-
-
-def formato_fecha(fecha):
-    return fecha.strftime("%d-%B-%Y").capitalize()
-
-def generar_nomina_pdf(request):
-    fecha_inicio_semana = datetime.strptime(request.GET.get("fecha", datetime.today().strftime("%Y-%m-%d")), "%Y-%m-%d")
-    fecha_fin_semana = fecha_inicio_semana + timedelta(days=6)
-
-    nomina = calcular_nomina_semanal_todos(fecha_inicio_semana.strftime("%Y-%m-%d"))
-
-    if not nomina:
-        return HttpResponse("No hay datos de nómina", content_type="text/plain")
-
-    response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = 'attachment; filename="nomina.pdf"'
-
-    buffer = BytesIO()
-    p = canvas.Canvas(buffer, pagesize=landscape(legal))
-
-    margen_izquierdo = 25
-    margen_superior = 520
-
-    # Insertar logo
-    logo_path = "static/base/img/inemo.png"
-    try:
-        logo = ImageReader(logo_path)
-        p.drawImage(logo, margen_izquierdo, margen_superior, width=120, height=60, mask="auto")
-    except Exception as e:
-        print(f"⚠ No se pudo cargar el logo: {e}")
-
-    # Título
-    margen_superior = 570
-    titulo = f"Reporte de Nómina del {formato_fecha(fecha_inicio_semana)} al {formato_fecha(fecha_fin_semana)}"
-    p.setFont("Helvetica-Bold", 10)
-    p.drawString(margen_izquierdo + 150, margen_superior - 15, titulo)
-
-    p.setFont("Helvetica", 8)
-    p.drawString(margen_izquierdo + 150, margen_superior - 25, "Domicilio: Puerto Altata 590")
-    p.drawString(margen_izquierdo + 150, margen_superior - 40, "RFC: IEM060621IE3")
-
-    # Encabezados y subtítulos
-    encabezados = ["Nombre del Empleado", "Percepciones", "", "", "", "", "", "Deducciones", "", "", "", "Total", "Firma"]
-    subtitulos = ["", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", ""]
-
-    datos = [encabezados, subtitulos]
-
-    # Inicializar los totales
-    totales = {
-        "03": 0, "04": 0, "06": 0, "08": 0, "09": 0, "10": 0, "11": 0
+    context = {
+        'nomina': [],
+        'fecha_inicio': None, # Usaremos fecha_inicio y fecha_fin para un rango claro
+        'fecha_fin': None,
+        'total_percepciones': Decimal(0),
+        'total_deducciones': Decimal(0),
+        'total_neto_general': Decimal(0),
+        'nomina_existente': False,
     }
 
-    # Agregar filas de datos y calcular totales
-    for item in nomina:
-        fila = [
-            item["empleado"],
-            f"${item['sueldo_diario']:.2f}", item["dias_trabajados"], f"${item['sueldo_semanal']:.2f}",
-            f"${item['septimo_dia']:.2f}", f"${item['compensacion']:.2f}", f"${item['percepciones']:.2f}",
-            item["faltas"], f"${item['importe_faltas']:.2f}", f"${item['descuento_septimo_dia']:.2f}",
-            f"${item['deducciones']:.2f}", f"${item['total_pago']:.2f}", ""
-        ]
+    if fecha_str:
+        try:
+            # La función calcular_nomina_semanal_todos ahora devuelve un diccionario con todos los datos,
+            # incluyendo los totales y las fechas de inicio y fin ya formateadas.
+            nomina_result = calcular_nomina_semanal_todos(fecha_str)
+            
+            # Actualizamos el contexto con todos los datos que nos devuelve la función de cálculo.
+            context.update(nomina_result)
+            
+            # Verificar si la nómina ya existe para este periodo.
+            # Usamos context.get() para evitar errores si las fechas no se establecieron por alguna razón.
+            if context.get('fecha_inicio') and context.get('fecha_fin'):
+                context['nomina_existente'] = NominaHistorial.objects.filter(
+                    periodo_inicio=context['fecha_inicio'],
+                    # Si NominaHistorial usa fecha_fin, la incluyes. 
+                    # Si solo guarda periodo_inicio, puedes omitir la siguiente línea.
+                    # periodo_fin=context['fecha_fin'] 
+                ).exists()
+            else:
+                context['nomina_existente'] = False # No hay fechas válidas para verificar existencia
 
-        # Acumular totales en las columnas específicas
-        totales["03"] += item['sueldo_semanal']
-        totales["04"] += item['septimo_dia']
-        totales["06"] += item['percepciones']
-        totales["08"] += item['importe_faltas']
-        totales["09"] += item['descuento_septimo_dia']
-        totales["10"] += item['deducciones']
-        totales["11"] += item['total_pago']
+            messages.success(request, f"Nómina calculada para la semana que inicia el {context['fecha_inicio'].strftime('%d/%m/%Y')}.")
 
-        datos.append(fila)
+        except ValueError:
+            messages.error(request, "Formato de fecha incorrecto. Debe ser 'YYYY-MM-DD'.")
+            return redirect('nom:seleccionar_fecha')
+        except Exception as e:
+            # Captura cualquier otra excepción que pueda ocurrir en el cálculo
+            print(f"[ERROR en calcular_nomina_view] {e}")
+            messages.error(request, f"Ocurrió un error al calcular la nómina: {e}")
+            return redirect('nom:seleccionar_fecha')
+    else:
+        messages.warning(request, "Por favor, seleccione una fecha para calcular la nómina.")
+        return redirect('nom:seleccionar_fecha')
 
-    # Agregar fila de totales
-    fila_totales = [
-        "TOTAL",
-        "", "", f"${totales['03']:.2f}", f"${totales['04']:.2f}", "", f"${totales['06']:.2f}", "",
-        f"${totales['08']:.2f}", f"${totales['09']:.2f}", f"${totales['10']:.2f}", f"${totales['11']:.2f}", ""
-    ]
-    datos.append(fila_totales)
-
-    # Ajustar anchos de columna
-    col_widths = [190, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 150]
-    row_heights = [20] * len(datos)
-
-    tabla = Table(datos, colWidths=col_widths, rowHeights=row_heights)
-
-    estilos = TableStyle([
-    ("BACKGROUND", (0, 0), (-1, 0), colors.darkgrey),
-    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-    ("FONTSIZE", (0, 0), (-1, -1), 8),
-
-    # Alineación de encabezados
-    ("ALIGN", (1, 0), (6, 0), "CENTER"),
-    ("ALIGN", (7, 0), (10, 0), "CENTER"),
-    ("ALIGN", (11, 0), (11, 0), "CENTER"),
-    ("ALIGN", (12, 0), (12, 0), "CENTER"),
-
-    # Fusionar celdas en los títulos principales
-    ("SPAN", (1, 0), (6, 0)),  
-    ("SPAN", (7, 0), (10, 0)),  
-    ("SPAN", (11, 0), (11, 0)),  
-    ("SPAN", (12, 0), (12, 0)),  
-
-    # Alinear subtítulos al centro
-    ("ALIGN", (1, 1), (10, 1), "CENTER"),
-    ("ALIGN", (12, 1), (12, 1), "CENTER"),
-
-    # Alinear los números a la derecha
-    ("ALIGN", (1, 2), (-2, -1), "RIGHT"),  
-
-    # Resaltar la fila de totales
-    ("BACKGROUND", (0, -1), (-1, -1), colors.lightgrey),
-    ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
-    ("ALIGN", (0, -1), (-1, -1), "LEFT"),  
-
-    # Asegurar que todo el contenido esté centrado y con líneas
-    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-    ("GRID", (0, 0), (-1, -1), 1, colors.black),
-
-    # Colores de fondo en los encabezados agrupados
-    ("BACKGROUND", (1, 0), (6, 0), colors.lightgrey),
-    ("BACKGROUND", (7, 0), (10, 0), colors.lightgrey),
-    ("BACKGROUND", (11, 0), (11, 0), colors.lightgrey),
-    ("BACKGROUND", (12, 0), (12, 0), colors.lightgrey),
-])
-    
-
-    # Alternar colores en filas de datos
-    for i in range(2, len(datos) - 1):
-        if i % 2 == 0:
-            estilos.add("BACKGROUND", (0, i), (-1, i), colors.whitesmoke)
-
-    tabla.setStyle(estilos)
-
-    tabla.wrapOn(p, 900, 600)
-    tabla.drawOn(p, margen_izquierdo, 200)
-
-    # Pie de página
-    pie_pagina = (
-        "01.- Sueldo diario, 02.- Días trabajados, 03.- Importe días trabajados, "
-        "04.- Pago 7mo día, 05.- Compensación, 06.- Total percepciones, "
-        "07.- Faltas, 08.- Descuento por falta, 09.- Proporcional 7mo día, "
-        "10.- Total deducciones, 11.- Pago neto."
-    )
-
-    def agregar_pie_pagina(canvas, doc):
-        canvas.setFont("Helvetica", 7)
-        canvas.drawString(margen_izquierdo, 30, pie_pagina)
-
-    agregar_pie_pagina(p, None)
-
-    p.save()
-    buffer.seek(0)
-    response.write(buffer.read())
-    return response
+    # Renderiza la plantilla con el contexto ya poblado por la función de cálculo
+    return render(request, 'nomina/nomina_semanal.html', context)
 
 
+@login_required(login_url='bases:login')
 def procesar_nomina(request):
-    if request.method == "POST":
-        fecha_str = request.POST.get("fecha")  
-        cuenta_id = request.POST.get("cuenta")  
+    if request.method == 'POST':
+        fecha_str = request.POST.get('fecha_inicio_nomina') 
+        cuenta_id = request.POST.get('cuenta') # Asumo que también pasarás la cuenta desde el formulario
 
-        if not fecha_str or not cuenta_id:
-            return HttpResponse("Faltan datos: fecha o cuenta", content_type="text/plain")
-        
+        if not fecha_str:
+            messages.error(request, "No se proporcionó la fecha de inicio de la nómina para procesar.")
+            return redirect('nom:seleccionar_fecha')
+
+        if not cuenta_id:
+            messages.error(request, "No se proporcionó la cuenta para la nómina.")
+            return redirect('nom:seleccionar_fecha')
+
         try:
             fecha_inicio = datetime.strptime(fecha_str, "%Y-%m-%d").date()
-        except ValueError:
-            return HttpResponse("Formato de fecha incorrecto", content_type="text/plain")
-        
-        periodo_fin = fecha_inicio + timedelta(days=6)
-        nomina_data = calcular_nomina_semanal_todos(fecha_str)
+            fecha_fin = fecha_inicio + timedelta(days=6)
+            
+            # Recupera el objeto Cuenta
+            cuenta_obj = Cuenta.objects.get(id=cuenta_id)
 
-        if not nomina_data:
-            return HttpResponse("No hay datos de nómina para procesar", content_type="text/plain")
-        
-        total_nomina = sum(Decimal(item['total_pago']) for item in nomina_data)
-        
-        try:
-            cuenta = Cuenta.objects.get(id=cuenta_id)
-        except Cuenta.DoesNotExist:
-            return HttpResponse("Cuenta no encontrada", content_type="text/plain")
+            nomina_result = calcular_nomina_semanal_todos(fecha_str)
+            nomina_data_list = nomina_result.get('nomina', []) 
+            
+            if not nomina_data_list:
+                messages.warning(request, "No hay datos de nómina para procesar en el período seleccionado.")
+                return redirect('nom:calcular_nomina') 
 
-        # 🔴 Verificar si la cuenta tiene saldo suficiente
-        if cuenta.saldo_actual < total_nomina:
-            return HttpResponse("Saldo insuficiente en la cuenta", content_type="text/plain")
-        
-        # 🔹 Descontar la nómina de la cuenta
-        cuenta.saldo_actual -= total_nomina
-        cuenta.save()
-        
-        # 🔹 Registrar el retiro en MovimientoCuenta
-        MovimientoCuenta.objects.create(
-            cuenta=cuenta,
-            fecha=fecha_inicio,
-            descripcion="Pago de nómina",
-            cargo=total_nomina,  # Porque es un retiro
-            abono=0,
-            saldo=cuenta.saldo_actual
-        )
-        
-        # 🔹 Guardar la cabecera de la nómina
-        nomina_hist = NominaHistorial.objects.create(
-            periodo_inicio=fecha_inicio,
-            periodo_fin=periodo_fin,
-            total_pago=total_nomina,
-            cuenta=cuenta,
-            estatus='Pendiente'
-        )
-        
-        # 🔹 Guardar cada detalle de la nómina
-        for item in nomina_data:
-            try:
-                empleado = Empleado.objects.get(nombre=item["empleado"])
-            except Empleado.DoesNotExist:
-                continue
-            NominaDetalle.objects.create(
-                nomina_historica=nomina_hist,
-                empleado=empleado,
-                sueldo_diario=item["sueldo_diario"],
-                dias_trabajados=item["dias_trabajados"],
-                total_pago=item["total_pago"]
+            # 2. Verificar si la nómina para este periodo ya existe en el historial
+            if NominaHistorial.objects.filter(periodo_inicio=fecha_inicio, periodo_fin=fecha_fin, estatus='Procesada').exists():
+                messages.info(request, f"La nómina para la semana del {fecha_inicio.strftime('%d/%m/%Y')} al {fecha_fin.strftime('%d/%m/%Y')} ya fue procesada anteriormente.")
+                return redirect('nom:calcular_nomina') 
+
+            # 3. Guardar el registro de la nómina en NominaHistorial
+            # AHORA SÓLO PASAMOS LOS CAMPOS QUE REALMENTE EXISTEN EN TU MODELO NominaHistorial
+            nomina_historial = NominaHistorial.objects.create(
+                periodo_inicio=fecha_inicio,
+                periodo_fin=fecha_fin,
+                total_pago=nomina_result.get('total_neto_general', Decimal(0)), # total_neto_general de la función de cálculo
+                cuenta=cuenta_obj, # Asigna el objeto Cuenta
+                estatus='Procesada', # Se procesa y se marca como Procesada
+                # fecha_procesada se asigna automáticamente en el método save del modelo
             )
-        
-        messages.success(request, "🎉 ¡Éxito! La nómina ha sido procesada y registrada correctamente.")
 
-    cuentas = Cuenta.objects.all()
-    return render(request, "nomina/procesar_nomina.html", {"cuentas": cuentas})
+            # 4. Guardar los detalles individuales de la nómina
+            for item_data in nomina_data_list: 
+                try:
+                    empleado_obj = Empleado.objects.get(nombre=item_data['empleado'])
+                except Empleado.DoesNotExist:
+                    print(f"Advertencia: Empleado {item_data['empleado']} no encontrado en la base de datos. Saltando este registro.")
+                    continue
 
-LOGO_PATH = "static/base/img/inemo.png"
+                # Noté que NominaDetalle es el nombre de tu modelo, no DetalleNomina.
+                # Además, el campo de FK es 'nomina_historica', no 'nomina_historial'.
+                NominaDetalle.objects.create(
+                    nomina_historica=nomina_historial, # Corregido a nomina_historica
+                    empleado=empleado_obj,
+                    sueldo_diario=item_data.get('sueldo_diario', Decimal(0)),
+                    dias_trabajados=item_data.get('dias_trabajados', 0),
+                    # Los campos de detalle deben coincidir con NominaDetalle
+                    total_pago=item_data.get('total_pago', Decimal(0)), # Este es el total pago individual
+                    proyecto=item_data.get('proyecto', None), # Asumo que 'proyecto' viene en item_data o es None inicialmente
+                )
+            
+            messages.success(request, "Nómina procesada y guardada exitosamente.")
+            
+            # Redirige a la vista de asignación de proyectos con el ID de la nómina recién creada
+            return redirect('nom:asignar_proyectos_nomina', nomina_id=nomina_historial.id)
 
-def generar_nomina_individual_pdf(request):
-    fecha_inicio_str = request.GET.get('fecha_inicio', None)
+        except Cuenta.DoesNotExist:
+            messages.error(request, "La cuenta seleccionada no existe.")
+            return redirect('nom:seleccionar_fecha')
+        except ValueError as e:
+            messages.error(request, f"Error en el formato de fecha: {e}. Asegúrese de que sea 'YYYY-M-D'.")
+            return redirect('nom:seleccionar_fecha')
+        except Exception as e:
+            print(f"[ERROR procesar_nomina] {e}")
+            messages.error(request, f"Ocurrió un error inesperado al procesar la nómina: {e}. Por favor, revise los logs del servidor.")
+            return redirect('nom:seleccionar_fecha')
+    
+    messages.warning(request, "Acceso inválido. Por favor, use el formulario para procesar la nómina.")
+    return redirect('nom:seleccionar_fecha')
 
-    if not fecha_inicio_str:
-        return HttpResponse("Error: Falta el parámetro 'fecha_inicio'", status=400)
+@login_required(login_url='bases:login')
+def listar_detalles_nomina_procesada(request, nomina_historial_id):
+    """
+    Vista para listar los detalles de una nómina histórica específica.
+    """
+    nomina_historial = get_object_or_404(NominaHistorial, id=nomina_historial_id)
+    detalles_nomina = NominaDetalle.objects.filter(nomina_historica=nomina_historial).order_by('empleado__nombre')
+
+    context = {
+        'nomina_historial': nomina_historial,
+        'detalles_nomina': detalles_nomina,
+    }
+    return render(request, 'nomina/detalles_nomina_procesada.html', context)
+
+@login_required(login_url='bases:login')
+def asignar_proyecto_individual(request, detalle_id):
+    detalle = get_object_or_404(NominaDetalle, id=detalle_id)
+
+    if not detalle.nomina_historica:
+        messages.error(request, "El detalle de nómina no está asociado a un historial válido.")
+        return redirect('nom:seleccionar_fecha')
+
+    nomina_historial_id = detalle.nomina_historica.id
+
+    if request.method == "POST":
+        form = AsignarProyectoForm(request.POST, instance=detalle)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Proyecto asignado a {detalle.empleado.nombre} correctamente.")
+            return redirect('nom:listar_detalles_nomina_procesada', nomina_historial_id=nomina_historial_id)
+        else:
+            messages.error(request, "Error al asignar el proyecto. Verifique los datos.")
+    else:
+        form = AsignarProyectoForm(instance=detalle)
+
+    context = {
+        'form': form,
+        'detalle': detalle,
+        'nomina_historial_id': nomina_historial_id,
+    }
+    return render(request, 'nomina/asignar_proyecto.html', context)
+
+# --- Funciones para PDF ---
+
+@login_required(login_url='bases:login')
+def generar_nomina_pdf(request):
+    fecha_str = request.GET.get('fecha')
+    if not fecha_str:
+        messages.error(request, "Fecha no proporcionada para generar el PDF.")
+        return redirect('nom:seleccionar_fecha')
 
     try:
-        fecha_inicio = datetime.strptime(fecha_inicio_str, "%Y-%m-%d").date()
-        fecha_fin = fecha_inicio + timedelta(days=6)
+        fecha_inicio = datetime.strptime(fecha_str, "%Y-%m-%d").date()
     except ValueError:
-        return HttpResponse("Error: Formato de fecha inválido, debe ser YYYY-MM-DD", status=400)
+        messages.error(request, "Formato de fecha incorrecto.")
+        return redirect('nom:seleccionar_fecha')
 
-    nomina_lista = calcular_nomina_semanal_todos(fecha_inicio)
+    nomina_data = calcular_nomina_semanal_todos(fecha_str)
+
+    if not nomina_data:
+        messages.error(request, "No hay datos para generar el PDF.")
+        return redirect('nom:seleccionar_fecha')
+
+    total_percepciones = sum(Decimal(str(item['total_percepciones'])) for item in nomina_data)
+    total_deducciones = sum(Decimal(str(item['total_deducciones'])) for item in nomina_data)
+    total_neto_general = sum(Decimal(str(item['total_pago'])) for item in nomina_data)
+
+    context = {
+        'fecha_inicio': fecha_inicio,
+        'nomina': nomina_data,
+        'total_percepciones': total_percepciones,
+        'total_deducciones': total_deducciones,
+        'total_neto_general': total_neto_general,
+    }
+    
+    template_path = 'nomina/nomina_pdf_template.html'
+    html = render_to_string(template_path, context)
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="nomina_{fecha_inicio}.pdf"'
-    p = canvas.Canvas(response, pagesize=letter)
-    width, height = letter
+    response['Content-Disposition'] = f'filename="nomina_semanal_{fecha_str}.pdf"'
 
-    for empleado in nomina_lista:
-        try:
-            p.drawImage(LOGO_PATH, 40, height - 80, width=100, height=50)
-        except:
-            p.setFillColor(colors.red)
-            p.drawString(40, height - 60, "LOGO NO ENCONTRADO")
-
-        p.setFont("Helvetica-Bold", 14)
-        p.drawString(200, height - 50, "Recibo de Nómina")
-
-        p.setFont("Helvetica-Bold", 10)
-        p.drawString(200, height - 70, f"Periodo: {fecha_inicio} - {fecha_fin}")
-
-        # Agregar domicilio y RFC
-        p.setFont("Helvetica", 8)
-        p.drawString(200, height - 85, "Domicilio: Puerto Altata 590")
-        p.drawString(200, height - 100, "RFC: IEM060621IE3")
-
-        y_position = height - 120  
-
-        p.setFont("Helvetica-Bold", 12)
-        p.drawString(40, y_position, f"Empleado: {empleado['empleado']}")
-        y_position -= 20  
-
-        # Agregar la fecha de ingreso
-        p.setFont("Helvetica", 12)
-        p.drawString(40, y_position, f"Fecha de Ingreso: {empleado['ingreso'].strftime('%d/%m/%Y')}")
-        y_position -= 30  # Ajusta la posición vertical para los siguientes textos
-
-        
-
-        cuadro_x = 40
-        cuadro_y = y_position - 180
-        cuadro_ancho = 500
-        cuadro_alto = 180
-        p.rect(cuadro_x, cuadro_y, cuadro_ancho, cuadro_alto)
-
-        p.line(cuadro_x + (cuadro_ancho / 2), cuadro_y, cuadro_x + (cuadro_ancho / 2), cuadro_y + cuadro_alto)
-
-        p.setFont("Helvetica-Bold", 10)
-        p.drawString(cuadro_x + 10, cuadro_y + cuadro_alto - 20, "Percepciones")
-
-        compensacion = empleado.get('compensacion', 0)
-        importe_dias_trabajados = empleado['dias_trabajados'] * empleado['sueldo_diario']
-
-        percepciones = [
-            ("Sueldo Diario:", empleado['sueldo_diario']),
-            ("Días Trabajados:", empleado['dias_trabajados']),
-            ("Importe Días Trabajados:", importe_dias_trabajados),
-            ("Séptimo Día:", empleado['septimo_dia']),
-            ("Compensación:", compensacion),
-        ]
-
-        total_percepciones = sum([
-            importe_dias_trabajados,
-            empleado['septimo_dia'],
-            compensacion
-        ])  
-
-        y_conceptos = cuadro_y + cuadro_alto - 40
-        p.setFont("Helvetica", 10)
-        color_actual = colors.whitesmoke  
-
-        for label, valor in percepciones:
-            p.setFillColor(color_actual)
-            p.rect(cuadro_x + 5, y_conceptos - 5, cuadro_ancho / 2 - 10, 15, fill=1, stroke=0)
-            p.setFillColor(colors.black)
-
-            if label == "Días Trabajados:":
-                p.drawString(cuadro_x + 10, y_conceptos, f"{label} {valor}")  
-            else:
-                p.drawString(cuadro_x + 10, y_conceptos, f"{label} ${valor:,.2f}")  
-
-            y_conceptos -= 15
-            color_actual = colors.white if color_actual == colors.whitesmoke else colors.whitesmoke
-
-        p.setFillColor(colors.black)
-        p.setFont("Helvetica-Bold", 10)
-        p.drawString(cuadro_x + 10, y_conceptos - 10, f"Total Percepciones: ${total_percepciones:,.2f}")
-
-        p.setFont("Helvetica-Bold", 10)
-        p.drawString(cuadro_x + 260, cuadro_y + cuadro_alto - 20, "Deducciones")
-
-        deducciones = [
-            ("Faltas:", empleado['faltas']),
-            ("Descuento por falta:", empleado['importe_faltas']),
-            ("Descuento 7mo día:", empleado['descuento_septimo_dia']),
-            ("Total Deducciones:", empleado['deducciones']),
-        ]
-
-        y_conceptos = cuadro_y + cuadro_alto - 40
-        p.setFont("Helvetica", 10)
-        color_actual = colors.whitesmoke  
-
-        for label, valor in deducciones:
-            p.setFillColor(color_actual)
-            p.rect(cuadro_x + 255, y_conceptos - 5, cuadro_ancho / 2 - 10, 15, fill=1, stroke=0)
-            p.setFillColor(colors.black)
-
-            if label == "Faltas:":
-                p.drawString(cuadro_x + 260, y_conceptos, f"{label} {valor}")  
-            else:
-                p.drawString(cuadro_x + 260, y_conceptos, f"{label} ${valor:,.2f}")  
-
-            y_conceptos -= 15
-            color_actual = colors.white if color_actual == colors.whitesmoke else colors.whitesmoke
-
-        total_pago = total_percepciones - empleado['deducciones']
-        p.setFont("Helvetica-Bold", 12)
-        p.drawString(cuadro_x + 200, cuadro_y - 20, f"Total a pagar: ${total_pago:,.2f}")
-
-        firma_x = cuadro_x
-        firma_y = cuadro_y - 80  
-        firma_ancho = cuadro_ancho
-        firma_alto = 50
-        p.rect(firma_x, firma_y, firma_ancho, firma_alto)
-
-        p.setFont("Helvetica-Bold", 10)
-        p.drawString(firma_x + 10, firma_y + firma_alto - 20, "Firma del Empleado:")
-
-        p.showPage()
-
-    p.save()
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        messages.error(request, "Error al generar el PDF.")
+        return redirect('nom:seleccionar_fecha')
     return response
 
+@login_required(login_url='bases:login')
+def generar_nomina_individual_pdf(request):
+    fecha_inicio_str = request.GET.get('fecha_inicio')
+    if not fecha_inicio_str:
+        messages.error(request, "Fecha no proporcionada para generar recibos.")
+        return redirect('nom:seleccionar_fecha')
 
-class PeriodosNominaList(LoginRequiredMixin, PermissionRequiredMixin, generic.ListView):
-    permission_required = "app.view_periodosnomina"
+    try:
+        fecha_inicio_periodo = datetime.strptime(fecha_inicio_str, "%Y-%m-%d").date()
+    except ValueError:
+        messages.error(request, "Formato de fecha incorrecto.")
+        return redirect('nom:seleccionar_fecha')
+
+    nomina_historial = get_object_or_404(NominaHistorial, periodo_inicio=fecha_inicio_periodo)
+    detalles_nomina = NominaDetalle.objects.filter(nomina_historica=nomina_historial).order_by('empleado__nombre')
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="recibos_nomina_{fecha_inicio_str}.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=letter)
+    elements = []
+
+    for detalle in detalles_nomina:
+        elements.append(Table([[f"Recibo de Nómina - {detalle.empleado.nombre}"]]))
+        elements.append(Table([[f"Periodo: {nomina_historial.periodo_inicio} - {nomina_historial.periodo_fin}"]]))
+        elements.append(Table([[f"Sueldo Diario: ${detalle.sueldo_diario}"]]))
+        elements.append(Table([[f"Días Trabajados: {detalle.dias_trabajados}"]]))
+        elements.append(Table([[f"Total: ${detalle.total_pago}"]]))
+        elements.append(Table([[""], ["---"], [""]])) # Separador
+
+    doc.build(elements)
+    return response
+
+# --- Vistas de períodos ---
+
+class PeriodosNominaList(LoginRequiredMixin, generic.ListView):
     model = PeriodosNomina
-    template_name = 'nomina/periodos_list.html'
-    context_object_name = 'periodos'
-    login_url = "bases:login"
+    template_name = "nomina/periodos_list.html"
+    context_object_name = "periodos"
+    login_url = 'bases:login'
 
 class PeriodosNominaNew(LoginRequiredMixin, generic.CreateView):
     model = PeriodosNomina
     form_class = PeriodosNominaForm
     template_name = 'nomina/periodos_nomina_form.html'
-    success_url = reverse_lazy('periodosnomina_list')
+    success_url = reverse_lazy('nom:periodos_list')
     login_url = 'bases:login'
 
     def form_valid(self, form):
@@ -766,7 +471,7 @@ class PeriodosNominaEdit(LoginRequiredMixin, generic.UpdateView):
     model = PeriodosNomina
     form_class = PeriodosNominaForm
     template_name = 'nomina/periodos_nomina_form.html'
-    success_url = reverse_lazy('periodosnomina_list')
+    success_url = reverse_lazy('nom:periodos_list')
     login_url = 'bases:login'
 
     def form_valid(self, form):
@@ -775,48 +480,56 @@ class PeriodosNominaEdit(LoginRequiredMixin, generic.UpdateView):
 
 class PeriodosNominaDel(LoginRequiredMixin, generic.DeleteView):
     model = PeriodosNomina
-    template_name = 'nomina/periodosnomina_confirm_delete.html'
-    success_url = reverse_lazy('periodosnomina_list')
-    login_url = 'bases:login'
+    template_name = "nomina/periodos_del.html"
+    context_object_name = "obj"
+    success_url = reverse_lazy("nom:periodos_list")
+    login_url = "bases:login"
 
+@login_required(login_url='bases:login')
+def validar_curp(request):
+    curp = request.GET.get('curp', None)
+    data = {
+        'is_taken': Empleado.objects.filter(curp__iexact=curp).exists()
+    }
+    return JsonResponse(data)
 
-def empleado_archivos(request, empleado_id):
-    empleado = get_object_or_404(Empleado, id=empleado_id)
-    archivos = EmpleadoArchivo.objects.filter(empleado=empleado)
-    if request.method == "POST":
-        form = EmpleadoArchivoForm(request.POST, request.FILES)
-        if form.is_valid():
-            if archivos.count() >= 5:
-                return JsonResponse({"error": "Solo se pueden cargar hasta 5 archivos."}, status=400)
+# --- Vistas de Asistencia ---
 
-            archivo = form.save(commit=False)
-            archivo.empleado = empleado
-            archivo.save()
-            return JsonResponse({"mensaje": "Archivo subido correctamente."})
-
-    else:
-        form = EmpleadoArchivoForm()
-
-    return render(request, "empleado_archivos.html", {"empleado": empleado, "archivos": archivos, "form": form})
-
-
-def eliminar_archivo(request, archivo_id):
-    archivo = get_object_or_404(EmpleadoArchivo, id=archivo_id)
-    empleado_id = archivo.empleado.id
-    archivo.delete()
-    return redirect("empleado_archivos", empleado_id=empleado_id)
-
-
-
-class AsistenciaListView(generic.ListView):
+class AsistenciaListView(LoginRequiredMixin, generic.ListView):
     model = Asistencia
     template_name = "nomina/asistencia_list.html"
-    context_object_name = "asistencias"
-    ordering = ["-fecha"]  # Ordenar por fecha descendente
+    context_object_name = "obj"
+    login_url = 'bases:login'
 
-class AsistenciaDeleteView(generic.DeleteView):
+class AsistenciaDeleteView(LoginRequiredMixin, generic.DeleteView):
     model = Asistencia
     template_name = "nomina/asistencia_confirm_delete.html"
-    success_url = reverse_lazy("nom:asistencia_list") 
+    context_object_name = "obj"
+    success_url = reverse_lazy("nom:asistencia_list")
+    login_url = "bases:login"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

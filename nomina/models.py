@@ -181,6 +181,7 @@ class NominaDetalle(models.Model):
      sueldo_diario = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
      dias_trabajados = models.IntegerField(default=0)
      total_pago = models.DecimalField(max_digits=10, decimal_places=2,default=0.00)
+     proyecto = models.ForeignKey('adm.Proyecto', on_delete=models.SET_NULL, null=True, blank=True)
 
      
      def __str__(self):

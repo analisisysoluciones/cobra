@@ -1,6 +1,7 @@
 # templatetags/custom_filters.py
 
 from django import template
+from datetime import timedelta
 
 register = template.Library()
 
@@ -15,3 +16,7 @@ def multiply(value, arg):
 @register.filter
 def add(value, arg):
     return value + arg  # Asegúrate de que la función hace lo correcto
+
+@register.filter
+def add_days(value, days):
+    return value + timedelta(days=days)
