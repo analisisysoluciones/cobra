@@ -1,0 +1,43 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="container mt-4">
+    <h4 class="text-primary font-weight-bold">Resumen de Nómina Calculada</h4>
+
+    <p><strong>Periodo:</strong> {{ fecha_inicio }} al {{ fecha_fin }}</p>
+
+    <table class="table table-sm table-striped">
+        <thead>
+            <tr>
+                <th>Empleado</th>
+                <th>Percepciones</th>
+                <th>Deducciones</th>
+                <th>Total Neto</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in nomina %}
+                <tr>
+                    <td>{{ detalle.empleado }}</td>
+                    <td>${{ detalle.percepciones }}</td>
+                    <td>${{ detalle.deducciones }}</td>
+                    <td>${{ detalle.total_neto }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="mt-3">
+        <p><strong>Total Percepciones:</strong> ${{ total_percepciones }}</p>
+        <p><strong>Total Deducciones:</strong> ${{ total_deducciones }}</p>
+        <p><strong>Total Neto General:</strong> ${{ total_neto_general }}</p>
+    </div>
+
+    <form method="GET" action="{% url 'nom:procesar_nomina' %}">
+        <input type="hidden" name="periodo" value="{{ periodo_id }}">
+        <button type="submit" class="btn btn-success">
+            <i class="fa fa-cogs"></i> Procesar Nómina
+        </button>
+    </form>
+</div>
+{% endblock %}

@@ -95,3 +95,26 @@ class AsignarProyectoForm(forms.ModelForm):
         # Asegura que el queryset sea de todos los proyectos o filtra si es necesario
         self.fields['proyecto'].queryset = Proyecto.objects.all()
         self.fields['proyecto'].empty_label = "--- Seleccione un Proyecto ---" # Opcional
+
+
+# forms.py
+class SeleccionarPeriodoForm(forms.Form):
+    periodo = forms.ModelChoiceField(
+        queryset=PeriodosNomina.objects.all().order_by('-periodo_inicio'),
+        widget=forms.Select(attrs={'class': 'form-control select2'}),
+        empty_label="--- Seleccione un Período de Nómina ---",
+        label="Período de Nómina"
+    )
+
+
+class ProcesarNominaForm(forms.Form):
+    periodo = forms.ModelChoiceField(
+        queryset=PeriodosNomina.objects.all(),
+        label="Período de Nómina",
+        widget=forms.Select(attrs={'class': 'form-control select2'})
+    )
+    cuenta = forms.ModelChoiceField(
+        queryset=Cuenta.objects.all(),
+        label="Cuenta para Pago",
+        widget=forms.Select(attrs={'class': 'form-control select2'})
+    )

@@ -12,7 +12,7 @@ from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from .models import( Banco, Cuenta, Residente, Proyecto, TipoDocumento,
                     Simbologia, Equipo, Bitacora, RegistroCuenta, TipoPago, Pago, MovimientoCuenta, DocumentoGeneral,
-                    CargaCombustible
+                    CargaCombustible, ReporteEquipo
                     )
 
 from ventas.models import ProductoInmobiliario, Venta, Movimiento
@@ -23,7 +23,7 @@ from cxp.models import Proveedor, CompraEnc
 from .forms import( BancoForm, CuentaForm, ResidenteForm, TipoDocumentoForm, ProyectoForm, 
                    SimbologiaForm, PagoForm,
                    ReporteMovimientoForm, EquipoForm, BitacoraForm, TipoPagoForm, RegistroCuentaForm, DocumentoGeneralForm,
-                   CargaCombustibleForm, FiltroCombustibleForm)
+                   CargaCombustibleForm, FiltroCombustibleForm, ReporteEquipoForm)
 
 from xhtml2pdf import pisa
 from django.http import HttpResponse
@@ -1325,3 +1325,49 @@ def reporte_carga_combustible(request):
     })
 
 
+# Vista para listar todos los reportes de equipo
+class ReporteEquipoListView(generic.ListView):
+    model = ReporteEquipo
+    template_name = 'adm/reporte_equipo_list.html' # Ruta a tu template
+    context_object_name = 'reportes_equipo' # Nombre de la variable en el template
+
+# Vista para ver los detalles de un reporte de equipo
+class ReporteEquipoDetailView(generic.DetailView):
+    model = ReporteEquipo
+    template_name = 'adm/reporte_equipo_detail.html' # Ruta a tu template
+    context_object_name = 'reporte_equipo'
+
+# Vista para crear un nuevo reporte de equipo
+class ReporteEquipoCreateView(SuccessMessageMixin, generic.CreateView):
+    model = ReporteEquipo
+    form_class = ReporteEquipoForm # Usa el formulario que definas
+    template_name = 'adm/reporte_equipo_form.html' # Ruta a tu template para crear/editar
+    success_url = reverse_lazy('adm:reporte_equipo_list') # Redirige a la lista después de crear
+    success_message = 'Registro de equipo guardado satisfactoriamente'
+    login_url = 'bases:login'
+
+    def form_valid(self, form):
+        form.instance.uc = self.request.user
+        return super().form_valid(form)
+
+
+# Vista para actualizar un reporte de equipo existente
+class ReporteEquipoUpdateView(SuccessMessageMixin, generic.UpdateView):
+    model = ReporteEquipo
+    form_class = ReporteEquipoForm # Usa el formulario que definas
+    template_name = 'adm/reporte_equipo_form.html' # Ruta a tu template para crear/editar
+    success_url = reverse_lazy('adm:reporte_equipo_list') # Redirige a la lista después de actualizar
+    success_message = 'Registro de equipo actualizado satisfactoriamente'
+    login_url = 'bases:login'
+
+    def form_valid(self, form):
+        form.instance.uc = self.request.user
+        return super().form_valid(form)
+  
+
+# Vista para eliminar un reporte de equipo
+class ReporteEquipoDeleteView(generic.DeleteView):
+    model = ReporteEquipo
+    template_name = 'adm/reporte_equipo_confirm_delete.html' # Template de confirmación de eliminación
+    success_url = reverse_lazy('adm:reporte_equipo_list') # Redirige a la lista después de eliminar
+    login_url = 'bases:login'

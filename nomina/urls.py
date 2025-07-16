@@ -8,7 +8,7 @@ from .views import ( # Importa todas las vistas que usas directamente
     generar_nomina_pdf, procesar_nomina, generar_nomina_individual_pdf,
     PeriodosNominaList, PeriodosNominaNew, PeriodosNominaEdit, PeriodosNominaDel,
     DocumentoEmpleadoDelete, capturar_falta, validar_curp,
-    AsistenciaListView, AsistenciaDeleteView, asignar_proyecto_individual,
+    AsistenciaListView, AsistenciaDeleteView, asignar_proyecto_individual,seleccionar_periodo_nomina,
     listar_detalles_nomina_procesada # <-- Vista clave para detalles de nómina
 )
 
@@ -21,7 +21,7 @@ urlpatterns = [
     path('empleados/delete/<int:pk>/', EmpleadoDel.as_view(), name='empleado_del'),
     path('empleados/documento/eliminar/<int:pk>/', DocumentoEmpleadoDelete, name='documento_delete'), # Era DocumentoEmpleadoDelete.as_view(), pero es una función, no una clase
     path('falta/', capturar_falta, name='capturar_falta'),
-    path('seleccionar-fecha/', seleccionar_fecha, name='seleccionar_fecha'),
+    path('seleccionar-fecha/', seleccionar_periodo_nomina, name='seleccionar_fecha'),
     path('calcular-nomina/', calcular_nomina_view, name='calcular_nomina'), # Renombrado para evitar conflicto con calcular_nomina_semanal_todos si es que la tenías como vista
     path('nomina-semanal/pdf/', generar_nomina_pdf, name='nomina_pdf'),
     path('procesar-nomina/', procesar_nomina, name='procesar_nomina'),

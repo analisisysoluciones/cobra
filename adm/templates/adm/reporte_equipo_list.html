@@ -1,0 +1,44 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Lista de Reportes de Equipo</h6>
+        <a href="{% url 'adm:reporte_equipo_create' %}" class="btn btn-primary">Nuevo Reporte</a>
+    </div>
+    <div class="card-body">
+        {% if not reportes_equipo %}
+            <div class="alert alert-info">No hay reportes de equipo registrados.</div>
+        {% else %}
+            <table class="table table-stripped table-hover">
+                <thead>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Proyecto</th>
+                    <th>Equipo</th>
+                    <th>Operador</th>
+                    <th>Horas</th>
+                    <th>Acciones</th>
+                </thead>
+                <tbody>
+                    {% for reporte in reportes_equipo %}
+                        <tr>
+                            <td>{{ reporte.id }}</td>
+                            <td>{{ reporte.fecha|date:"d/m/Y" }}</td>
+                            <td>{{ reporte.Proyecto }}</td>
+                            <td>{{ reporte.equipo }}</td>
+                            <td>{{ reporte.operador }}</td>
+                            <td>{{ reporte.horas }}</td>
+                            <td>
+                                <a href="{% url 'adm:reporte_equipo_detail' reporte.pk %}" class="btn btn-info btn-circle"><i class="far fa-eye"></i></a>
+                                <a href="{% url 'adm:reporte_equipo_update' reporte.pk %}" class="btn btn-warning btn-circle"><i class="far fa-edit"></i></a>
+                                <a href="{% url 'adm:reporte_equipo_delete' reporte.pk %}" class="btn btn-danger btn-circle"><i class="far fa-trash-alt"></i></a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+</div>
+{% endblock page_content %}

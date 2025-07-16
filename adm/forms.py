@@ -2,7 +2,7 @@ from django import forms
 import datetime
 from django.core.exceptions import ValidationError
 from .models import( Cuenta, Banco, Residente, TipoDocumento, Proyecto, Simbologia, 
-                     RegistroCuenta, Equipo, Bitacora, TipoPago, Pago, DocumentoGeneral, CargaCombustible) #CostoProyecto)
+                     RegistroCuenta, Equipo, Bitacora, TipoPago, Pago, DocumentoGeneral, CargaCombustible, ReporteEquipo) #CostoProyecto)
 from django_select2.forms import Select2Widget
 from django.shortcuts import render, redirect
 import re
@@ -335,3 +335,54 @@ class FiltroCombustibleForm(forms.Form):
         required=False,
         label='Tipo de Combustible',
     )
+
+
+
+class ReporteEquipoForm(forms.ModelForm):
+    class Meta:
+        model = ReporteEquipo
+        fields = [
+            'fecha',
+            'Proyecto', 
+            'equipo',   
+            'operador',
+            'actividad',
+            'horas',
+            'diesel_carga',
+            'diesel_resta',
+            'fallas',
+            'observa',
+        ]
+        
+        labels = {
+            'fecha': 'Fecha del Reporte:', # Modificado para ser más claro
+            'Proyecto': 'Proyecto:',
+            'equipo': 'Equipo:',
+            'operador': 'Operador:',
+            'actividad': 'Actividad Realizada:', # Modificado
+            'horas': 'Horas Trabajadas:', # Modificado
+            'diesel_carga': 'Litros Diesel Cargados:', # Modificado
+            'diesel_resta': 'Litros Diesel Restantes:', # Modificado
+            'fallas': 'Fallas Presentadas:', # Modificado
+            'observa': 'Observaciones Adicionales:', # Modificado
+        }
+        
+        widgets = {
+            'fecha': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'Proyecto': forms.Select(attrs={'class': 'form-control'}),
+            'equipo': forms.Select(attrs={'class': 'form-control'}),
+            'operador': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre del operador'}),
+            'actividad': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Descripción de la actividad'}), # Textarea para mayor espacio
+            'horas': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 8.5'}),
+            'diesel_carga': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 150.00'}),
+            'diesel_resta': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 20.00'}),
+            'fallas': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Si hubo fallas, descríbelas aquí'}), # Textarea
+            'observa': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Cualquier otra observación relevante'}), # Textarea
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if field_name == 'fecha': # Excluir 'fecha' para no sobreescribir type='date'
+                continue 
+            field.widget.attrs.update({'class': 'form-control'})

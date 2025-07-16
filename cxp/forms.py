@@ -171,13 +171,32 @@ class FiltroCompraForm(forms.Form):
 
 
 
-class FiltroReporteForm(forms.Form):
-    fecha_inicio = forms.DateField(label="Desde", required=False, widget=forms.DateInput(attrs={'type': 'date'}))
-    fecha_fin = forms.DateField(label="Hasta", required=False, widget=forms.DateInput(attrs={'type': 'date'}))
-    proveedores = forms.ModelMultipleChoiceField(
-        label="Proveedores", 
-        queryset=Proveedor.objects.all(),
-        required=False,
-        widget=forms.SelectMultiple(attrs={'class': 'form-control'})
+class FiltroCompraMatForm(forms.Form):
+    fecha_inicio = forms.DateField(
+        required=False, label='Fecha inicio',
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
     )
-
+    fecha_fin = forms.DateField(
+        required=False, label='Fecha fin',
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    proveedor = forms.ModelChoiceField(
+        queryset=Proveedor.objects.all().order_by('razon_social'), # Agrega un order_by para mejor visualización
+        required=False,
+        label='Proveedor',
+        empty_label='Todos', # Esto asegurará que el primer elemento sea "Todos"
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    estatus_pago = forms.ChoiceField(
+        required=False,
+        choices=[('', '--- Todos ---')] + CompraEnc.ESTATUS_PAGO_CHOICES,
+        label='Estatus de pago',
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    proyecto = forms.ModelChoiceField(
+        queryset=Proyecto.objects.all().order_by('nombre'), # Asumo que Proyecto tiene un campo 'nombre'
+        required=False,
+        label='Proyecto',
+        empty_label='Todos',
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )

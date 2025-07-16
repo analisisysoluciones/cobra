@@ -15,7 +15,7 @@ from .models import (
 from inv.models import Material
 from adm.models import MovimientoCuenta
 from .forms import (
-    EmpleadoForm, FaltaForm, FechaForm, PeriodosNominaForm, EmpleadoArchivoForm, AsignarProyectoForm
+    EmpleadoForm, FaltaForm, FechaForm, PeriodosNominaForm, EmpleadoArchivoForm, AsignarProyectoForm, SeleccionarPeriodoForm
 )
 from xhtml2pdf import pisa
 from django.template.loader import render_to_string, get_template
@@ -191,142 +191,147 @@ def seleccionar_fecha(request):
 # ✅ Vista para mostrar el cálculo de nómina
 @login_required(login_url='bases:login')
 def calcular_nomina_view(request):
-    fecha_str = request.GET.get('fecha')
-    
-    print("[DEBUG] calcular_nomina_view ejecutada")
-    print("Fecha GET:", fecha_str) # Cambiado a fecha_str directamente
+
+    periodo_id = request.GET.get('periodo_id')
 
     context = {
         'nomina': [],
-        'fecha_inicio': None, # Usaremos fecha_inicio y fecha_fin para un rango claro
+        'fecha_inicio': None,
         'fecha_fin': None,
         'total_percepciones': Decimal(0),
         'total_deducciones': Decimal(0),
         'total_neto_general': Decimal(0),
         'nomina_existente': False,
+        'periodo_id': periodo_id
     }
 
-    if fecha_str:
+    if periodo_id:
         try:
-            # La función calcular_nomina_semanal_todos ahora devuelve un diccionario con todos los datos,
-            # incluyendo los totales y las fechas de inicio y fin ya formateadas.
-            nomina_result = calcular_nomina_semanal_todos(fecha_str)
-            
-            # Actualizamos el contexto con todos los datos que nos devuelve la función de cálculo.
+            periodo = PeriodosNomina.objects.get(id=periodo_id)
+            fecha_inicio = periodo.periodo_inicio
+            fecha_fin = periodo.periodo_final
+
+            nomina_result = calcular_nomina_semanal_todos(fecha_inicio)
+
             context.update(nomina_result)
-            
-            # Verificar si la nómina ya existe para este periodo.
-            # Usamos context.get() para evitar errores si las fechas no se establecieron por alguna razón.
-            if context.get('fecha_inicio') and context.get('fecha_fin'):
-                context['nomina_existente'] = NominaHistorial.objects.filter(
-                    periodo_inicio=context['fecha_inicio'],
-                    # Si NominaHistorial usa fecha_fin, la incluyes. 
-                    # Si solo guarda periodo_inicio, puedes omitir la siguiente línea.
-                    # periodo_fin=context['fecha_fin'] 
-                ).exists()
-            else:
-                context['nomina_existente'] = False # No hay fechas válidas para verificar existencia
+            context['fecha_inicio'] = fecha_inicio
+            context['fecha_fin'] = fecha_fin
+            context['periodo_id'] = periodo.id
 
-            messages.success(request, f"Nómina calculada para la semana que inicia el {context['fecha_inicio'].strftime('%d/%m/%Y')}.")
+            context['nomina_existente'] = NominaHistorial.objects.filter(
+                periodo_inicio=fecha_inicio,
+                periodo_fin=fecha_fin,
+                estatus='Procesada'
+            ).exists()
 
-        except ValueError:
-            messages.error(request, "Formato de fecha incorrecto. Debe ser 'YYYY-MM-DD'.")
-            return redirect('nom:seleccionar_fecha')
-        except Exception as e:
-            # Captura cualquier otra excepción que pueda ocurrir en el cálculo
-            print(f"[ERROR en calcular_nomina_view] {e}")
-            messages.error(request, f"Ocurrió un error al calcular la nómina: {e}")
+            messages.success(request, f"Nómina calculada para la semana del {fecha_inicio.strftime('%d/%m/%Y')}.")
+
+        except PeriodosNomina.DoesNotExist:
+            messages.error(request, "El período seleccionado no existe.")
             return redirect('nom:seleccionar_fecha')
     else:
-        messages.warning(request, "Por favor, seleccione una fecha para calcular la nómina.")
+        messages.warning(request, "Debe seleccionar un período de nómina.")
         return redirect('nom:seleccionar_fecha')
 
-    # Renderiza la plantilla con el contexto ya poblado por la función de cálculo
-    return render(request, 'nomina/nomina_semanal.html', context)
+    # ✅ Este `return` es el que te faltaba
+    return render(request, 'nomina/calcular_nomina.html', context)
+
+
+#=================================================================
+# 
+# Inicio de procesa nomina
+# 
+#=================================================================
+
 
 
 @login_required(login_url='bases:login')
 def procesar_nomina(request):
     if request.method == 'POST':
-        fecha_str = request.POST.get('fecha_inicio_nomina') 
-        cuenta_id = request.POST.get('cuenta') # Asumo que también pasarás la cuenta desde el formulario
+        periodo_id = request.POST.get('periodo')
+        cuenta_id = request.POST.get('cuenta')
 
-        if not fecha_str:
-            messages.error(request, "No se proporcionó la fecha de inicio de la nómina para procesar.")
-            return redirect('nom:seleccionar_fecha')
+        if not periodo_id or not cuenta_id:
+            messages.error(request, "Debe seleccionar un período y una cuenta.")
+            return redirect('nom:calcular_nomina')
 
-        if not cuenta_id:
-            messages.error(request, "No se proporcionó la cuenta para la nómina.")
-            return redirect('nom:seleccionar_fecha')
+        periodo = get_object_or_404(PeriodosNomina, pk=periodo_id)
+        cuenta = get_object_or_404(Cuenta, pk=cuenta_id)
 
-        try:
-            fecha_inicio = datetime.strptime(fecha_str, "%Y-%m-%d").date()
-            fecha_fin = fecha_inicio + timedelta(days=6)
-            
-            # Recupera el objeto Cuenta
-            cuenta_obj = Cuenta.objects.get(id=cuenta_id)
+        # Validar si ya hay nómina procesada para este período
+        if NominaHistorial.objects.filter(
+            fecha_inicio=periodo.periodo_inicio,
+            fecha_fin=periodo.periodo_final,
+            estado='Procesada'
+        ).exists():
+            messages.warning(request, "Ya existe una nómina procesada para este período.")
+            return redirect('nom:calcular_nomina')
 
-            nomina_result = calcular_nomina_semanal_todos(fecha_str)
-            nomina_data_list = nomina_result.get('nomina', []) 
-            
-            if not nomina_data_list:
-                messages.warning(request, "No hay datos de nómina para procesar en el período seleccionado.")
-                return redirect('nom:calcular_nomina') 
+        # Limpiar nóminas existentes (si decides permitirlo)
+        Nomina.objects.filter(
+            fecha_inicio=periodo.periodo_inicio,
+            fecha_fin=periodo.periodo_final
+        ).delete()
 
-            # 2. Verificar si la nómina para este periodo ya existe en el historial
-            if NominaHistorial.objects.filter(periodo_inicio=fecha_inicio, periodo_fin=fecha_fin, estatus='Procesada').exists():
-                messages.info(request, f"La nómina para la semana del {fecha_inicio.strftime('%d/%m/%Y')} al {fecha_fin.strftime('%d/%m/%Y')} ya fue procesada anteriormente.")
-                return redirect('nom:calcular_nomina') 
+        empleados_activos = Empleado.objects.filter(estado='Activo')
 
-            # 3. Guardar el registro de la nómina en NominaHistorial
-            # AHORA SÓLO PASAMOS LOS CAMPOS QUE REALMENTE EXISTEN EN TU MODELO NominaHistorial
-            nomina_historial = NominaHistorial.objects.create(
-                periodo_inicio=fecha_inicio,
-                periodo_fin=fecha_fin,
-                total_pago=nomina_result.get('total_neto_general', Decimal(0)), # total_neto_general de la función de cálculo
-                cuenta=cuenta_obj, # Asigna el objeto Cuenta
-                estatus='Procesada', # Se procesa y se marca como Procesada
-                # fecha_procesada se asigna automáticamente en el método save del modelo
+        nomina = Nomina.objects.create(
+            fecha_inicio=periodo.periodo_inicio,
+            fecha_fin=periodo.periodo_final,
+            cuenta=cuenta,
+            total_percepciones=Decimal('0.00'),
+            total_deducciones=Decimal('0.00'),
+            total_neto=Decimal('0.00')
+        )
+
+        total_general = 0
+        for empleado in empleados_activos:
+            faltas = Asistencia.objects.filter(
+                empleado=empleado,
+                fecha__range=[periodo.periodo_inicio, periodo.periodo_final]
+            ).count()
+
+            dias_trabajados = 7 - faltas
+            pago = (empleado.sueldo_diario + empleado.compensacion) * dias_trabajados
+
+            NominaDetalle.objects.create(
+                nomina=nomina,
+                empleado=empleado,
+                faltas=faltas,
+                pago=pago,
+                proyecto=None  # Se asignará después
             )
 
-            # 4. Guardar los detalles individuales de la nómina
-            for item_data in nomina_data_list: 
-                try:
-                    empleado_obj = Empleado.objects.get(nombre=item_data['empleado'])
-                except Empleado.DoesNotExist:
-                    print(f"Advertencia: Empleado {item_data['empleado']} no encontrado en la base de datos. Saltando este registro.")
-                    continue
+            total_general += pago
 
-                # Noté que NominaDetalle es el nombre de tu modelo, no DetalleNomina.
-                # Además, el campo de FK es 'nomina_historica', no 'nomina_historial'.
-                NominaDetalle.objects.create(
-                    nomina_historica=nomina_historial, # Corregido a nomina_historica
-                    empleado=empleado_obj,
-                    sueldo_diario=item_data.get('sueldo_diario', Decimal(0)),
-                    dias_trabajados=item_data.get('dias_trabajados', 0),
-                    # Los campos de detalle deben coincidir con NominaDetalle
-                    total_pago=item_data.get('total_pago', Decimal(0)), # Este es el total pago individual
-                    proyecto=item_data.get('proyecto', None), # Asumo que 'proyecto' viene en item_data o es None inicialmente
-                )
-            
-            messages.success(request, "Nómina procesada y guardada exitosamente.")
-            
-            # Redirige a la vista de asignación de proyectos con el ID de la nómina recién creada
-            return redirect('nom:asignar_proyectos_nomina', nomina_id=nomina_historial.id)
+        nomina.total_neto = total_general
+        nomina.save()
 
-        except Cuenta.DoesNotExist:
-            messages.error(request, "La cuenta seleccionada no existe.")
-            return redirect('nom:seleccionar_fecha')
-        except ValueError as e:
-            messages.error(request, f"Error en el formato de fecha: {e}. Asegúrese de que sea 'YYYY-M-D'.")
-            return redirect('nom:seleccionar_fecha')
-        except Exception as e:
-            print(f"[ERROR procesar_nomina] {e}")
-            messages.error(request, f"Ocurrió un error inesperado al procesar la nómina: {e}. Por favor, revise los logs del servidor.")
-            return redirect('nom:seleccionar_fecha')
+        # Guardar en historial
+        NominaHistorial.objects.create(
+            fecha_inicio=periodo.periodo_inicio,
+            fecha_fin=periodo.periodo_final,
+            cuenta=cuenta,
+            total_neto=total_general,
+            estado='Procesada'
+        )
+
+        messages.success(request, f"Nómina procesada correctamente para la semana {periodo.semana}. Total: ${total_general:.2f}")
+        return redirect('nom:listar_detalles_nomina_procesada', nomina_historial_id=nomina.id)
+
+    else:
+        messages.error(request, "Acceso inválido. Use el flujo de cálculo de nómina.")
+        return redirect('nom:calcular_nomina')
+#=================================================================
+# 
+# fin de procesa nomina
+# 
+#=================================================================
     
-    messages.warning(request, "Acceso inválido. Por favor, use el formulario para procesar la nómina.")
-    return redirect('nom:seleccionar_fecha')
+
+
+
+
 
 @login_required(login_url='bases:login')
 def listar_detalles_nomina_procesada(request, nomina_historial_id):
@@ -511,7 +516,17 @@ class AsistenciaDeleteView(LoginRequiredMixin, generic.DeleteView):
 
 
 
+@login_required(login_url='bases:login')
+def seleccionar_periodo_nomina(request):
+    if request.method == 'POST':
+        form = SeleccionarPeriodoForm(request.POST)
+        if form.is_valid():
+            periodo = form.cleaned_data['periodo']
+            return redirect(reverse('nom:calcular_nomina') + f'?periodo_id={periodo.id}')
+    else:
+        form = SeleccionarPeriodoForm()
 
+    return render(request, 'nomina/seleccionar_fecha.html', {'form': form})
 
 
 

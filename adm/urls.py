@@ -12,7 +12,8 @@ from .views import(
     BitacoraUpdateView, BitacoraDeleteView, RegistroCuentaListView,RegistroCuentaCreateNew,RegistroCuentaEdit,RegistroCuentaDel,
     TipoPagoCreateView, TipoPagoListView, TipoPagoDeleteView, TipoPagoUpdateView, registrar_pago, listado_pagos, dashboard,
     compras_pagadas, reporte_egresos_pdf, generar_estado_cuenta_pdf, dashboard_proyectos, CargaCombustibleListView, CargaCombustibleCreateView,
-    CargaCombustibleUpdateView, CargaCombustibleDeleteView
+    CargaCombustibleUpdateView, CargaCombustibleDeleteView, ReporteEquipoCreateView, ReporteEquipoListView, ReporteEquipoUpdateView,
+    ReporteEquipoDeleteView, ReporteEquipoDetailView
 ) 
 
 
@@ -91,6 +92,13 @@ urlpatterns = [
     path('combustible/edit/<int:pk>/', CargaCombustibleUpdateView.as_view(), name='cargacombustible_edit'),
     path('combustible/delete/<int:pk>/', CargaCombustibleDeleteView.as_view(), name='cargacombustible_delete'),
     path('reporte_combustible/', views.reporte_carga_combustible, name='reporte_combustible'),
+
+
+    path('reportes/', views.ReporteEquipoListView.as_view(), name='reporte_equipo_list'),
+    path('reportes/<int:pk>/', views.ReporteEquipoDetailView.as_view(), name='reporte_equipo_detail'),
+    path('reportes/nuevo/', views.ReporteEquipoCreateView.as_view(), name='reporte_equipo_create'),
+    path('reportes/<int:pk>/editar/', views.ReporteEquipoUpdateView.as_view(), name='reporte_equipo_update'),
+    path('reportes/<int:pk>/eliminar/', views.ReporteEquipoDeleteView.as_view(), name='reporte_equipo_delete'),
 
 
     

@@ -1,65 +1,43 @@
 {% extends 'base/base.html' %}
 
 {% block page_content %}
-<form method="POST">
+<form method="POST" action="{% url 'nom:procesar_nomina' %}">
     {% csrf_token %}
-    <div class="col-xl-12 mb-4">
-        <div class="card border-left-success shadow h-100 py-2">
+    <div class="col-xl-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
             <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Procesar Nómina
-                        </div>
-                        <div class="dropdown-divider"></div>
+                <h5 class="text-primary font-weight-bold mb-4">Procesar Nómina</h5>
 
-                        {% if messages %}
-                            {% for message in messages %}
-                                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-
-                        <div class="form-group row">
-                            <label for="fecha" class="col-sm-3 col-form-label">Fecha de Inicio de Semana</label>
-                            <div class="col-sm-9">
-                                <input type="date" class="form-control" id="fecha" name="fecha" required>
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <label for="cuenta" class="col-sm-3 col-form-label">Cuenta de Pago</label>
-                            <div class="col-sm-9">
-                                <select name="cuenta" id="cuenta" class="form-control" required>
-                                    <option value="">-- Selecciona una cuenta --</option>
-                                    {% for cuenta in cuentas %}
-                                        <option value="{{ cuenta.id }}">
-                                            {{ cuenta.cuenta }} - Balance: ${{ cuenta.saldo_actual|floatformat:2 }}
-                                        </option>
-                                    {% empty %}
-                                        <option value="">No hay cuentas disponibles</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="dropdown-divider"></div>
-                        <div class="row">
-                            <div class="col">
-                                <button type="submit" class="btn btn-success">
-                                    <span class="fa fa-save"></span> Procesar Nómina
-                                </button>
-                                <a href="{% url 'nom:seleccionar_fecha' %}" class="btn btn-danger">
-                                    <span class="fa fa-undo"></span> Cancelar
-                                </a>
-                            </div>
-                        </div>
-                    </div>                            
+                <div class="form-group">
+                    <label for="periodo">Seleccionar Período</label>
+                    <select name="periodo" id="periodo" class="form-control select2" required>
+                        <option value="">-- Selecciona un período --</option>
+                        {% for p in periodos %}
+                            <option value="{{ p.id }}" {% if selected_periodo_id == p.id|stringformat:"s" %}selected{% endif %}>
+                                Semana {{ p.semana }} ({{ p.periodo_inicio }} - {{ p.periodo_final }})
+                            </option>
+                        {% endfor %}
+                    </select>
                 </div>
+
+                <div class="form-group">
+                    <label for="cuenta">Cuenta de Pago</label>
+                    <select name="cuenta" id="cuenta" class="form-control select2" required>
+                        <option value="">-- Selecciona una cuenta --</option>
+                        {% for cuenta in cuentas %}
+                            <option value="{{ cuenta.id }}" {% if selected_cuenta_id == cuenta.id|stringformat:"s" %}selected{% endif %}>
+                                {{ cuenta.cuenta }} — Saldo: ${{ cuenta.saldo_actual|floatformat:2 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    <span class="fa fa-save"></span> Procesar Nómina
+                </button>
+                <a href="{% url 'nom:calcular_nomina' %}" class="btn btn-secondary">
+                    <span class="fa fa-arrow-left"></span> Cancelar
+                </a>
             </div>
         </div>
     </div>
@@ -67,5 +45,11 @@
 {% endblock page_content %}
 
 {% block js_page %}
-{# Aquí puedes añadir JavaScript si es necesario, por ejemplo para Datepickers #}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.full.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.select2').select2();
+    });
+</script>
 {% endblock js_page %}

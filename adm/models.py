@@ -9,7 +9,7 @@ import re
 from django.utils import timezone
 from datetime import date, timedelta
 from django.apps import apps
-
+from django.db.models import Sum, F
 
 
 
@@ -370,3 +370,18 @@ class CargaCombustible(ClaseModelo):
     
 
 
+class ReporteEquipo(ClaseModelo):
+    fecha = models.DateField()
+    Proyecto = models.ForeignKey(Proyecto,on_delete=models.SET_NULL, null=True, blank=True)
+    equipo = models.ForeignKey(Equipo,on_delete=models.SET_NULL, null=True, blank=True)
+    operador = models.CharField()
+    actividad = models.CharField('Actividad',max_length=220,null=True,blank=True)
+    horas = models.CharField('Horas',max_length=8)
+    diesel_carga = models.CharField('Diesel Cargado',max_length=15)
+    diesel_resta = models.CharField('Diesel Restante',max_length=15)
+    fallas = models.CharField('Fallas',max_length=120)
+    observa = models.CharField('Observaciones',max_length=220)
+
+    def __str__(self):
+        return f"{self.equipo} - {self.operador}"
+    

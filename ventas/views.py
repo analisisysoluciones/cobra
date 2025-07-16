@@ -292,14 +292,15 @@ def generar_recibo_pdf(movimiento):
 
 
 class ClienteList(LoginRequiredMixin, PermissionRequiredMixin, generic.ListView):
-    permission_required = "ven.view_cliente"
+    permission_required = "ventas.view_cliente"
     model = Cliente
     template_name = 'ventas/cliente_list.html'
     context_object_name = 'clientes'
     login_url = "bases:login"
 
 
-class ClienteNew(LoginRequiredMixin, generic.CreateView):
+class ClienteNew(LoginRequiredMixin, PermissionRequiredMixin, generic.CreateView):
+    permission_required = "ventas.add_cliente"
     model = Cliente
     fields = ['nombre', 'curp', 'identificacion', 'tipo_identificacion', 'telefono', 'email', 'documento_comprobatorio']
     template_name = 'ventas/cliente_form.html'
@@ -311,7 +312,8 @@ class ClienteNew(LoginRequiredMixin, generic.CreateView):
         return super().form_valid(form)
 
 
-class ClienteEdit(LoginRequiredMixin, generic.UpdateView):
+class ClienteEdit(LoginRequiredMixin, PermissionRequiredMixin, generic.UpdateView):
+    permission_required = "ventas.change_cliente"
     model = Cliente
     form_class = ClienteForm
     template_name = 'ventas/cliente_form.html'
@@ -326,7 +328,8 @@ class ClienteEdit(LoginRequiredMixin, generic.UpdateView):
     
 
 
-class ClienteDel(LoginRequiredMixin, generic.DeleteView):
+class ClienteDel(LoginRequiredMixin, PermissionRequiredMixin, generic.DeleteView):
+    permission_required = "ventas.delete_cliente"
     model = Cliente
     template_name = 'ventas/cliente_del.html'
     success_url = reverse_lazy('ven:cliente_list')

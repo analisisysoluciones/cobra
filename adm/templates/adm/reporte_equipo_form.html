@@ -1,0 +1,80 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST">
+    {% csrf_token %}
+    <div class="col-xl-8 col-md-8 mb-6">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-success text-uppercase mb-3">
+                    {% if form.instance.pk %} Editar {% else %} Nuevo {% endif %} Reporte de Equipo
+                </div>
+                <div class="dropdown-divider"></div>
+
+                {# Renderiza los campos del formulario de Django #}
+                {% for field in form %}
+                    <div class="form-group row">
+                        <label for="{{ field.id_for_label }}" class="col-sm-3 col-form-label">{{ field.label }}:</label>
+                        <div class="col-sm-9">
+                            {{ field }}
+                            {% if field.help_text %}
+                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+                {# Fin del renderizado de campos del formulario #}
+
+                <div class="dropdown-divider"></div>
+                <div class="row">
+                    <div class="col">
+                        <button type="submit" class="btn btn-danger"><span class="fa fa-save"></span> Guardar</button>
+                        <a href="{% url 'adm:reporte_equipo_list' %}" class="btn btn-success"><span class="fa fa-undo"></span> Cancelar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}
+
+{% block js_page %}
+{# El script de DataTables que tenías aquí parece ser para una tabla, no para un formulario. #}
+{# Lo he mantenido, pero ten en cuenta que probablemente no es necesario para la página del formulario #}
+{# a menos que tengas una tabla dentro del formulario que no se muestra en este ejemplo. #}
+<script>
+$(document).ready(function() {
+    $('#example').DataTable({
+        "paging": true,
+        "searching": true,
+        "ordering": true,
+        "pageLength": 10,
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/Spanish.json"
+        },
+        "columns": [
+            { "data": "name" },
+            { "data": "position" },
+            { "data": "office" },
+            { "data": "age" },
+            { "data": "start_date" },
+            { "data": "salary" }
+        ],
+        "ajax": "data.json",
+        "dom": 'Bfrtip',
+        "buttons": [
+            'copy', 'csv', 'excel', 'pdf', 'print'
+        ],
+        "pagingType": "full_numbers",
+        "order": [[ 3, "desc" ]],
+        "columnDefs": [
+            { "orderable": false, "targets": 0 },
+            { "searchable": false, "targets": 0 }
+        ]
+    });
+});
+</script>
+{% endblock js_page %}

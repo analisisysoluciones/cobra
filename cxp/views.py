@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
@@ -5,7 +6,6 @@ from django.views.generic.edit import FormView
 from django.views import generic
 from django.templatetags.static import static
 from django.db.models.functions import Coalesce
-
 
 import openpyxl
 import tempfile
@@ -20,7 +20,7 @@ from adm.models import(Proyecto, TipoDocumento, Cuenta)
 from inv.models import Material
 #from .calculos import calcular_nomina_semanal_todos
 
-from .forms import( ProveedorForm, CompraEncForm, CompraDetForm, FiltroCompraForm, FiltroReporteForm )
+from .forms import( ProveedorForm, CompraEncForm, CompraDetForm, FiltroCompraForm,  FiltroCompraMatForm )
 
 
 from xhtml2pdf import pisa
@@ -33,7 +33,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter, legal
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
-from django.db.models import Sum, Max, F, ExpressionWrapper, DecimalField
+from django.db.models import Sum, Max, F, ExpressionWrapper, DecimalField, Avg
 from django.contrib.messages.views import SuccessMessageMixin
 import uuid
 from django.utils.timezone import now
@@ -51,6 +51,12 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 from django.utils.formats import number_format
 from django.views.decorators.http import require_POST
+
+
+
+
+
+
 
 
 
@@ -575,56 +581,106 @@ def reporte_compras(request):
     return render(request, 'cxp/reporte_compras.html', context)
 
 
+
+# ====================================================================
+# VISTA PRINCIPAL DEL REPORTE DE COMPRAS POR MATERIALES
+# ====================================================================
 def reporte_compras_materiales(request):
+    # 1. Instanciar el formulario de filtro con los datos de la solicitud GET
+    form = FiltroCompraMatForm(request.GET) # Usamos el formulario de filtro consolidado
+
+
+    # --- AÑADE ESTAS LÍNEAS JUSTO AQUÍ, SI NO LAS HAS AÑADIDO O LAS QUITASTE ---
+    print("\n--- INICIO DEPURACIÓN PROVEEDOR EN VIEWS.PY ---")
+    if 'proveedor' in form.fields:
+        print(f"El campo 'proveedor' EXISTE en el formulario.")
+        queryset_proveedor = form.fields['proveedor'].queryset
+        print(f"Tipo de queryset: {type(queryset_proveedor)}")
+        print(f"El queryset del campo 'proveedor' tiene {queryset_proveedor.count()} elementos.")
+        if queryset_proveedor.exists():
+            print("Primeros 5 proveedores en el queryset:")
+            for p in queryset_proveedor[:5]:
+                # Asegúrate de que 'razon_social' sea el campo correcto para mostrar
+                print(f"  - ID: {p.id}, Razón Social: {p.razon_social}")
+        else:
+            print("¡ADVERTENCIA! El queryset del campo 'proveedor' está VACÍO.")
+    else:
+        print("¡ERROR GRAVE! El campo 'proveedor' NO se encontró en el formulario 'FiltroCompraMatForm'.")
+    print("--- FIN DEPURACIÓN PROVEEDOR EN VIEWS.PY ---\n")
+    # --- FIN DEPURACIÓN ---
+
+    detalles = CompraDet.objects.select_related('material', 'compra', 'compra__proveedor')
+    resumen = [] # Inicializa resumen, se llenará si el formulario es válido
+
+    # 2. Aplicar filtros si el formulario es válido
+    if form.is_valid():
+        fecha_inicio = form.cleaned_data.get('fecha_inicio')
+        fecha_fin = form.cleaned_data.get('fecha_fin')
+        proveedor_obj = form.cleaned_data.get('proveedor') # Esto será un objeto Proveedor o None
+        estatus_pago = form.cleaned_data.get('estatus_pago')
+        proyecto_obj = form.cleaned_data.get('proyecto') # Esto será un objeto Proyecto o None
+
+        if fecha_inicio:
+            detalles = detalles.filter(compra__fecha__gte=fecha_inicio)
+        if fecha_fin:
+            detalles = detalles.filter(compra__fecha__lte=fecha_fin)
+        if proveedor_obj: # Si se seleccionó un proveedor específico
+            detalles = detalles.filter(compra__proveedor=proveedor_obj)
+        if estatus_pago:
+            detalles = detalles.filter(compra__estatus_pago=estatus_pago)
+        if proyecto_obj:
+            detalles = detalles.filter(compra__proyecto=proyecto_obj)
+
+
+        # 3. Calcular el resumen basado en los detalles filtrados
+        resumen = detalles.values(
+            'material__id',
+            'material__descripcion'
+        ).annotate(
+            cantidad_total=Sum('cantidad', output_field=DecimalField()),
+            importe_total=Sum('importe', output_field=DecimalField()),
+            precio_promedio=ExpressionWrapper(
+                Sum('importe', output_field=DecimalField()) / Sum('cantidad', output_field=DecimalField()),
+                output_field=DecimalField(max_digits=12, decimal_places=2)
+            )
+        ).order_by('material__descripcion')
+
+    # 4. Renderizar la plantilla pasando el formulario y el resumen
+    return render(request, 'cxp/reporte_materiales.html', {
+        'resumen': resumen,
+        'form': form, # ¡Aquí está la clave! Pasamos la instancia del formulario
+    })
+
+# ====================================================================
+# VISTAS DE EXPORTACIÓN (AJUSTADAS PARA USAR EL MISMO FORMULARIO)
+# ====================================================================
+
+def exportar_excel_materiales(request):
+    # Usamos el mismo formulario de filtro para la exportación
+    form = FiltroCompraMatForm(request.GET or None)
     detalles = CompraDet.objects.select_related('material', 'compra', 'compra__proveedor')
 
-    # Filtros desde GET
-    fecha_inicio = request.GET.get('fecha_inicio')
-    fecha_fin = request.GET.get('fecha_fin')
-    proveedor_id = request.GET.get('proveedor')
+    if form.is_valid():
+        fecha_inicio = form.cleaned_data.get('fecha_inicio')
+        fecha_fin = form.cleaned_data.get('fecha_fin')
+        proveedor_obj = form.cleaned_data.get('proveedor')
+        estatus_pago = form.cleaned_data.get('estatus_pago')
+        proyecto_obj = form.cleaned_data.get('proyecto')
 
-    if fecha_inicio:
-        detalles = detalles.filter(compra__fecha__gte=fecha_inicio)
-    if fecha_fin:
-        detalles = detalles.filter(compra__fecha__lte=fecha_fin)
-    if proveedor_id:
-        detalles = detalles.filter(compra__proveedor_id=proveedor_id)
+        if fecha_inicio:
+            detalles = detalles.filter(compra__fecha__gte=fecha_inicio)
+        if fecha_fin:
+            detalles = detalles.filter(compra__fecha__lte=fecha_fin)
+        if proveedor_obj:
+            detalles = detalles.filter(compra__proveedor=proveedor_obj)
+        if estatus_pago:
+            detalles = detalles.filter(compra__estatus_pago=estatus_pago)
+        if proyecto_obj:
+            detalles = detalles.filter(compra__proyecto=proyecto_obj)
 
     resumen = detalles.values(
         'material__id',
         'material__descripcion'
-    ).annotate(
-        cantidad_total=Sum('cantidad', output_field=DecimalField()),
-        importe_total=Sum('importe', output_field=DecimalField()),
-        precio_promedio=ExpressionWrapper(
-            Sum('importe', output_field=DecimalField()) / Sum('cantidad', output_field=DecimalField()),
-            output_field=DecimalField(max_digits=12, decimal_places=2)
-        )
-    ).order_by('material__descripcion')
-
-    proveedores = Proveedor.objects.all()
-
-    return render(request, 'cxp/reporte_materiales.html', {
-        'resumen': resumen,
-        'proveedores': proveedores,
-    })
-
-
-def exportar_excel_materiales(request):
-    form = FiltroReporteForm(request.GET or None)
-    detalles = CompraDet.objects.select_related('material', 'compra', 'compra__proveedor')
-
-    if form.is_valid():
-        if form.cleaned_data.get('fecha_inicio'):
-            detalles = detalles.filter(compra__fecha__gte=form.cleaned_data['fecha_inicio'])
-        if form.cleaned_data.get('fecha_fin'):
-            detalles = detalles.filter(compra__fecha__lte=form.cleaned_data['fecha_fin'])
-        if form.cleaned_data.get('proveedores'):
-            detalles = detalles.filter(compra__proveedor__in=form.cleaned_data['proveedores'])
-
-    resumen = detalles.values(
-    'material__id',
-    'material__descripcion'
     ).annotate(
         cantidad_total=Sum('cantidad', output_field=DecimalField()),
         importe_total=Sum('importe', output_field=DecimalField())
@@ -647,34 +703,45 @@ def exportar_excel_materiales(request):
     wb.save(response)
     return response
 
-
-
 def exportar_pdf_materiales(request):
-    form = FiltroReporteForm(request.GET or None)
+    # Usamos el mismo formulario de filtro para la exportación
+    form = FiltroCompraMatForm(request.GET or None)
     detalles = CompraDet.objects.select_related('material', 'compra', 'compra__proveedor', 'compra__proyecto')
 
     nombre_proyecto = None
-    fecha_inicio = None
-    fecha_fin = None
+    fecha_inicio_str = None # Para la cadena de texto en el PDF
+    fecha_fin_str = None    # Para la cadena de texto en el PDF
     proveedor_nombres = []
 
     if form.is_valid():
         fecha_inicio = form.cleaned_data.get('fecha_inicio')
         fecha_fin = form.cleaned_data.get('fecha_fin')
-        proveedores = form.cleaned_data.get('proveedores')
+        proveedor_obj = form.cleaned_data.get('proveedor')
+        estatus_pago = form.cleaned_data.get('estatus_pago')
+        proyecto_obj = form.cleaned_data.get('proyecto')
 
         if fecha_inicio:
             detalles = detalles.filter(compra__fecha__gte=fecha_inicio)
+            fecha_inicio_str = fecha_inicio.strftime('%d/%m/%Y')
         if fecha_fin:
             detalles = detalles.filter(compra__fecha__lte=fecha_fin)
-        if proveedores:
-            detalles = detalles.filter(compra__proveedor__in=proveedores)
-            proveedor_nombres = list(proveedores.values_list('nombre', flat=True))
+            fecha_fin_str = fecha_fin.strftime('%d/%m/%Y')
+        
+        if proveedor_obj: # Si se seleccionó un único proveedor
+            detalles = detalles.filter(compra__proveedor=proveedor_obj)
+            proveedor_nombres = [proveedor_obj.razon_social] # Asumiendo que 'nombre' es el campo de nombre del proveedor
+        
+        if estatus_pago:
+            detalles = detalles.filter(compra__estatus_pago=estatus_pago)
+        
+        if proyecto_obj: # Si se seleccionó un proyecto en el formulario
+            detalles = detalles.filter(compra__proyecto=proyecto_obj)
+            nombre_proyecto = proyecto_obj.nombre # Asumiendo que 'nombre' es el campo de nombre del proyecto
+        else: # Si no se seleccionó un proyecto en el filtro, pero quieres mostrar si todos los resultados tienen el mismo
+            proyectos_en_resultados = detalles.values_list('compra__proyecto__nombre', flat=True).distinct()
+            if len(proyectos_en_resultados) == 1:
+                nombre_proyecto = proyectos_en_resultados[0]
 
-        # Si todos los detalles pertenecen al mismo proyecto
-        proyectos = detalles.values_list('compra__proyecto__nombre', flat=True).distinct()
-        if len(proyectos) == 1:
-            nombre_proyecto = proyectos[0]
 
         resumen = detalles.values(
             'material__id',
@@ -683,6 +750,10 @@ def exportar_pdf_materiales(request):
             cantidad_total=Sum('cantidad', output_field=DecimalField()),
             importe_total=Sum('importe', output_field=DecimalField())
         ).order_by('material__descripcion')
+    else:
+        # Si el formulario no es válido al exportar PDF (ej. al cargar sin filtros),
+        # puedes inicializar resumen como vacío o con todos los datos sin filtrar.
+        resumen = [] # Opcional: si quieres un PDF vacío o con todos los datos al no haber filtros válidos
 
     template = get_template("cxp/pdf_reporte_materiales.html")
     html = template.render({
@@ -690,8 +761,8 @@ def exportar_pdf_materiales(request):
         'fecha_impresion': now().strftime('%d/%m/%Y %H:%M'),
         'logo_path': static('base/img/inemo.png'),
         'proyecto_nombre': nombre_proyecto,
-        'fecha_inicio': fecha_inicio.strftime('%d/%m/%Y') if fecha_inicio else None,
-        'fecha_fin': fecha_fin.strftime('%d/%m/%Y') if fecha_fin else None,
+        'fecha_inicio': fecha_inicio_str, # Usamos las cadenas formateadas
+        'fecha_fin': fecha_fin_str,       # Usamos las cadenas formateadas
         'proveedores': proveedor_nombres,
     })
 
@@ -699,3 +770,28 @@ def exportar_pdf_materiales(request):
     response["Content-Disposition"] = 'attachment; filename="reporte_materiales.pdf"'
     pisa.CreatePDF(html, dest=response)
     return response
+
+# ... (otras vistas si las tienes)
+
+# ====================================================================
+# Ejemplos de vistas de detalle o relacionadas que no se piden cambiar
+# pero que podrían necesitarse para el funcionamiento completo
+# ====================================================================
+
+# Vistas para el autocompletado de materiales (ej. si usas AJAX)
+# def get_materiales_ajax(request):
+#     query = request.GET.get('q', '')
+#     materiales = Material.objects.filter(descripcion__icontains=query).values('id', 'descripcion')[:10]
+#     return JsonResponse(list(materiales), safe=False)
+
+# def get_material_detail_ajax(request):
+#     material_id = request.GET.get('material_id')
+#     try:
+#         material = Material.objects.get(pk=material_id)
+#         data = {
+#             'descripcion': material.descripcion,
+#             # Agrega aquí cualquier otro campo que necesites del material
+#         }
+#         return JsonResponse(data)
+#     except Material.DoesNotExist:
+#         return JsonResponse({'error': 'Material no encontrado'}, status=404)

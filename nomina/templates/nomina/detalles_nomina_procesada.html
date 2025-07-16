@@ -54,9 +54,17 @@
                             {% endif %}
                         </td>
                         <td>
-                            <a href="{% url 'nom:asignar_proyecto_individual' detalle_id=detalle.id %}" class="btn btn-sm btn-outline-warning">
+                            <button 
+                                type="button" 
+                                class="btn btn-sm btn-outline-warning btn-asignar-proyecto"
+                                data-toggle="modal" 
+                                data-target="#modalAsignarProyecto"
+                                data-detalle-id="{{ detalle.id }}"
+                                data-proyecto-id="{{ detalle.proyecto.id if detalle.proyecto else '' }}"
+                                data-empleado-nombre="{{ detalle.empleado.nombre }}">
                                 <i class="fas fa-tasks"></i> Asignar Proyecto
-                            </a>
+                            </button>
+
                         </td>
                     </tr>
                     {% endfor %}
@@ -66,3 +74,81 @@
     </div>
 </div>
 {% endblock page_content %}
+
+<!-- Modal para asignar proyecto -->
+<div class="modal fade" id="modalAsignarProyecto" tabindex="-1" aria-labelledby="modalAsignarProyectoLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="formAsignarProyecto" method="POST" action="">
+      {% csrf_token %}
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalAsignarProyectoLabel">Asignar Proyecto a <span id="modalEmpleadoNombre"></span></h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="detalleIdInput" name="detalle_id" value="">
+          <div class="form-group">
+            <label for="proyectoSelect">Proyecto</label>
+            <select class="form-control" id="proyectoSelect" name="proyecto" required>
+              <option value="">-- Selecciona un proyecto --</option>
+              {% for proyecto in proyectos %}
+              <option value="{{ proyecto.id }}">{{ proyecto.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Guardar</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+{% block js_page %}
+<script>
+  $('#modalAsignarProyecto').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var detalleId = button.data('detalle-id');
+    var proyectoId = button.data('proyecto-id');
+    var empleadoNombre = button.data('empleado-nombre');
+
+    var modal = $(this);
+    modal.find('#modalEmpleadoNombre').text(empleadoNombre);
+    modal.find('#detalleIdInput').val(detalleId);
+    modal.find('#proyectoSelect').val(proyectoId);
+  });
+
+  $('#formAsignarProyecto').on('submit', function(e){
+    e.preventDefault();
+
+    var detalleId = $('#detalleIdInput').val();
+    var proyectoId = $('#proyectoSelect').val();
+    var csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+
+    $.ajax({
+      url: '/nom/nomina/detalle/' + detalleId + '/asignar-proyecto/',  // Ajusta esta URL según tu urls.py
+      type: 'POST',
+      data: {
+        'proyecto': proyectoId,
+        'csrfmiddlewaretoken': csrfToken
+      },
+      success: function(response){
+        if(response.success){
+          $('#modalAsignarProyecto').modal('hide');
+          location.reload(); // recarga para ver el proyecto asignado actualizado
+        } else {
+          alert(response.error || 'Error desconocido');
+        }
+      },
+      error: function(){
+        alert('Error al guardar el proyecto. Intenta de nuevo.');
+      }
+    });
+  });
+</script>
+{% endblock %}
