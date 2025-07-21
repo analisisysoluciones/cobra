@@ -143,36 +143,81 @@ class Prestaciones(models.Model):
         return f"Prestaciones {self.empleado.nombre}"
 
 
-class NominaHistorial(models.Model):
-     periodo_inicio = models.DateField(unique=True)  # Fecha de inicio del período
-     periodo_fin = models.DateField()  # Fecha de fin del período
-     total_pago = models.DecimalField(max_digits=12, decimal_places=2)
-     cuenta = models.ForeignKey(Cuenta, on_delete=models.CASCADE)
-     ESTATUS_CHOICES = [
-         ('Pendiente', 'Pendiente'),
-         ('Procesada', 'Procesada'),
-         ('Cancelada', 'Cancelada'),
-     ]
+# class NominaHistorial(models.Model):
+#      periodo_inicio = models.DateField(unique=True)  # Fecha de inicio del período
+#      periodo_fin = models.DateField()  # Fecha de fin del período
+#      total_pago = models.DecimalField(max_digits=12, decimal_places=2)
+#      cuenta = models.ForeignKey(Cuenta, on_delete=models.CASCADE)
+#      ESTATUS_CHOICES = [
+#          ('Pendiente', 'Pendiente'),
+#          ('Procesada', 'Procesada'),
+#          ('Cancelada', 'Cancelada'),
+#      ]
     
-     estatus = models.CharField(max_length=10, choices=ESTATUS_CHOICES, default='Pendiente')
-     fecha_procesada = models.DateTimeField(null=True, blank=True)
+#      estatus = models.CharField(max_length=10, choices=ESTATUS_CHOICES, default='Pendiente')
+#      fecha_procesada = models.DateTimeField(null=True, blank=True)
 
-     class Meta:
-         unique_together = ('periodo_inicio', 'periodo_fin')  # Evita duplicados del mismo período
+#      class Meta:
+#          unique_together = ('periodo_inicio', 'periodo_fin')  # Evita duplicados del mismo período
 
-     def save(self, *args, **kwargs):
-         if self.estatus == 'Procesada':
-             # Validar que no exista otra nómina en el mismo período
-             if NominaHistorial.objects.filter(periodo_inicio=self.periodo_inicio, estatus='Procesada').exists():
-                 raise ValueError("Ya existe una nómina procesada en este período")
-             self.fecha_procesada = timezone.now()
+#      def save(self, *args, **kwargs):
+#          if self.estatus == 'Procesada':
+#              # Validar que no exista otra nómina en el mismo período
+#              if NominaHistorial.objects.filter(periodo_inicio=self.periodo_inicio, estatus='Procesada').exists():
+#                  raise ValueError("Ya existe una nómina procesada en este período")
+#              self.fecha_procesada = timezone.now()
         
-         super().save(*args, **kwargs)
+#          super().save(*args, **kwargs)
 
-     def __str__(self):
-         return f"Nómina {self.periodo_inicio} - {self.periodo_fin} - {self.estatus} - Total: {self.total_pago}"
+#      def __str__(self):
+#          return f"Nómina {self.periodo_inicio} - {self.periodo_fin} - {self.estatus} - Total: {self.total_pago}"
 
+
+class NominaHistorial(models.Model):
+    periodo_inicio = models.DateField(unique=True)  # Fecha de inicio del período
+    periodo_fin = models.DateField()  # Fecha de fin del período
+    total_pago = models.DecimalField(max_digits=12, decimal_places=2)
+    cuenta = models.ForeignKey(Cuenta, on_delete=models.CASCADE)
+    ESTATUS_CHOICES = [
+        ('Pendiente', 'Pendiente'),
+        ('Procesada', 'Procesada'),
+        ('Cancelada', 'Cancelada'),
+    ]
     
+    estatus = models.CharField(max_length=10, choices=ESTATUS_CHOICES, default='Pendiente')
+    fecha_procesada = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('periodo_inicio', 'periodo_fin')  # Evita duplicados del mismo período
+
+    def save(self, *args, **kwargs):
+        if self.estatus == 'Procesada':
+            # Validar que no exista otra nómina procesada en el mismo período,
+            # excluyendo la instancia actual si ya existe (para evitar el error al guardar)
+            qs = NominaHistorial.objects.filter(
+                periodo_inicio=self.periodo_inicio, 
+                estatus='Procesada'
+            )
+            
+            # Si la instancia actual ya tiene una clave primaria (PK), significa que ya existe en la BD,
+            # así que la excluimos de la comprobación.
+            if self.pk: 
+                qs = qs.exclude(pk=self.pk)
+
+            if qs.exists():
+                raise ValueError("Ya existe una nómina procesada en este período")
+            
+            # Solo establecer fecha_procesada si se está marcando como 'Procesada'
+            if not self.fecha_procesada: # Evita sobreescribir si ya tiene una fecha
+                self.fecha_procesada = timezone.now()
+        else:
+            # Si el estado no es 'Procesada', asegúrate de que fecha_procesada sea nula
+            self.fecha_procesada = None
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Nómina {self.periodo_inicio} - {self.periodo_fin} - {self.estatus} - Total: {self.total_pago}"    
     
 
 class NominaDetalle(models.Model):

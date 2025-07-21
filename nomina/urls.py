@@ -9,7 +9,8 @@ from .views import ( # Importa todas las vistas que usas directamente
     PeriodosNominaList, PeriodosNominaNew, PeriodosNominaEdit, PeriodosNominaDel,
     DocumentoEmpleadoDelete, capturar_falta, validar_curp,
     AsistenciaListView, AsistenciaDeleteView, asignar_proyecto_individual,seleccionar_periodo_nomina,
-    listar_detalles_nomina_procesada # <-- Vista clave para detalles de nómina
+    listar_detalles_nomina_procesada, guardar_periodo_sesion, procesar_nomina_form, NominaDetalleListView,
+    NominaDetalleUpdateView, asignar_proyectos, cerrar_nomina
 )
 
 app_name = 'nom'
@@ -31,6 +32,8 @@ urlpatterns = [
     path('periodos/nuevo/', PeriodosNominaNew.as_view(), name='periodos_new'),
     path('periodos/editar/<int:pk>/', PeriodosNominaEdit.as_view(), name='periodos_edit'),
     path('periodos/eliminar/<int:pk>/', PeriodosNominaDel.as_view(), name='periodos_del'),
+    path('guardar-periodo/', guardar_periodo_sesion, name='guardar_periodo_sesion'),
+    path('formulario-procesar/', procesar_nomina_form, name='procesar_nomina_form'),
 
     path('validar-curp/', validar_curp, name='validar_curp'),
     path("asistencias/", AsistenciaListView.as_view(), name="asistencia_list"),
@@ -39,6 +42,10 @@ urlpatterns = [
     # URLs para el flujo de nómina procesada y asignación de proyectos
     path('nomina/detalles-procesados/<int:nomina_historial_id>/', listar_detalles_nomina_procesada, name='listar_detalles_nomina_procesada'),
     path('nomina/detalle/<int:detalle_id>/asignar-proyecto/', asignar_proyecto_individual, name='asignar_proyecto_individual'),
+    path('asignar-proyectos/<int:nomina_id>/', asignar_proyectos, name='asignar_proyectos'),
+    path('cerrar-nomina/<int:nomina_id>/', cerrar_nomina, name='cerrar_nomina'),
+
+    path('editar-proyecto/<int:pk>/', NominaDetalleUpdateView.as_view(), name='editar_proyecto'),
 ]
 
 if settings.DEBUG:

@@ -1,0 +1,66 @@
+{% extends "base/base.html" %}
+{% block page_content %}
+
+<h2>Asignar proyectos a empleados - Nómina #{{ nomina.id }}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Empleado</th>
+                <th>Sueldo Diario</th>
+                <th>Días Trabajados</th>
+                <th>Total Pago</th>
+                <th>Proyecto</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in detalles %}
+            <tr>
+                <td>{{ detalle.empleado.nombre }}</td>
+                <td>{{ detalle.sueldo_diario }}</td>
+                <td>{{ detalle.dias_trabajados }}</td>
+                <td>{{ detalle.total_pago }}</td>
+                <td>
+                    <select name="proyecto_{{ detalle.id }}" class="form-control">
+                        <option value="">-- Selecciona --</option>
+                        {% for proyecto in proyectos %}
+                        <option value="{{ proyecto.id }}" {% if detalle.proyecto and detalle.proyecto.id == proyecto.id %}selected{% endif %}>{{ proyecto.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-primary">Guardar asignaciones</button>
+    <div class="form-group text-right">
+    <button type="submit" class="btn btn-primary btn-lg">
+        Guardar Asignaciones
+    </button>
+
+    &nbsp;
+
+    <a href="javascript:history.back()" class="btn btn-secondary">
+        Regresar
+    </a>
+    
+    &nbsp;
+
+    {% if nomina and not nomina.estatus == 'Procesada' %}
+        <form action="{% url 'nom:cerrar_nomina' nomina.id %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger"
+                    onclick="return confirm('¿Estás seguro de que deseas cerrar esta nómina? Una vez cerrada, no podrá ser modificada.');">
+                Cerrar esta Nómina
+            </button>
+        </form>
+    {% elif nomina and nomina.estatus == 'Procesada' %}
+        <button type="button" class="btn btn-info" disabled>Nómina Procesada</button>
+    {% endif %}
+</div>
+</form>
+
+{% endblock %}

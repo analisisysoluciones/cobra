@@ -60,7 +60,7 @@
                                 data-toggle="modal" 
                                 data-target="#modalAsignarProyecto"
                                 data-detalle-id="{{ detalle.id }}"
-                                data-proyecto-id="{{ detalle.proyecto.id if detalle.proyecto else '' }}"
+                                data-proyecto-id="{{ detalle.proyecto.id|default:''}}"
                                 data-empleado-nombre="{{ detalle.empleado.nombre }}">
                                 <i class="fas fa-tasks"></i> Asignar Proyecto
                             </button>

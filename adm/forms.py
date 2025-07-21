@@ -338,51 +338,43 @@ class FiltroCombustibleForm(forms.Form):
 
 
 
+
 class ReporteEquipoForm(forms.ModelForm):
     class Meta:
         model = ReporteEquipo
         fields = [
             'fecha',
-            'Proyecto', 
-            'equipo',   
+            'Proyecto',  # con mayúscula según tu modelo
+            'equipo',
             'operador',
             'actividad',
             'horas',
             'diesel_carga',
             'diesel_resta',
             'fallas',
-            'observa',
+            'observa',  # nombre real del campo
         ]
-        
         labels = {
-            'fecha': 'Fecha del Reporte:', # Modificado para ser más claro
-            'Proyecto': 'Proyecto:',
-            'equipo': 'Equipo:',
-            'operador': 'Operador:',
-            'actividad': 'Actividad Realizada:', # Modificado
-            'horas': 'Horas Trabajadas:', # Modificado
-            'diesel_carga': 'Litros Diesel Cargados:', # Modificado
-            'diesel_resta': 'Litros Diesel Restantes:', # Modificado
-            'fallas': 'Fallas Presentadas:', # Modificado
-            'observa': 'Observaciones Adicionales:', # Modificado
+            'fecha': 'Fecha del Reporte',
+            'Proyecto': 'Proyecto',
+            'equipo': 'Equipo',
+            'operador': 'Operador',
+            'actividad': 'Actividad Realizada',
+            'horas': 'Horas Trabajadas',
+            'diesel_carga': 'Litros Diesel Cargados',
+            'diesel_resta': 'Litros Diesel Restantes',
+            'fallas': 'Fallas Presentadas',
+            'observa': 'Observaciones Adicionales',
         }
-        
         widgets = {
-            'fecha': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'fecha': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}, format='%Y-%m-%d'),
             'Proyecto': forms.Select(attrs={'class': 'form-control'}),
             'equipo': forms.Select(attrs={'class': 'form-control'}),
             'operador': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre del operador'}),
-            'actividad': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Descripción de la actividad'}), # Textarea para mayor espacio
+            'actividad': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Descripción de la actividad'}),
             'horas': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 8.5'}),
             'diesel_carga': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 150.00'}),
             'diesel_resta': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 20.00'}),
-            'fallas': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Si hubo fallas, descríbelas aquí'}), # Textarea
-            'observa': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Cualquier otra observación relevante'}), # Textarea
+            'fallas': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Si hubo fallas, descríbelas aquí'}),
+            'observa': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Cualquier otra observación relevante'}),
         }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field_name, field in self.fields.items():
-            if field_name == 'fecha': # Excluir 'fecha' para no sobreescribir type='date'
-                continue 
-            field.widget.attrs.update({'class': 'form-control'})

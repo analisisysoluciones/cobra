@@ -11,7 +11,6 @@
                 </div>
                 <div class="dropdown-divider"></div>
 
-                {# Renderiza los campos del formulario de Django #}
                 {% for field in form %}
                     <div class="form-group row">
                         <label for="{{ field.id_for_label }}" class="col-sm-3 col-form-label">{{ field.label }}:</label>
@@ -26,7 +25,6 @@
                         </div>
                     </div>
                 {% endfor %}
-                {# Fin del renderizado de campos del formulario #}
 
                 <div class="dropdown-divider"></div>
                 <div class="row">
@@ -42,38 +40,15 @@
 {% endblock page_content %}
 
 {% block js_page %}
-{# El script de DataTables que tenías aquí parece ser para una tabla, no para un formulario. #}
-{# Lo he mantenido, pero ten en cuenta que probablemente no es necesario para la página del formulario #}
-{# a menos que tengas una tabla dentro del formulario que no se muestra en este ejemplo. #}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 <script>
-$(document).ready(function() {
-    $('#example').DataTable({
-        "paging": true,
-        "searching": true,
-        "ordering": true,
-        "pageLength": 10,
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/Spanish.json"
-        },
-        "columns": [
-            { "data": "name" },
-            { "data": "position" },
-            { "data": "office" },
-            { "data": "age" },
-            { "data": "start_date" },
-            { "data": "salary" }
-        ],
-        "ajax": "data.json",
-        "dom": 'Bfrtip',
-        "buttons": [
-            'copy', 'csv', 'excel', 'pdf', 'print'
-        ],
-        "pagingType": "full_numbers",
-        "order": [[ 3, "desc" ]],
-        "columnDefs": [
-            { "orderable": false, "targets": 0 },
-            { "searchable": false, "targets": 0 }
-        ]
+document.addEventListener('DOMContentLoaded', function() {
+    flatpickr("#id_fecha", {
+        dateFormat: "Y-m-d",
+        locale: "es",
+        allowInput: true
     });
 });
 </script>

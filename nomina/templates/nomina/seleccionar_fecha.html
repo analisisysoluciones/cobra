@@ -1,53 +1,35 @@
 {% extends 'base/base.html' %}
 
 {% block page_content %}
-<form method="POST">
-    {% csrf_token %}
-    <div class="col-xl-12 mb-4">
-        <div class="card border-left-primary shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                            Seleccionar Período de Nómina
-                        </div>
-                        <div class="dropdown-divider"></div>
-
-                        <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Período:</label>
-                            <div class="col-sm-9">
-                                {{ form.periodo }}
-                                {% if form.periodo.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {{ form.periodo.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="dropdown-divider"></div>
-                        <div class="row">
-                            <div class="col">
-                                <button type="submit" class="btn btn-primary">
-                                    <span class="fa fa-calculator"></span> Calcular Nómina
-                                </button>
-                                <a href="{% url 'nom:empleado_list' %}" class="btn btn-secondary">
-                                    <span class="fa fa-arrow-left"></span> Volver a Empleados
-                                </a>
-                            </div>
-                        </div>    
-                    </div>                            
-                </div>
-            </div>
-        </div>
-    </div>
-</form>
-{% endblock page_content %}
+<div class="card shadow mb-4">
+  <div class="card-header">
+    <h4>Seleccionar Período de Nómina</h4>
+  </div>
+  <div class="card-body">
+    <form method="post" action="{% url 'nom:calcular_nomina' %}">
+      {% csrf_token %}
+      <div class="form-group col-md-8">
+        {{ form.periodo.label_tag }}
+        {{ form.periodo }}
+        {% if form.periodo.errors %}
+            <div class="text-danger">{{ form.periodo.errors }}</div>
+        {% endif %}
+      </div>
+      <button type="submit" class="btn btn-primary">Seleccionar</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
 
 {% block js_page %}
+<!-- Agrega esto al final del body si usas select2 -->
 <script>
-    $(document).ready(function() {
-        $('.select2').select2();
+  $(document).ready(function() {
+    $('.select2').select2({
+      width: 'style',
+      placeholder: "--- Seleccione un Período de Nómina ---",
+      allowClear: true
     });
+  });
 </script>
 {% endblock js_page %}

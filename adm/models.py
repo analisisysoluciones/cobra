@@ -371,17 +371,21 @@ class CargaCombustible(ClaseModelo):
 
 
 class ReporteEquipo(ClaseModelo):
-    fecha = models.DateField()
+    fecha = models.DateField(null=True,blank=True)
     Proyecto = models.ForeignKey(Proyecto,on_delete=models.SET_NULL, null=True, blank=True)
     equipo = models.ForeignKey(Equipo,on_delete=models.SET_NULL, null=True, blank=True)
-    operador = models.CharField()
+    operador = models.CharField('Operador',max_length=80,blank=True,null=True)
     actividad = models.CharField('Actividad',max_length=220,null=True,blank=True)
-    horas = models.CharField('Horas',max_length=8)
-    diesel_carga = models.CharField('Diesel Cargado',max_length=15)
-    diesel_resta = models.CharField('Diesel Restante',max_length=15)
-    fallas = models.CharField('Fallas',max_length=120)
-    observa = models.CharField('Observaciones',max_length=220)
+    horas = models.CharField('Horas',max_length=8,null=True,blank=True)
+    diesel_carga = models.CharField('Diesel Cargado',max_length=15,null=True,blank=True)
+    diesel_resta = models.CharField('Diesel Restante',max_length=15,null=True,blank=True)
+    fallas = models.CharField('Fallas',max_length=120,blank=True,null=True)
+    observa = models.CharField('Observaciones',max_length=220,null=True,blank=True)
 
     def __str__(self):
         return f"{self.equipo} - {self.operador}"
+    
+    class Meta:
+        verbose_name = "Reporte de Equipo"
+        verbose_name_plural = "Reportes de Equipo"
     

@@ -11,27 +11,45 @@
             {% endif %}
         </h6>
 
-        <div class="btn-group" role="group">
-            {% if fecha_inicio %}
-                <a href="{% url 'nom:nomina_pdf' %}?fecha_inicio={{ fecha_inicio|date:'Y-m-d' }}{% if fecha_fin %}&fecha_fin={{ fecha_fin|date:'Y-m-d' }}{% endif %}" class="btn btn-danger btn-sm">
-                    <i class="fas fa-file-pdf"></i> PDF Resumen
-                </a>
-                <a href="{% url 'nom:nomina_ind_pdf' %}?fecha_inicio={{ fecha_inicio|date:'Y-m-d' }}{% if fecha_fin %}&fecha_fin={{ fecha_fin|date:'Y-m-d' }}{% endif %}" class="btn btn-warning btn-sm">
-                    <i class="fas fa-file-download"></i> Recibos
-                </a>
-                {# ESTA ES LA SECCIÓN A MODIFICAR/VERIFICAR #}
-                {% if not nomina_existente and fecha_inicio %} {# Aseguramos que haya una fecha para procesar #}
-                    <form action="{% url 'nom:procesar_nomina' %}" method="post" style="display: inline;">
-                        {% csrf_token %}
-                        <input type="hidden" name="fecha_inicio_nomina" value="{{ fecha_inicio|date:'Y-m-d' }}">
-                        <button type="submit" class="btn btn-success btn-sm">
-                            <i class="fas fa-save"></i> Procesar Nómina
-                        </button>
-                    </form>
-                {% endif %}
-                {# FIN DE LA SECCIÓN A MODIFICAR/VERIFICAR #}
+        <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-md-center">
+    <div class="btn-group mb-2 mb-md-0" role="group">
+        {% if fecha_inicio %}
+            <a href="{% url 'nom:nomina_pdf' %}?fecha_inicio={{ fecha_inicio|date:'Y-m-d' }}{% if fecha_fin %}&fecha_fin={{ fecha_fin|date:'Y-m-d' }}{% endif %}" class="btn btn-danger btn-sm">
+                <i class="fas fa-file-pdf"></i> PDF Resumen
+            </a>
+            <a href="{% url 'nom:nomina_ind_pdf' %}?fecha_inicio={{ fecha_inicio|date:'Y-m-d' }}{% if fecha_fin %}&fecha_fin={{ fecha_fin|date:'Y-m-d' }}{% endif %}" class="btn btn-warning btn-sm">
+                <i class="fas fa-file-download"></i> Recibos
+            </a>
+            
+        {% endif %}
+    </div>
 
-            {% endif %}
+   
+
+
+    {% if not nomina_existente and fecha_inicio %}
+    <form action="{% url 'nom:procesar_nomina' %}" method="post" class="form-inline mt-2 mt-md-0">
+        {% csrf_token %}
+        <input type="hidden" name="periodo_id" value="{{ periodo.id }}">
+        
+        <input type="hidden" name="semana" value="{{ periodo.semana }}">
+        <input type="hidden" name="fecha_inicio_nomina" value="{{ periodo.periodo_inicio|date:'Y-m-d' }}">
+        <input type="hidden" name="fecha_fin_nomina" value="{{ periodo.periodo_final|date:'Y-m-d' }}">
+        <input type="hidden" name="fecha_corte" value="{{ periodo.fecha_corte|date:'Y-m-d' }}">
+        <input type="hidden" name="dia_pago" value="{{ periodo.dia_pago|date:'Y-m-d' }}">
+
+        <div class="input-group input-group-sm">
+            <div class="input-group-append">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Procesar Nómina
+                </button>
+            </div>
+        </div>
+    </form>
+    {% endif %}
+
+    
+    </div>
             <a href="{% url 'nom:seleccionar_fecha' %}" class="btn btn-secondary btn-sm">
                 <i class="fas fa-arrow-left"></i> Seleccionar otra fecha
             </a>
@@ -84,7 +102,8 @@
                                     <i class="fas fa-tasks"></i> Proyecto
                                 </a>
                                 {% else %}
-                                <span class="text-muted">Sin detalle</span>
+                                  <span class="text-muted">Sin detalle</span>
+
                                 {% endif %}
                             </td>
                         </tr>
@@ -100,7 +119,11 @@
                             <th colspan="5">{{ total_percepciones|floatformat:2 }}</th>
                             <th colspan="4">{{ total_deducciones|floatformat:2 }}</th>
                             <th><strong>{{ total_neto_general|floatformat:2 }}</strong></th>
-                            <th></th>
+                            <th>
+                                <a href="#" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-layer-group"></i> Asignar por lote
+                                </a>
+                            </th>
                         </tr>
                     </tfoot>
                 </table>

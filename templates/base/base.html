@@ -3,7 +3,6 @@
 <html lang="es">
 
 <head>
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -12,36 +11,30 @@
 
     <title>Sistema control de obra (Cobra)</title>
 
-    <!-- Custom fonts for this template-->
     <link href="{% static 'base/vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
 
-    <!-- Custom styles for this template-->
     <link href="{% static 'base/css/sb-admin-2.min.css' %}" rel="stylesheet">
+    
     <link href="{% static 'base/vendor/datatables/dataTables.bootstrap4.min.css' %}" rel="stylesheet">
+    
     <link rel="stylesheet" href="{% static 'base/vendor/jquery_confirm/jquery-confirm.min.css' %}">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css" integrity="sha256-DOS9W6NR+NFe1fUhEE0PGKY/fubbUCnOfTje2JMDw3Y=" crossorigin="anonymous" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.min.js" integrity="sha256-FEqEelWI3WouFOo2VWP/uJfs1y8KJ++FLh2Lbqc8SJk=" crossorigin="anonymous"></script> 
-
-      <!-- En tu base.html o en el archivo de la plantilla que estés utilizando -->
+    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     
-        <!-- jQuery primero -->
-    
+    <link href="https://unpkg.com/bootstrap-table@1.15.3/dist/bootstrap-table.min.css" rel="stylesheet">
+
     <link href="{% static 'base/css/styles.css' %}" rel="stylesheet">
 
-
-
-
+    {# Bloques para CSS específico de cada página, si los necesitas. Asegúrate de tenerlos en base.html #}
+    {% block css_global %}{% endblock css_global %}
+    {% block css_page %}{% endblock css_page %}
 
 </head>
-
 <body id="page-top">
+    
 {% block side_bar %}
     <!-- Page Wrapper -->
     <div id="wrapper">
@@ -564,6 +557,17 @@
                         </li>
 
                         <div class="topbar-divider d-none d-sm-block"></div>
+                          {% if messages %}
+                            {% for message in messages %}
+                                {% if message %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                          {% endif %}
+
 
                         <!-- Nav Item - User Information -->
                         
@@ -604,6 +608,7 @@
                 <!-- End of Topbar -->
 
                 <!-- Begin Page Content -->
+                
                  {% block page_content %}
                 <div class="container-fluid">
 
@@ -664,40 +669,31 @@
   <div class="modal fade" id="popup"></div>
 
   <!-- Bootstrap core JavaScript-->
-  <script src="{% static  'base/vendor/jquery/jquery.min.js' %}"></script>
-  <script src="{% static  'base/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-  <!-- Bootstrap CSS -->
-    {% comment %} <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet"> {% endcomment %}
+ <script src="{% static 'base/vendor/jquery/jquery.min.js' %}"></script>
+    
+    <script src="{% static 'base/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    
+    <script src="{% static 'base/vendor/jquery-easing/jquery.easing.min.js' %}"></script>
 
-    <!-- Bootstrap JS -->
-    {% comment %} <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script> {% endcomment %}
+    <script src="{% static 'base/js/sb-admin-2.min.js' %}"></script>
 
-  <!-- Core plugin JavaScript-->
-  <script src="{% static  'base/vendor/jquery-easing/jquery.easing.min.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    
+    <script src="{% static 'base/vendor/datatables/jquery.dataTables.min.js'%}"></script>
+    <script src="{% static 'base/vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
 
-  <!-- Custom scripts for all pages-->
-  <script src="{% static  'base/js/sb-admin-2.min.js' %}"></script>
+    <script src="{% static 'base/vendor/jquery_confirm/jquery-confirm.min.js' %}"></script>
 
-  <!-- Page level plugins -->
-  <script src="{% static 'base/vendor/datatables/jquery.dataTables.min.js'%}"></script>
-  <script src="{% static 'base/vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.min.js" integrity="sha256-FEqEelWI3WouFOo2VWP/uJfs1y8KJ++FLh2Lbqc8SJk=" crossorigin="anonymous"></script>  
 
-  <script src="{% static 'base/vendor/jquery_confirm/jquery-confirm.min.js' %}"></script>
+    <script src="https://unpkg.com/bootstrap-table@1.15.3/dist/bootstrap-table.min.js"></script>
+    <script src="https://unpkg.com/bootstrap-table@1.15.3/dist/bootstrap-table-locale-all.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-chained/1.0.1/jquery.chained.min.js"></script>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.min.js" integrity="sha256-FEqEelWI3WouFOo2VWP/uJfs1y8KJ++FLh2Lbqc8SJk=" crossorigin="anonymous"></script>  
-
-  <script src="https://unpkg.com/bootstrap-table@1.15.3/dist/bootstrap-table.min.js"></script>
-  <script src="https://unpkg.com/bootstrap-table@1.15.3/dist/bootstrap-table-locale-all.min.js"></script>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.8/js/select2.min.js"></script>
-
-  <script src=https://cdnjs.cloudflare.com/ajax/libs/jquery-chained/1.0.1/jquery.chained.min.js></script>
-  
-
-  {% comment %} <script src="{% static  'base/js/jquery.chained.min.js' %}"></script> {% endcomment %}
-  {% comment %} <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script> {% endcomment %}
-  
-
+    {# Bloques para JS específico de cada página #}
+    {% block js_global %}{% endblock js_global %}
+    
 
 
   <script>

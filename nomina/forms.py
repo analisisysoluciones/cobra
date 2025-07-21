@@ -97,15 +97,16 @@ class AsignarProyectoForm(forms.ModelForm):
         self.fields['proyecto'].empty_label = "--- Seleccione un Proyecto ---" # Opcional
 
 
-# forms.py
 class SeleccionarPeriodoForm(forms.Form):
     periodo = forms.ModelChoiceField(
         queryset=PeriodosNomina.objects.all().order_by('-periodo_inicio'),
-        widget=forms.Select(attrs={'class': 'form-control select2'}),
+        widget=forms.Select(attrs={'class': 'form-control select2', 'style': 'width: 50%;'}),
         empty_label="--- Seleccione un Período de Nómina ---",
-        label="Período de Nómina"
+        label="Período de Nómina",
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 class ProcesarNominaForm(forms.Form):
     periodo = forms.ModelChoiceField(
@@ -118,3 +119,11 @@ class ProcesarNominaForm(forms.Form):
         label="Cuenta para Pago",
         widget=forms.Select(attrs={'class': 'form-control select2'})
     )
+
+class NominaDetalleProyectoForm(forms.ModelForm):
+    class Meta:
+        model = NominaDetalle
+        fields = ['proyecto']
+        widgets = {
+            'proyecto': forms.Select(attrs={'class': 'form-control'}),
+        }    
