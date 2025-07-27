@@ -6,7 +6,7 @@
     <h4>Seleccionar Período de Nómina</h4>
   </div>
   <div class="card-body">
-    <form method="post" action="{% url 'nom:calcular_nomina' %}">
+    <form method="post" action="{% url 'nom:seleccionar_fecha' %}">
       {% csrf_token %}
       <div class="form-group col-md-8">
         {{ form.periodo.label_tag }}

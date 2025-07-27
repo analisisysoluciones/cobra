@@ -4,6 +4,7 @@ from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.views.generic.edit import FormView
 from django.views import generic
+from django.views import View
 from django.http import JsonResponse, HttpResponse
 from bases.views import SinPrivilegios
 from django.db import transaction
@@ -15,7 +16,7 @@ from .models import (
 from inv.models import Material
 from adm.models import MovimientoCuenta, Cuenta, Proyecto
 from .forms import (
-    EmpleadoForm, FaltaForm, FechaForm, PeriodosNominaForm, EmpleadoArchivoForm, AsignarProyectoForm, SeleccionarPeriodoForm,
+    EmpleadoForm, FaltaForm,  PeriodosNominaForm, EmpleadoArchivoForm, AsignarProyectoForm, SeleccionarPeriodoForm,
     NominaDetalleProyectoForm
 )
 from xhtml2pdf import pisa
@@ -31,24 +32,14 @@ from django.db.models import Sum, Max, Q
 from datetime import datetime, timedelta
 from decimal import Decimal
 import traceback
+import logging
+from io import BytesIO
+from reportlab.lib.pagesizes import letter, legal, landscape
+from reportlab.lib.utils import ImageReader
 
 
 
-def guardar_periodo_sesion(request):
-    if request.method == 'POST':
-        periodo_id = request.POST.get('periodo_id')
-        if not periodo_id:
-            messages.error(request, "Debe seleccionar un período.")
-            return redirect('nom:seleccionar_fecha')
-
-        periodo = get_object_or_404(PeriodosNomina, pk=periodo_id)
-
-        request.session['periodo_id'] = periodo.id
-        request.session['periodo_semana'] = periodo.semana
-        request.session['periodo_inicio'] = str(periodo.periodo_inicio)
-        request.session['periodo_final'] = str(periodo.periodo_final)
-
-        return redirect('nom:procesar_nomina_form')  # vista donde está el HTML procesar_nomina
+logger = logging.getLogger(__name__)
 
 
 def calcular_nomina_semanal_todos(fecha_inicio_semana):
@@ -57,8 +48,8 @@ def calcular_nomina_semanal_todos(fecha_inicio_semana):
         try:
             fecha_inicio_semana = datetime.strptime(fecha_inicio_semana, "%Y-%m-%d").date()
         except ValueError:
-            print("Error: Formato de fecha incorrecto. Debe ser 'YYYY-MM-DD'.")
-            return [] # Retorna una lista vacía si el formato es incorrecto
+            logger.error("Error: Formato de fecha incorrecto. Debe ser 'YYYY-MM-DD'.")
+            return {'nomina': [], 'fecha_inicio': None, 'fecha_fin': None, 'total_percepciones_general': 0, 'total_deducciones_general': 0, 'total_neto_general': 0} # Retorna un diccionario vacío consistente con el retorno esperado
 
     # Calcular la fecha de fin de la semana (6 días después de la fecha de inicio, cubriendo 7 días en total)
     fecha_fin_semana = fecha_inicio_semana + timedelta(days=6)
@@ -70,7 +61,7 @@ def calcular_nomina_semanal_todos(fecha_inicio_semana):
     DIAS_LABORALES_SEMANA = Decimal(6) # Definimos la constante para los días laborales esperados
 
     for empleado in empleados:
-        print(f"Procesando empleado: {empleado.nombre}")
+        logger.debug(f"Procesando empleado: {empleado.nombre}")
         
         # Contar los días registrados en Asistencia para este empleado en el rango de la semana.
         # Dado que Asistencia registra FALTAS, este count nos da directamente el número de faltas.
@@ -96,12 +87,9 @@ def calcular_nomina_semanal_todos(fecha_inicio_semana):
         importe_faltas = faltas * sueldo_diario
 
         # Descuento del Séptimo Día si hubo faltas.
-        # Si la política es que se pierde *todo* el 7mo día si hay *cualquier* falta:
-        # descuento_septimo_dia = sueldo_diario if faltas > 0 else Decimal(0)
-        # Si la política es un descuento proporcional (como tenías):
         descuento_septimo_dia = (faltas / DIAS_LABORALES_SEMANA) * sueldo_diario if faltas > 0 else Decimal(0)
         
-        print(f"Descuento séptimo día para {empleado.nombre}: {descuento_septimo_dia}")
+        logger.debug(f"Descuento séptimo día para {empleado.nombre}: {descuento_septimo_dia}")
 
         # Percepciones: Sueldo semanal (por días trabajados) + Séptimo Día + Compensación
         percepciones = sueldo_semanal + septimo_dia + compensacion
@@ -113,11 +101,12 @@ def calcular_nomina_semanal_todos(fecha_inicio_semana):
         total_pago = percepciones - deducciones
 
         nomina_lista.append({
-            'empleado': empleado.nombre,
+            'empleado_id': empleado.id,
+            'empleado': empleado.nombre,           
             'ingreso': empleado.ingreso, # Asumo que 'ingreso' es un campo en tu modelo Empleado
             'sueldo_diario': float(sueldo_diario),
             'dias_trabajados': int(dias_trabajados_para_sueldo), # Días pagados por sueldo base
-            'faltas': faltas, # Días de falta contados
+            'faltas': int(faltas), # Días de falta contados
             'importe_faltas': float(importe_faltas),
             'sueldo_semanal': float(sueldo_semanal), # Sueldo por los días efectivamente trabajados
             'septimo_dia': float(septimo_dia),
@@ -133,6 +122,8 @@ def calcular_nomina_semanal_todos(fecha_inicio_semana):
     total_deducciones_general = sum(item['deducciones'] for item in nomina_lista)
     total_neto_general = sum(item['total_pago'] for item in nomina_lista)
 
+    logger.debug("Resultados de nómina calculados.")
+    
     return {
         'nomina': nomina_lista,
         'fecha_inicio': fecha_inicio_semana,
@@ -141,6 +132,85 @@ def calcular_nomina_semanal_todos(fecha_inicio_semana):
         'total_deducciones_general': total_deducciones_general,
         'total_neto_general': total_neto_general,
     }
+#=============================================================================
+# calcular nomina view
+#=============================================================================
+
+# --- Tu vista principal (modificada) ---
+@login_required(login_url='bases:login')
+def calcular_nomina_view(request):
+    logger.debug("ENTRANDO A calcular_nomina_view")
+    logger.debug(f"Session keys: {list(request.session.keys())}")
+    
+    # Intentamos obtener el período guardado en la sesión
+    periodo_id = request.session.get('periodo_id')
+    logger.debug(f"periodo_id from session: {periodo_id}")
+    
+    if not periodo_id:
+        logger.debug("NO HAY PERIODO_ID - Redirigiendo a seleccionar_fecha")
+        messages.error(request, "Debe seleccionar un período primero.")
+        return redirect('nom:seleccionar_fecha')
+
+    logger.debug("SÍ HAY PERIODO_ID - Continuando...")
+    
+    # Traemos el objeto período con el id de sesión
+    logger.debug("Buscando periodo_obj...")
+    try:
+        periodo_obj = PeriodosNomina.objects.get(id=periodo_id)
+        logger.debug(f"periodo_obj encontrado: {periodo_obj}")
+    except PeriodosNomina.DoesNotExist: # Mejor usar la excepción específica
+        logger.error(f"ERROR: El periodo con ID {periodo_id} no existe.")
+        messages.error(request, "El período seleccionado no existe.")
+        return redirect('nom:seleccionar_fecha')
+    except Exception as e:
+        logger.error(f"ERROR inesperado al buscar periodo: {e}", exc_info=True) # exc_info=True para el traceback
+        messages.error(request, f"Error inesperado al cargar el período: {e}")
+        return redirect('nom:seleccionar_fecha')
+
+    logger.debug("Obteniendo fechas del periodo_obj...")
+    fecha_inicio_obj = periodo_obj.periodo_inicio
+    # Asegúrate de que esta fecha_inicio_obj sea un objeto date o string en el formato esperado por calcular_nomina_semanal_todos
+    # Si periodo_inicio es un DateField en tu modelo, ya será un objeto date.
+    logger.debug(f"Fechas del periodo_obj - Inicio: {fecha_inicio_obj}, Fin: {periodo_obj.periodo_final}")
+
+    # Ahora llamamos a la función que calcula la nómina y obtenemos su diccionario de resultados
+    logger.debug("Llamando a calcular_nomina_semanal_todos...")
+    try:
+        nomina_data = calcular_nomina_semanal_todos(fecha_inicio_obj)
+        logger.debug(f"DESPUÉS de calcular_nomina_semanal_todos - ÉXITO. Tipo de resultado: {type(nomina_data)}")
+        
+        # Verifica que nomina_data sea un diccionario y tenga la clave 'nomina'
+        if not isinstance(nomina_data, dict) or 'nomina' not in nomina_data:
+            logger.error(f"calcular_nomina_semanal_todos retornó un formato inesperado: {nomina_data}")
+            messages.error(request, "Error interno al procesar los datos de la nómina.")
+            return redirect('nom:seleccionar_fecha')
+
+    except Exception as e:
+        logger.error(f"ERROR en calcular_nomina_semanal_todos: {e}", exc_info=True)
+        messages.error(request, f"Error al calcular la nómina: {e}")
+        return redirect('nom:seleccionar_fecha')
+    
+    logger.debug("Preparando contexto para el template...")
+    # Creamos el contexto usando los datos devueltos por calcular_nomina_semanal_todos
+    # y agregando el objeto periodo_obj
+    context = {
+        'nomina': nomina_data.get('nomina', []), # Si por alguna razón 'nomina' no está, que sea una lista vacía
+        'fecha_inicio': nomina_data.get('fecha_inicio'),
+        'fecha_fin': nomina_data.get('fecha_fin'),
+        'periodo': periodo_obj, # El objeto completo del periodo
+        'total_percepciones_general': nomina_data.get('total_percepciones_general', 0),
+        'total_deducciones_general': nomina_data.get('total_deducciones_general', 0),
+        'total_neto_general': nomina_data.get('total_neto_general', 0),
+    }
+    
+    logger.debug("Renderizando template nomina/nomina_semanal.html")
+    return render(request, 'nomina/nomina_semanal.html', context)
+
+
+#================================================================================
+#   **** fin calcular nomina todos ****
+#================================================================================
+
 
 # --- Vistas existentes y corregidas ---
 
@@ -196,107 +266,10 @@ def capturar_falta(request):
         form = FaltaForm()
     return render(request, 'nomina/capturar_falta.html', {'form': form})
 
-# ✅ Vista para seleccionar la fecha
-@login_required(login_url='bases:login')
-def seleccionar_fecha(request):
-    if request.method == 'POST':
-        form = FechaForm(request.POST)
-        if form.is_valid():
-            fecha_seleccionada = form.cleaned_data['fecha'].strftime('%Y-%m-%d')
-            return redirect(reverse('nom:calcular_nomina') + f'?fecha={fecha_seleccionada}')
-    else:
-        form = FechaForm()
-    return render(request, 'nomina/procesar_nomina.html', {'form': form})
 
 
-# ✅ Vista para mostrar el cálculo de nómina
-@login_required(login_url='bases:login')
-def calcular_nomina_view(request):
-    # Inicializamos el formulario y las variables para la plantilla de selección
-    form = SeleccionarPeriodoForm()
-    
-    # Variables para la plantilla de resultados, inicialmente None o vacías
-    nomina_calculada = [] 
-    fecha_inicio_obj = None
-    fecha_fin_obj = None
-    nomina_existente = False
-    periodo_obj_id = None
-    cuentas = Cuenta.objects.all() # Asegúrate de que 'cuentas' se cargue para el select de guardar
 
-    # Inicializamos el resto del contexto para la tabla de totales
-    context_totales = {
-        'total_percepciones': Decimal(0),
-        'total_deducciones': Decimal(0),
-        'total_neto_general': Decimal(0),
-    }
 
-    if request.method == 'POST':
-        form = SeleccionarPeriodoForm(request.POST)
-        
-        if form.is_valid():
-            periodo_obj = form.cleaned_data['periodo']
-            periodo_obj_id = periodo_obj.id # Capturamos el ID del período
-            fecha_inicio_obj = periodo_obj.periodo_inicio
-            fecha_fin_obj = periodo_obj.periodo_final
-            
-            try:
-                # Llama a tu función de cálculo de nómina
-                nomina_resultados_brutos = calcular_nomina_semanal_todos(fecha_inicio_obj)
-                
-                nomina_calculada = nomina_resultados_brutos.get('nomina', [])
-                context_totales['total_percepciones'] = nomina_resultados_brutos.get('total_percepciones', Decimal(0))
-                context_totales['total_deducciones'] = nomina_resultados_brutos.get('total_deducciones', Decimal(0))
-                context_totales['total_neto_general'] = nomina_resultados_brutos.get('total_neto_general', Decimal(0))
-
-                # Verificamos si ya existe una nómina procesada para este período
-                nomina_existente = NominaHistorial.objects.filter(
-                    periodo_inicio=fecha_inicio_obj,
-                    periodo_fin=fecha_fin_obj,
-                    estatus='Procesada'
-                ).exists()
-
-                messages.success(request, f"Nómina calculada para el período ID: {periodo_obj.id} | Semana: {periodo_obj.semana} | Del {fecha_inicio_obj.strftime('%d/%m/%Y')} al {fecha_fin_obj.strftime('%d/%m/%Y')}.")
-
-                # --- ¡CAMBIO CLAVE AQUÍ! ---
-                # Si todo es exitoso, renderizamos la plantilla que muestra la tabla de nómina
-                context_resultados = {
-                    'nomina': nomina_calculada,
-                    'fecha_inicio': fecha_inicio_obj, # Pasa los objetos datetime
-                    'fecha_fin': fecha_fin_obj,       # Pasa los objetos datetime
-                    'nomina_existente': nomina_existente,
-                    'periodo_id': periodo_obj_id,
-                    'periodo': periodo_obj, 
-                    'cuentas': cuentas, # Asegúrate de pasar las cuentas para el select de guardar
-                    **context_totales
-                }
-                return render(request, 'nomina/nomina_semanal.html', context_resultados) # <-- Renderiza la plantilla de la tabla
-                
-            except Exception as e:
-                messages.error(request, f"Error al calcular la nómina: {e}")
-                # Si hay un error, volvemos a renderizar el formulario de selección
-                # con el formulario y sus errores.
-                context_form_error = {
-                    'form': form,
-                    'cuentas': cuentas # Asegúrate de pasar las cuentas si el formulario de guardar está en esta página
-                }
-                return render(request, 'nomina/seleccionar_fecha.html', context_form_error)
-        else:
-            # Si el formulario no es válido (ej. el usuario no seleccionó nada)
-            messages.warning(request, "Debe seleccionar un período de nómina válido.")
-            # Renderizamos la plantilla de selección con el formulario y sus errores
-            context_form_invalid = {
-                'form': form,
-                'cuentas': cuentas # Asegúrate de pasar las cuentas
-            }
-            return render(request, 'nomina/seleccionar_fecha.html', context_form_invalid)
-
-    # Si la solicitud es GET (primera carga de la página de selección)
-    # Renderizamos la plantilla de selección con el formulario vacío
-    context_initial_get = {
-        'form': form,
-        'cuentas': cuentas # Asegúrate de pasar las cuentas
-    }
-    return render(request, 'nomina/seleccionar_fecha.html', context_initial_get)
 
 
 #=================================================================
@@ -304,8 +277,6 @@ def calcular_nomina_view(request):
 # Inicio de procesa nomina
 # 
 #=================================================================
-
-
 
 def procesar_nomina(request):
     if request.method == 'POST':
@@ -485,82 +456,583 @@ def asignar_proyecto_individual(request, detalle_id):
 
 # --- Funciones para PDF ---
 
+def formato_fecha(fecha):
+    return fecha.strftime("%d-%B-%Y").capitalize()
+
+
+
 @login_required(login_url='bases:login')
-def generar_nomina_pdf(request):
-    fecha_str = request.GET.get('fecha')
-    if not fecha_str:
-        messages.error(request, "Fecha no proporcionada para generar el PDF.")
-        return redirect('nom:seleccionar_fecha')
-
+def generar_nomina_pdf(request, fecha_str):
+    """
+    Genera PDF de nómina semanal con layout mejorado y sin superposiciones
+    """
+    # 1. Obtener las fechas correctas del período
     try:
-        fecha_inicio = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+        fecha_inicio_semana = datetime.strptime(fecha_str, "%Y-%m-%d").date()
     except ValueError:
-        messages.error(request, "Formato de fecha incorrecto.")
+        messages.error(request, "Formato de fecha en la URL incorrecto.")
         return redirect('nom:seleccionar_fecha')
 
-    nomina_data = calcular_nomina_semanal_todos(fecha_str)
+    fecha_fin_semana = fecha_inicio_semana + timedelta(days=6)
 
+    # 2. Llamar a la función de cálculo de nómina
+    resultados_calculo = calcular_nomina_semanal_todos(fecha_inicio_semana.strftime("%Y-%m-%d"))
+
+    # 3. Extraer la lista de datos de nómina del diccionario devuelto
+    if not isinstance(resultados_calculo, dict) or 'nomina' not in resultados_calculo:
+        messages.error(request, "Formato de datos de nómina inesperado de la función de cálculo. Contacte al administrador.")
+        return redirect('nom:seleccionar_fecha')
+
+    nomina_data = resultados_calculo['nomina']
+
+    # 4. Verificar si hay datos de nómina para procesar
     if not nomina_data:
-        messages.error(request, "No hay datos para generar el PDF.")
+        messages.info(request, "No hay datos de nómina para generar el PDF en el período seleccionado.")
         return redirect('nom:seleccionar_fecha')
 
-    total_percepciones = sum(Decimal(str(item['total_percepciones'])) for item in nomina_data)
-    total_deducciones = sum(Decimal(str(item['total_deducciones'])) for item in nomina_data)
-    total_neto_general = sum(Decimal(str(item['total_pago'])) for item in nomina_data)
+    # --- Configuración inicial del PDF ---
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="nomina_semanal_{fecha_str}.pdf"'
 
-    context = {
-        'fecha_inicio': fecha_inicio,
-        'nomina': nomina_data,
-        'total_percepciones': total_percepciones,
-        'total_deducciones': total_deducciones,
-        'total_neto_general': total_neto_general,
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=landscape(legal))
+
+    # Dimensiones de página
+    ancho_pagina = landscape(legal)[0]  # 1008 points
+    alto_pagina = landscape(legal)[1]   # 612 points
+    margen_izquierdo = 30
+    margen_derecho = 30
+    margen_superior = 50
+    margen_inferior = 80  # Más espacio para el pie de página
+    ancho_util = ancho_pagina - margen_izquierdo - margen_derecho
+
+    print(f"DEBUG: Dimensiones - Ancho: {ancho_pagina}, Alto: {alto_pagina}, Ancho útil: {ancho_util}")
+
+    # --- ENCABEZADO ---
+    def dibujar_encabezado():
+        # Posición Y inicial del encabezado (desde arriba)
+        header_y = alto_pagina - margen_superior
+        
+        # Logo
+        logo_path = "static/base/img/inemo.png"
+        logo_width = 100
+        logo_height = 50
+        
+        try:
+            logo = ImageReader(logo_path)
+            p.drawImage(logo, margen_izquierdo, header_y - logo_height, 
+                       width=logo_width, height=logo_height, mask="auto")
+            print(f"DEBUG: Logo dibujado en Y: {header_y - logo_height}")
+        except Exception as e:
+            print(f"⚠ No se pudo cargar el logo: {e}")
+
+        # Texto del encabezado
+        text_x = margen_izquierdo + logo_width + 15
+        
+        # Título
+        try:
+            titulo = f"Reporte de Nómina del {formato_fecha(fecha_inicio_semana)} al {formato_fecha(fecha_fin_semana)}"
+        except NameError:
+            titulo = f"Reporte de Nómina del {fecha_inicio_semana.strftime('%d-%B-%Y')} al {fecha_fin_semana.strftime('%d-%B-%Y')}"
+
+        p.setFont("Helvetica-Bold", 12)
+        p.drawString(text_x, header_y - 15, titulo)
+        
+        p.setFont("Helvetica", 10)
+        p.drawString(text_x, header_y - 30, "Domicilio: Puerto Altata 590")
+        p.drawString(text_x, header_y - 45, "RFC: IEM060621IE3")
+        
+        # Retorna la posición Y donde termina el encabezado
+        return header_y - 60
+
+    header_end_y = dibujar_encabezado()
+
+    # --- PREPARACIÓN DE DATOS DE LA TABLA ---
+    # Encabezados principales y subtítulos
+    encabezados = ["Nombre del Empleado", "Percepciones", "", "", "", "", "", "Deducciones", "", "", "", "Total", "Firma"]
+    subtitulos = ["", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", ""]
+
+    # Inicializar totales
+    totales = {
+        "03": Decimal('0.0'),
+        "04": Decimal('0.0'), 
+        "06": Decimal('0.0'),
+        "08": Decimal('0.0'),
+        "09": Decimal('0.0'),
+        "10": Decimal('0.0'),
+        "11": Decimal('0.0')
     }
+
+    # Preparar datos de empleados
+    datos_empleados = []
+    for item in nomina_data:
+        fila = [
+            item.get("empleado", ""),
+            f"${item.get('sueldo_diario', 0):.2f}",
+            str(item.get("dias_trabajados", 0)),
+            f"${item.get('sueldo_semanal', 0):.2f}",
+            f"${item.get('septimo_dia', 0):.2f}",
+            f"${item.get('compensacion', 0):.2f}",
+            f"${item.get('percepciones', 0):.2f}",
+            str(item.get("faltas", 0)),
+            f"${item.get('importe_faltas', 0):.2f}",
+            f"${item.get('descuento_septimo_dia', 0):.2f}",
+            f"${item.get('deducciones', 0):.2f}",
+            f"${item.get('total_pago', 0):.2f}",
+            ""
+        ]
+        
+        # Acumular totales
+        totales["03"] += Decimal(str(item.get('sueldo_semanal', 0)))
+        totales["04"] += Decimal(str(item.get('septimo_dia', 0)))
+        totales["06"] += Decimal(str(item.get('percepciones', 0)))
+        totales["08"] += Decimal(str(item.get('importe_faltas', 0)))
+        totales["09"] += Decimal(str(item.get('descuento_septimo_dia', 0)))
+        totales["10"] += Decimal(str(item.get('deducciones', 0)))
+        totales["11"] += Decimal(str(item.get('total_pago', 0)))
+        
+        datos_empleados.append(fila)
+
+    # Fila de totales
+    fila_totales = [
+        "TOTAL",
+        "", "", f"${totales['03']:.2f}", f"${totales['04']:.2f}", "", f"${totales['06']:.2f}", "",
+        f"${totales['08']:.2f}", f"${totales['09']:.2f}", f"${totales['10']:.2f}", f"${totales['11']:.2f}", ""
+    ]
+
+    # Combinar todos los datos
+    datos_tabla = [encabezados, subtitulos] + datos_empleados + [fila_totales]
+
+    # --- CONFIGURACIÓN DE LA TABLA ---
+    # Anchos de columna optimizados para landscape legal
+    col_widths = [170, 50, 35, 65, 65, 65, 65, 35, 65, 65, 65, 65, 100]
     
-    template_path = 'nomina/nomina_pdf_template.html'
-    html = render_to_string(template_path, context)
+    # Verificar que el ancho total no exceda el disponible
+    ancho_total_tabla = sum(col_widths)
+    if ancho_total_tabla > ancho_util:
+        factor_escala = ancho_util / ancho_total_tabla * 0.95  # 5% de margen
+        col_widths = [w * factor_escala for w in col_widths]
+        print(f"DEBUG: Tabla escalada por factor {factor_escala:.3f}")
 
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="nomina_semanal_{fecha_str}.pdf"'
+    # Alturas de fila
+    row_heights = [25, 20] + [18] * len(datos_empleados) + [22]  # Encabezados más altos
 
-    pisa_status = pisa.CreatePDF(html, dest=response)
-    if pisa_status.err:
-        messages.error(request, "Error al generar el PDF.")
-        return redirect('nom:seleccionar_fecha')
+    # Crear tabla
+    tabla = Table(datos_tabla, colWidths=col_widths, rowHeights=row_heights)
+
+    # --- ESTILOS DE LA TABLA ---
+    estilos = TableStyle([
+        # Encabezados principales
+        ("BACKGROUND", (0, 0), (-1, 0), colors.darkgrey),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, 0), 9),
+        
+        # Subtítulos
+        ("BACKGROUND", (0, 1), (-1, 1), colors.lightgrey),
+        ("FONTNAME", (0, 1), (-1, 1), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 1), (-1, 1), 8),
+        
+        # Datos generales
+        ("FONTNAME", (0, 2), (-1, -2), "Helvetica"),
+        ("FONTSIZE", (0, 2), (-1, -2), 7),
+        
+        # Fila de totales
+        ("BACKGROUND", (0, -1), (-1, -1), colors.lightgrey),
+        ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+        ("FONTSIZE", (0, -1), (-1, -1), 8),
+        
+        # Alineaciones
+        ("ALIGN", (1, 0), (-2, -1), "CENTER"),  # Todas las columnas numéricas centradas
+        ("ALIGN", (0, 0), (0, -1), "LEFT"),     # Columna de nombres a la izquierda
+        ("ALIGN", (-1, 0), (-1, -1), "CENTER"), # Columna de firma centrada
+        
+        # Alineación de números a la derecha para mejor lectura
+        ("ALIGN", (1, 2), (11, -1), "RIGHT"),
+        
+        # Alineación vertical
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        
+        # Bordes
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
+        
+        # Spans para encabezados agrupados
+        ("SPAN", (1, 0), (6, 0)),   # "Percepciones"
+        ("SPAN", (7, 0), (10, 0)),  # "Deducciones"
+        ("SPAN", (11, 0), (11, 0)), # "Total"
+        ("SPAN", (12, 0), (12, 0)), # "Firma"
+    ])
+
+    # Alternar colores de filas para mejor legibilidad
+    for i in range(2, len(datos_tabla) - 1):
+        if i % 2 == 0:
+            estilos.add("BACKGROUND", (0, i), (-1, i), colors.whitesmoke)
+
+    tabla.setStyle(estilos)
+
+    # --- POSICIONAMIENTO Y DIBUJO DE LA TABLA ---
+    # Calcular espacio disponible para la tabla
+    espacio_disponible = header_end_y - margen_inferior
+    ancho_tabla, alto_tabla = tabla.wrapOn(p, ancho_util, espacio_disponible)
+    
+    print(f"DEBUG: Espacio disponible: {espacio_disponible}, Alto tabla: {alto_tabla}")
+    
+    # Verificar si la tabla cabe en la página
+    if alto_tabla > espacio_disponible:
+        print("ADVERTENCIA: La tabla es muy alta para la página")
+        # Reducir altura de filas si es necesario
+        row_heights = [20, 16] + [14] * len(datos_empleados) + [18]
+        tabla = Table(datos_tabla, colWidths=col_widths, rowHeights=row_heights)
+        tabla.setStyle(estilos)
+        ancho_tabla, alto_tabla = tabla.wrapOn(p, ancho_util, espacio_disponible)
+
+    # Posición Y para dibujar la tabla (esquina inferior izquierda)
+    table_y = header_end_y - alto_tabla - 20  # 20 puntos de separación del encabezado
+    
+    # Asegurar que no se superponga con el pie de página
+    if table_y < margen_inferior:
+        table_y = margen_inferior
+        print(f"DEBUG: Tabla ajustada para evitar superposición con pie de página")
+
+    # Dibujar la tabla
+    tabla.drawOn(p, margen_izquierdo, table_y)
+    print(f"DEBUG: Tabla dibujada en X: {margen_izquierdo}, Y: {table_y}")
+
+    # --- PIE DE PÁGINA ---
+    def dibujar_pie_pagina():
+        pie_texto = (
+            "01.- Sueldo diario, 02.- Días trabajados, 03.- Importe días trabajados, "
+            "04.- Pago 7mo día, 05.- Compensación, 06.- Total percepciones, "
+            "07.- Faltas, 08.- Descuento por falta, 09.- Proporcional 7mo día, "
+            "10.- Total deducciones, 11.- Pago neto."
+        )
+        
+        p.setFont("Helvetica", 7)
+        
+        # Dividir el texto en líneas si es muy largo
+        max_width = ancho_util
+        words = pie_texto.split()
+        lines = []
+        current_line = []
+        
+        for word in words:
+            test_line = ' '.join(current_line + [word])
+            if p.stringWidth(test_line, "Helvetica", 7) <= max_width:
+                current_line.append(word)
+            else:
+                if current_line:
+                    lines.append(' '.join(current_line))
+                current_line = [word]
+        
+        if current_line:
+            lines.append(' '.join(current_line))
+        
+        # Dibujar líneas del pie de página
+        y_pos = 40
+        for line in lines:
+            p.drawString(margen_izquierdo, y_pos, line)
+            y_pos -= 10
+
+    dibujar_pie_pagina()
+
+    # Finalizar PDF
+    p.save()
+    buffer.seek(0)
+    response.write(buffer.read())
     return response
+
+
+LOGO_PATH = "static/base/img/inemo.png"
 
 @login_required(login_url='bases:login')
-def generar_nomina_individual_pdf(request):
-    fecha_inicio_str = request.GET.get('fecha_inicio')
-    if not fecha_inicio_str:
-        messages.error(request, "Fecha no proporcionada para generar recibos.")
-        return redirect('nom:seleccionar_fecha')
-
+def generar_nomina_individual_pdf(request, fecha_str):
+    """
+    Genera PDF de recibos de nómina individuales con layout mejorado
+    """
+    # 1. Obtener las fechas correctas del período
     try:
-        fecha_inicio_periodo = datetime.strptime(fecha_inicio_str, "%Y-%m-%d").date()
+        fecha_inicio_semana = datetime.strptime(fecha_str, "%Y-%m-%d").date()
     except ValueError:
-        messages.error(request, "Formato de fecha incorrecto.")
+        messages.error(request, "Formato de fecha en la URL incorrecto.")
         return redirect('nom:seleccionar_fecha')
 
-    nomina_historial = get_object_or_404(NominaHistorial, periodo_inicio=fecha_inicio_periodo)
-    detalles_nomina = NominaDetalle.objects.filter(nomina_historica=nomina_historial).order_by('empleado__nombre')
+    fecha_fin_semana = fecha_inicio_semana + timedelta(days=6)
 
+    # 2. Llamar a la función de cálculo de nómina
+    resultados_calculo = calcular_nomina_semanal_todos(fecha_inicio_semana.strftime("%Y-%m-%d"))
+
+    # 3. Extraer la lista de datos de nómina del diccionario devuelto
+    if not isinstance(resultados_calculo, dict) or 'nomina' not in resultados_calculo:
+        messages.error(request, "Formato de datos de nómina inesperado de la función de cálculo. Contacte al administrador.")
+        return redirect('nom:seleccionar_fecha')
+
+    nomina_data = resultados_calculo['nomina']
+
+    # 4. Verificar si hay datos de nómina para procesar
+    if not nomina_data:
+        messages.info(request, "No hay datos de nómina para generar el PDF en el período seleccionado.")
+        return redirect('nom:seleccionar_fecha')
+
+    # --- Configuración inicial del PDF ---
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="recibos_nomina_{fecha_inicio_str}.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="nomina_individual_{fecha_str}.pdf"'
+    
+    p = canvas.Canvas(response, pagesize=letter)
+    width, height = letter  # 612 x 792 points
+    
+    # Márgenes
+    margen_izq = 40
+    margen_der = 40
+    margen_sup = 50
+    margen_inf = 50
+    ancho_util = width - margen_izq - margen_der
 
-    doc = SimpleDocTemplate(response, pagesize=letter)
-    elements = []
+    print(f"DEBUG Individual: Dimensiones - Ancho: {width}, Alto: {height}, Ancho útil: {ancho_util}")
 
-    for detalle in detalles_nomina:
-        elements.append(Table([[f"Recibo de Nómina - {detalle.empleado.nombre}"]]))
-        elements.append(Table([[f"Periodo: {nomina_historial.periodo_inicio} - {nomina_historial.periodo_fin}"]]))
-        elements.append(Table([[f"Sueldo Diario: ${detalle.sueldo_diario}"]]))
-        elements.append(Table([[f"Días Trabajados: {detalle.dias_trabajados}"]]))
-        elements.append(Table([[f"Total: ${detalle.total_pago}"]]))
-        elements.append(Table([[""], ["---"], [""]])) # Separador
+    # --- Función para dibujar encabezado ---
+    def dibujar_encabezado_empleado(empleado_data):
+        """Dibuja el encabezado para cada empleado"""
+        # Posición Y inicial del encabezado (desde arriba)
+        header_y = height - margen_sup
+        
+        # Logo
+        logo_width = 100
+        logo_height = 50
+        
+        try:
+            p.drawImage(LOGO_PATH, margen_izq, header_y - logo_height, 
+                       width=logo_width, height=logo_height)
+            print(f"DEBUG: Logo dibujado en Y: {header_y - logo_height}")
+        except Exception as e:
+            p.setFillColor(colors.red)
+            p.setFont("Helvetica-Bold", 10)
+            p.drawString(margen_izq, header_y - 30, "LOGO NO ENCONTRADO")
+            p.setFillColor(colors.black)
+            print(f"⚠ No se pudo cargar el logo: {e}")
 
-    doc.build(elements)
+        # Información de la empresa
+        text_x = margen_izq + logo_width + 20
+        
+        p.setFont("Helvetica-Bold", 16)
+        p.drawString(text_x, header_y - 20, "Recibo de Nómina")
+        
+        # Período
+        try:
+            periodo_texto = f"Período: {formato_fecha(fecha_inicio_semana)} al {formato_fecha(fecha_fin_semana)}"
+        except NameError:
+            periodo_texto = f"Período: {fecha_inicio_semana.strftime('%d/%m/%Y')} al {fecha_fin_semana.strftime('%d/%m/%Y')}"
+        
+        p.setFont("Helvetica-Bold", 11)
+        p.drawString(text_x, header_y - 38, periodo_texto)
+        
+        p.setFont("Helvetica", 9)
+        p.drawString(text_x, header_y - 52, "Domicilio: Puerto Altata 590")
+        p.drawString(text_x, header_y - 65, "RFC: IEM060621IE3")
+        
+        # Información del empleado
+        p.setFont("Helvetica-Bold", 14)
+        empleado_y = header_y - 90
+        p.drawString(margen_izq, empleado_y, f"Empleado: {empleado_data.get('empleado', 'N/A')}")
+        
+        # Fecha de ingreso
+        p.setFont("Helvetica", 11)
+        fecha_ingreso = empleado_data.get('ingreso', 'N/A')
+        if fecha_ingreso != 'N/A':
+            try:
+                if hasattr(fecha_ingreso, 'strftime'):
+                    fecha_ingreso_str = fecha_ingreso.strftime('%d/%m/%Y')
+                else:
+                    fecha_ingreso_str = str(fecha_ingreso)
+            except:
+                fecha_ingreso_str = 'N/A'
+        else:
+            fecha_ingreso_str = 'N/A'
+            
+        p.drawString(margen_izq, empleado_y - 20, f"Fecha de Ingreso: {fecha_ingreso_str}")
+        
+        # Retorna la posición Y donde termina el encabezado
+        return empleado_y - 45
+
+    # --- Función para dibujar el detalle de nómina ---
+    def dibujar_detalle_nomina(empleado_data, start_y):
+        """Dibuja el detalle de percepciones y deducciones"""
+        
+        # Calcular valores
+        compensacion = empleado_data.get('compensacion', 0)
+        importe_dias_trabajados = empleado_data.get('sueldo_semanal', 0)  # Ya viene calculado
+        
+        # Dimensiones del cuadro principal
+        cuadro_x = margen_izq
+        cuadro_ancho = ancho_util
+        cuadro_alto = 200
+        cuadro_y = start_y - cuadro_alto - 20  # 20 puntos de separación
+        
+        # Verificar que el cuadro no se salga de la página
+        if cuadro_y < margen_inf + 100:  # Dejar espacio para firma y total
+            print("ADVERTENCIA: El cuadro principal se ajustó por espacio")
+            cuadro_y = margen_inf + 100
+            cuadro_alto = start_y - cuadro_y - 20
+        
+        # Dibujar cuadro principal
+        p.setStrokeColor(colors.black)
+        p.setLineWidth(1)
+        p.rect(cuadro_x, cuadro_y, cuadro_ancho, cuadro_alto)
+        
+        # Línea divisoria vertical (centro)
+        centro_x = cuadro_x + (cuadro_ancho / 2)
+        p.line(centro_x, cuadro_y, centro_x, cuadro_y + cuadro_alto)
+        
+        # --- SECCIÓN PERCEPCIONES ---
+        p.setFont("Helvetica-Bold", 12)
+        p.drawString(cuadro_x + 15, cuadro_y + cuadro_alto - 25, "PERCEPCIONES")
+        
+        percepciones = [
+            ("Sueldo Diario:", empleado_data.get('sueldo_diario', 0)),
+            ("Días Trabajados:", empleado_data.get('dias_trabajados', 0)),
+            ("Importe Días Trabajados:", importe_dias_trabajados),
+            ("Séptimo Día:", empleado_data.get('septimo_dia', 0)),
+            ("Compensación:", compensacion),
+        ]
+        
+        total_percepciones = (
+            importe_dias_trabajados + 
+            empleado_data.get('septimo_dia', 0) + 
+            compensacion
+        )
+        
+        y_pos = cuadro_y + cuadro_alto - 50
+        p.setFont("Helvetica", 10)
+        
+        for i, (concepto, valor) in enumerate(percepciones):
+            # Color alternado para mejor legibilidad
+            if i % 2 == 0:
+                p.setFillColor(colors.whitesmoke)
+                p.rect(cuadro_x + 5, y_pos - 3, centro_x - cuadro_x - 15, 16, fill=1, stroke=0)
+            
+            p.setFillColor(colors.black)
+            
+            if concepto == "Días Trabajados:":
+                texto = f"{concepto} {int(valor)}"
+            else:
+                texto = f"{concepto} ${valor:,.2f}"
+            
+            p.drawString(cuadro_x + 10, y_pos, texto)
+            y_pos -= 18
+        
+        # Total percepciones
+        p.setFillColor(colors.lightgrey)
+        p.rect(cuadro_x + 5, y_pos - 3, centro_x - cuadro_x - 15, 18, fill=1, stroke=0)
+        p.setFillColor(colors.black)
+        p.setFont("Helvetica-Bold", 11)
+        p.drawString(cuadro_x + 10, y_pos, f"TOTAL PERCEPCIONES: ${total_percepciones:,.2f}")
+        
+        # --- SECCIÓN DEDUCCIONES ---
+        p.setFont("Helvetica-Bold", 12)
+        p.drawString(centro_x + 15, cuadro_y + cuadro_alto - 25, "DEDUCCIONES")
+        
+        deducciones = [
+            ("Faltas:", empleado_data.get('faltas', 0)),
+            ("Descuento por falta:", empleado_data.get('importe_faltas', 0)),
+            ("Descuento 7mo día:", empleado_data.get('descuento_septimo_dia', 0)),
+        ]
+        
+        total_deducciones = empleado_data.get('deducciones', 0)
+        
+        y_pos = cuadro_y + cuadro_alto - 50
+        p.setFont("Helvetica", 10)
+        
+        for i, (concepto, valor) in enumerate(deducciones):
+            # Color alternado
+            if i % 2 == 0:
+                p.setFillColor(colors.whitesmoke)
+                p.rect(centro_x + 5, y_pos - 3, cuadro_ancho - (centro_x - cuadro_x) - 15, 16, fill=1, stroke=0)
+            
+            p.setFillColor(colors.black)
+            
+            if concepto == "Faltas:":
+                texto = f"{concepto} {int(valor)}"
+            else:
+                texto = f"{concepto} ${valor:,.2f}"
+            
+            p.drawString(centro_x + 10, y_pos, texto)
+            y_pos -= 18
+        
+        # Total deducciones
+        p.setFillColor(colors.lightgrey)
+        p.rect(centro_x + 5, y_pos - 3, cuadro_ancho - (centro_x - cuadro_x) - 15, 18, fill=1, stroke=0)
+        p.setFillColor(colors.black)
+        p.setFont("Helvetica-Bold", 11)
+        p.drawString(centro_x + 10, y_pos, f"TOTAL DEDUCCIONES: ${total_deducciones:,.2f}")
+        
+        return cuadro_y  # Retorna donde termina el cuadro
+    
+    # --- Función para dibujar total y firma ---
+    def dibujar_total_y_firma(empleado_data, start_y):
+        """Dibuja el total a pagar y la sección de firma"""
+        
+        # Calcular total a pagar
+        total_percepciones = (
+            empleado_data.get('sueldo_semanal', 0) + 
+            empleado_data.get('septimo_dia', 0) + 
+            empleado_data.get('compensacion', 0)
+        )
+        total_deducciones = empleado_data.get('deducciones', 0)
+        total_pago = total_percepciones - total_deducciones
+        
+        # Total a pagar
+        total_y = start_y - 40
+        p.setFont("Helvetica-Bold", 16)
+        p.setFillColor(colors.darkblue)
+        
+        # Fondo para el total
+        p.setFillColor(colors.lightblue)
+        p.rect(margen_izq, total_y - 5, ancho_util, 25, fill=1, stroke=1)
+        
+        p.setFillColor(colors.darkblue)
+        texto_total = f"TOTAL A PAGAR: ${total_pago:,.2f}"
+        text_width = p.stringWidth(texto_total, "Helvetica-Bold", 16)
+        x_centrado = margen_izq + (ancho_util - text_width) / 2
+        p.drawString(x_centrado, total_y, texto_total)
+        
+        # Sección de firma
+        firma_y = total_y - 70
+        firma_alto = 60
+        
+        # Verificar espacio disponible
+        if firma_y < margen_inf:
+            firma_y = margen_inf
+            firma_alto = total_y - 30 - margen_inf
+        
+        p.setFillColor(colors.black)
+        p.setStrokeColor(colors.black)
+        p.rect(margen_izq, firma_y, ancho_util, firma_alto)
+        
+        p.setFont("Helvetica-Bold", 12)
+        p.drawString(margen_izq + 15, firma_y + firma_alto - 20, "Firma del Empleado:")
+        
+        # Línea para la firma
+        p.line(margen_izq + 200, firma_y + 15, margen_izq + ancho_util - 20, firma_y + 15)
+    
+    # --- Generar página para cada empleado ---
+    for i, empleado in enumerate(nomina_data):
+        print(f"DEBUG: Procesando empleado {i+1}: {empleado.get('empleado', 'N/A')}")
+        
+        # Dibujar encabezado
+        header_end_y = dibujar_encabezado_empleado(empleado)
+        
+        # Dibujar detalle de nómina
+        detail_end_y = dibujar_detalle_nomina(empleado, header_end_y)
+        
+        # Dibujar total y firma
+        dibujar_total_y_firma(empleado, detail_end_y)
+        
+        # Nueva página para el siguiente empleado (excepto el último)
+        if i < len(nomina_data) - 1:
+            p.showPage()
+    
+    # Finalizar PDF
+    p.save()
     return response
-
 # --- Vistas de períodos ---
 
 class PeriodosNominaList(LoginRequiredMixin, generic.ListView):
@@ -640,26 +1112,79 @@ def seleccionar_periodo(request):
 
 
 
+# Agrega estos prints en seleccionar_periodo_nomina:
+
+# 1. Agrega estos prints en seleccionar_periodo_nomina:
+
 @login_required(login_url='bases:login')
 def seleccionar_periodo_nomina(request):
+    print("🔍 DEBUG: Entrando a seleccionar_periodo_nomina")
+    print(f"🔍 DEBUG: Método: {request.method}")
+    
     if request.method == 'POST':
+        print("🔍 DEBUG: Es POST")
         form = SeleccionarPeriodoForm(request.POST)
+        print(f"🔍 DEBUG: Form data: {request.POST}")
+        
         if form.is_valid():
+            print("🔍 DEBUG: Form es válido")
             periodo = form.cleaned_data['periodo']
+            print(f"🔍 DEBUG: Periodo seleccionado: {periodo}")
 
             # Guardar los datos en la sesión
             request.session['periodo_id'] = periodo.id
             request.session['periodo_semana'] = periodo.semana
             request.session['periodo_inicio'] = str(periodo.periodo_inicio)
             request.session['periodo_final'] = str(periodo.periodo_final)
+            
+            print(f"🔍 DEBUG: Datos guardados en session: {request.session.get('periodo_id')}")
+            print("🔍 DEBUG Antes del redirect - Session keys:", list(request.session.keys()))
+            print("🔍 DEBUG: Haciendo redirect a nom:calcular_nomina")
 
-            return redirect('nom:calcular_nomina')  # Redirecciona a la vista que muestra datos
+            return redirect('nom:calcular_nomina')
+        else:
+            print(f"🔍 DEBUG: Form NO es válido. Errores: {form.errors}")
     else:
+        print("🔍 DEBUG: Es GET, creando form vacío")
         form = SeleccionarPeriodoForm()
 
+    print("🔍 DEBUG: Renderizando template seleccionar_fecha.html")
     return render(request, 'nomina/seleccionar_fecha.html', {'form': form})
 
 
+@login_required(login_url='bases:login')
+def seleccionar_periodo_nomina(request):
+    print("🔍 DEBUG: Entrando a seleccionar_periodo_nomina")
+    print(f"🔍 DEBUG: Método: {request.method}")
+    
+    if request.method == 'POST':
+        print("🔍 DEBUG: Es POST")
+        form = SeleccionarPeriodoForm(request.POST)
+        print(f"🔍 DEBUG: Form data: {request.POST}")
+        
+        if form.is_valid():
+            print("🔍 DEBUG: Form es válido")
+            periodo = form.cleaned_data['periodo']
+            print(f"🔍 DEBUG: Periodo seleccionado: {periodo}")
+
+            # Guardar los datos en la sesión
+            request.session['periodo_id'] = periodo.id
+            request.session['periodo_semana'] = periodo.semana
+            request.session['periodo_inicio'] = str(periodo.periodo_inicio)
+            request.session['periodo_final'] = str(periodo.periodo_final)
+            
+            print(f"🔍 DEBUG: Datos guardados en session: {request.session.get('periodo_id')}")
+            print("🔍 DEBUG: Haciendo redirect a nom:calcular_nomina")
+
+            return redirect('nom:calcular_nomina')
+        else:
+            print(f"🔍 DEBUG: Form NO es válido. Errores: {form.errors}")
+    else:
+        print("🔍 DEBUG: Es GET, creando form vacío")
+        form = SeleccionarPeriodoForm()
+
+    print("🔍 DEBUG: Renderizando template seleccionar_fecha.html")
+    return render(request, 'nomina/seleccionar_fecha.html', {'form': form})
 
 def procesar_nomina_form(request):
     periodo_id = request.session.get('periodo_id')
@@ -801,6 +1326,160 @@ def cerrar_nomina(request, nomina_id):
 
 
 
+def procesar_nomina_form(request):
+    periodo_id = request.session.get('periodo_id')
+    periodo_semana = request.session.get('periodo_semana')
+    fecha_inicio = request.session.get('periodo_inicio')
+    fecha_fin = request.session.get('periodo_final')
+
+    if not periodo_id:
+        messages.error(request, "Primero seleccione un período.")
+        return redirect('nom:seleccionar_fecha')
+
+    context = {
+        'periodo_id': periodo_id,
+        'semana': periodo_semana,
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin,
+    }
+    return render(request, 'nomina/procesar_nomina.html', context)
+
+
+
+@login_required(login_url='bases:login')
+def cerrar_nomina(request):
+    logger.debug("--- INICIO DE CERRAR_NOMINA ---")
+
+    if request.method == 'POST':
+        logger.debug("Método: POST")
+        nomina_historial_id = request.POST.get('nomina_historial_id')
+
+        if not nomina_historial_id:
+            logger.error("ERROR: No se recibió nomina_historial_id en la solicitud POST.")
+            messages.error(request, "No se pudo identificar la nómina a cerrar. Intente de nuevo.")
+            return redirect('nom:seleccionar_fecha')
+
+        try:
+            nomina_historial = get_object_or_404(NominaHistorial, pk=nomina_historial_id)
+            logger.debug(f"NominaHistorial encontrada: ID {nomina_historial.id}, Estatus actual: {nomina_historial.estatus}")
+
+            if nomina_historial.estatus == 'Procesada':
+                logger.info(f"Nómina ID {nomina_historial.id} ya está procesada. Redirigiendo.")
+                messages.info(
+                    request,
+                    f"La nómina de la semana {nomina_historial.periodo_nomina.semana} "
+                    f"({nomina_historial.periodo_nomina.periodo_inicio} al {nomina_historial.periodo_nomina.periodo_final}) "
+                    f"ya ha sido cerrada."
+                )
+                return redirect('nom:nominas_cerradas_list')
+
+            with transaction.atomic():
+                total_descontado_de_cuentas = Decimal('0.00')
+                detalles_nomina = NominaDetalle.objects.filter(nomina_historica=nomina_historial)
+                logger.debug(f"Procesando {detalles_nomina.count()} detalles de nómina.")
+
+                if not detalles_nomina.exists():
+                    logger.warning(f"No hay detalles de nómina para NominaHistorial ID {nomina_historial.id}.")
+                    messages.warning(request, "No se encontraron detalles de empleados para esta nómina. No se realizaron descuentos de cuentas.")
+                    
+                    nomina_historial.estatus = 'Procesada'
+                    nomina_historial.fecha_procesada = timezone.now()
+                    nomina_historial.save()
+                    
+                    messages.success(
+                        request,
+                        f"Nómina semana {nomina_historial.periodo_nomina.semana} "
+                        f"({nomina_historial.periodo_nomina.periodo_inicio} al {nomina_historial.periodo_nomina.periodo_final}) "
+                        f"marcada como procesada (sin descuentos)."
+                    )
+                    return redirect('nom:nominas_cerradas_list')
+
+                for detalle in detalles_nomina:
+                    if detalle.empleado and detalle.proyecto and detalle.proyecto.cuenta:
+                        try:
+                            cuenta = detalle.proyecto.cuenta
+                            monto_a_descontar = detalle.total_pago
+
+                            if monto_a_descontar <= 0:
+                                logger.warning(f"Monto a descontar para {detalle.empleado.nombre} es cero o negativo. No se realizará descuento.")
+                                continue
+
+                            if cuenta.saldo_actual < monto_a_descontar:
+                                raise ValueError(
+                                    f"Saldo insuficiente en la cuenta '{cuenta.cuenta}' "
+                                    f"del proyecto '{detalle.proyecto.nombre}' para cubrir la nómina de '{detalle.empleado.nombre}'. "
+                                    f"Saldo: {cuenta.saldo_actual}, Requerido: {monto_a_descontar}"
+                                )
+
+                            cuenta.saldo_actual -= monto_a_descontar
+                            cuenta.save()
+                            total_descontado_de_cuentas += monto_a_descontar
+                            logger.debug(f"Descontado {monto_a_descontar} de la cuenta {cuenta.cuenta}. Nuevo saldo: {cuenta.saldo_actual}")
+
+                        except ValueError as ve:
+                            logger.error(f"Error de validación para NominaDetalle ID {detalle.id}: {ve}")
+                            messages.error(request, f"Error al descontar el pago de {detalle.empleado.nombre}: {ve}")
+                            raise
+                        except Exception as e:
+                            logger.error(f"Error inesperado al procesar NominaDetalle ID {detalle.id}: {e}", exc_info=True)
+                            messages.error(request, f"Error interno al procesar el pago de {detalle.empleado.nombre}: {e}")
+                            raise
+                    else:
+                        emp_nombre = detalle.empleado.nombre if detalle.empleado else 'N/A'
+                        logger.warning(f"NominaDetalle ID {detalle.id} para '{emp_nombre}' sin proyecto o cuenta.")
+                        messages.warning(request, f"No se pudo descontar el pago de {emp_nombre}; falta asignar proyecto o cuenta bancaria.")
+
+                # Actualiza estatus y guarda
+                nomina_historial.estatus = 'Procesada'
+                nomina_historial.fecha_procesada = timezone.now()
+                nomina_historial.save()
+                logger.info(f"Nómina ID {nomina_historial.id} actualizada a estatus 'Procesada'. Total descontado: {total_descontado_de_cuentas}")
+
+                messages.success(
+                    request,
+                    f"Nómina semana {nomina_historial.periodo_nomina.semana} "
+                    f"({nomina_historial.periodo_nomina.periodo_inicio} al {nomina_historial.periodo_nomina.periodo_final}) "
+                    f"cerrada exitosamente. Total descontado: ${total_descontado_de_cuentas:,.2f}."
+                )
+                return redirect('nom:nominas_cerradas_list')
+
+        except NominaHistorial.DoesNotExist:
+            logger.error(f"NominaHistorial con ID {nomina_historial_id} no encontrada.")
+            messages.error(request, "La nómina que intenta cerrar no existe.")
+            return redirect('nom:seleccionar_fecha')
+
+        except ValueError as ve:
+            logger.error(f"Fallo en transacción de cierre de nómina: {ve}")
+            messages.error(request, f"Error de validación: {ve}")
+            return redirect('nom:calcular_nomina')
+
+        except Exception as e:
+            logger.error(f"ERROR CRÍTICO al cerrar nómina ID {nomina_historial_id}: {e}", exc_info=True)
+            messages.error(request, f"Ocurrió un error inesperado: {e}")
+            return redirect('nom:calcular_nomina')
+
+    logger.debug("--- FIN DE CERRAR_NOMINA (NO POST) ---")
+    messages.warning(request, "Acceso inválido. Use el botón 'Cerrar Nómina'.")
+    return redirect('nom:seleccionar_fecha')
+
+@login_required(login_url='bases:login')
+def nominas_cerradas_list(request):
+    logger.debug("--- INICIO DE nominas_cerradas_list ---")
+    
+    # Filtramos las nóminas que tienen el estatus 'Cerrada'
+    # Asumiendo que tu campo de estatus en NominaHistorial se llama 'estatus'
+    # y el valor para 'Cerrada' es 'Cerrada'.
+    nominas_cerradas = NominaHistorial.objects.filter(estatus='Procesada').order_by('-fecha_procesada')
+    
+    context = {
+        'nominas_cerradas': nominas_cerradas,
+        'titulo': 'Nóminas Cerradas', # Un título útil para la plantilla
+    }
+    
+    logger.debug(f"Se encontraron {nominas_cerradas.count()} nóminas cerradas.")
+    logger.debug("--- FIN DE nominas_cerradas_list ---")
+    
+    return render(request, 'nomina/nominas_cerradas_list.html', context)
 
 
 
@@ -813,6 +1492,23 @@ def cerrar_nomina(request, nomina_id):
 
 
 
+#  def calcular_nomina_view(request):
+#     form = FechaForm()
+#     nomina = []
+#     fecha_seleccionada = None
+    
 
 
-
+#     if request.method == "POST":
+#         form = FechaForm(request.POST)
+#         if form.is_valid():
+            
+#             fecha_seleccionada = form.cleaned_data['fecha']
+#             nomina = calcular_nomina_semanal_todos(str(fecha_seleccionada))
+            
+#     return render(request, "nomina/nomina_semanal.html", {
+#         "form": form,
+#         "nomina": nomina,
+#         "fecha": fecha_seleccionada
+#     })
+# 

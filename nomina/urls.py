@@ -4,13 +4,13 @@ from django.conf import settings
 from django.conf.urls.static import static
 from .views import ( # Importa todas las vistas que usas directamente
     EmpleadoList, EmpleadoEdit, EmpleadoNew, EmpleadoDel,
-    seleccionar_fecha, calcular_nomina_view,
+    calcular_nomina_view,
     generar_nomina_pdf, procesar_nomina, generar_nomina_individual_pdf,
     PeriodosNominaList, PeriodosNominaNew, PeriodosNominaEdit, PeriodosNominaDel,
     DocumentoEmpleadoDelete, capturar_falta, validar_curp,
     AsistenciaListView, AsistenciaDeleteView, asignar_proyecto_individual,seleccionar_periodo_nomina,
-    listar_detalles_nomina_procesada, guardar_periodo_sesion, procesar_nomina_form, NominaDetalleListView,
-    NominaDetalleUpdateView, asignar_proyectos, cerrar_nomina
+    listar_detalles_nomina_procesada, procesar_nomina_form, NominaDetalleListView,
+    NominaDetalleUpdateView, asignar_proyectos, cerrar_nomina, nominas_cerradas_list
 )
 
 app_name = 'nom'
@@ -24,15 +24,22 @@ urlpatterns = [
     path('falta/', capturar_falta, name='capturar_falta'),
     path('seleccionar-fecha/', seleccionar_periodo_nomina, name='seleccionar_fecha'),
     path('calcular-nomina/', calcular_nomina_view, name='calcular_nomina'), # Renombrado para evitar conflicto con calcular_nomina_semanal_todos si es que la tenías como vista
-    path('nomina-semanal/pdf/', generar_nomina_pdf, name='nomina_pdf'),
+
+    #path('nomina-semanal/pdf/', generar_nomina_pdf, name='nomina_pdf'),
+    path('nomina-semanal/pdf/<str:fecha_str>/', generar_nomina_pdf, name='nomina_pdf'),
+
+    #path('nomina-individual/pdf/', generar_nomina_individual_pdf, name='nomina_ind_pdf'),
+    path('nomina-individual/pdf/<str:fecha_str>/', generar_nomina_individual_pdf, name='nomina_ind_pdf'),
+
     path('procesar-nomina/', procesar_nomina, name='procesar_nomina'),
-    path('nomina-individual/pdf/', generar_nomina_individual_pdf, name='nomina_ind_pdf'),
+    
+    path('cerrar-nomina',cerrar_nomina,name='cerrar_nomina'),
+    path('nominas-cerradas/', nominas_cerradas_list, name='nominas_cerradas_list'),
 
     path('periodos/', PeriodosNominaList.as_view(), name='periodos_list'),
     path('periodos/nuevo/', PeriodosNominaNew.as_view(), name='periodos_new'),
     path('periodos/editar/<int:pk>/', PeriodosNominaEdit.as_view(), name='periodos_edit'),
     path('periodos/eliminar/<int:pk>/', PeriodosNominaDel.as_view(), name='periodos_del'),
-    path('guardar-periodo/', guardar_periodo_sesion, name='guardar_periodo_sesion'),
     path('formulario-procesar/', procesar_nomina_form, name='procesar_nomina_form'),
 
     path('validar-curp/', validar_curp, name='validar_curp'),
@@ -43,7 +50,8 @@ urlpatterns = [
     path('nomina/detalles-procesados/<int:nomina_historial_id>/', listar_detalles_nomina_procesada, name='listar_detalles_nomina_procesada'),
     path('nomina/detalle/<int:detalle_id>/asignar-proyecto/', asignar_proyecto_individual, name='asignar_proyecto_individual'),
     path('asignar-proyectos/<int:nomina_id>/', asignar_proyectos, name='asignar_proyectos'),
-    path('cerrar-nomina/<int:nomina_id>/', cerrar_nomina, name='cerrar_nomina'),
+    #path('nomina/<int:pk>/', NominaDetalleView.as_view(), name='tu_url_de_detalle_nomina'), # Asegúrate de tener una URL para el detalle
+    #path('nomina/exito/', NominaExitoView.as_view(), name='tu_url_de_exito_nomina'), # Una URL para el éxito
 
     path('editar-proyecto/<int:pk>/', NominaDetalleUpdateView.as_view(), name='editar_proyecto'),
 ]

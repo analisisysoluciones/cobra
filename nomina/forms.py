@@ -53,15 +53,7 @@ class FaltaForm(forms.ModelForm):
             'fecha': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
 
-class FechaForm(forms.Form):
-    fecha = forms.DateField(
-        widget=forms.DateInput(attrs={
-            'type': 'date',
-            'class': 'form-control',
-            'id': 'id_fecha'
-        }),
-        label="Fecha"
-    )
+
 
 class PeriodosNominaForm(forms.ModelForm):
     class Meta:
@@ -99,7 +91,7 @@ class AsignarProyectoForm(forms.ModelForm):
 
 class SeleccionarPeriodoForm(forms.Form):
     periodo = forms.ModelChoiceField(
-        queryset=PeriodosNomina.objects.all().order_by('-periodo_inicio'),
+        queryset=PeriodosNomina.objects.all().order_by('periodo_inicio'),
         widget=forms.Select(attrs={'class': 'form-control select2', 'style': 'width: 50%;'}),
         empty_label="--- Seleccione un Período de Nómina ---",
         label="Período de Nómina",

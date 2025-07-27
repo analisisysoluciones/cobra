@@ -1,0 +1,81 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">{{ titulo }}</h6>
+        {# Opcional: un botón para regresar o ir a otra parte #}
+        <a href="{% url 'nom:seleccionar_fecha' %}" class="btn btn-info btn-sm">
+            <i class="fas fa-plus"></i> Seleccionar Nuevo Período
+        </a>
+    </div>
+    
+    <div class="card-body">
+        {% if messages %}
+            <div class="mb-3">
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if nominas_cerradas %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>ID Nómina</th>
+                            <th>Período Inicio</th>
+                            <th>Período Fin</th>
+                            <th>Total Pagado</th>
+                            <th>Fecha de Cierre</th>
+                            <th>Estatus</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for nomina in nominas_cerradas %}
+                        <tr>
+                            <td>{{ nomina.id }}</td>
+                            <td>{{ nomina.periodo_inicio|date:"Y-m-d" }}</td>
+                            <td>{{ nomina.periodo_fin|date:"Y-m-d" }}</td>
+                            <td>${{ nomina.total_pago|floatformat:2 }}</td>
+                            <td>{{ nomina.fecha_procesada|date:"Y-m-d H:i" }}</td>
+                            <td>{{ nomina.get_estatus_display }}</td> {# Si usas choices en el modelo, get_campo_display es útil #}
+                            <td>
+                                {% if nomina.periodo_nomina %}
+                                    Semana {{ nomina.periodo_nomina.semana }}
+                                {% else %}
+                                    Sin semana asignada
+                                {% endif %}
+                                - {{ nomina.get_estatus_display }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-warning">No hay nóminas cerradas para mostrar.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock page_content %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#dataTable').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json"
+            },
+            "order": [[4, "desc"]] // Ordenar por la columna de fecha de cierre (columna 4, descendente)
+        });
+    });
+</script>
+{% endblock %}

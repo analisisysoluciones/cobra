@@ -1,66 +1,141 @@
 {% extends "base/base.html" %}
+
 {% block page_content %}
 
-<h2>Asignar proyectos a empleados - Nómina #{{ nomina.id }}</h2>
+<div class="container-fluid">
 
-<form method="post">
-    {% csrf_token %}
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Empleado</th>
-                <th>Sueldo Diario</th>
-                <th>Días Trabajados</th>
-                <th>Total Pago</th>
-                <th>Proyecto</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for detalle in detalles %}
-            <tr>
-                <td>{{ detalle.empleado.nombre }}</td>
-                <td>{{ detalle.sueldo_diario }}</td>
-                <td>{{ detalle.dias_trabajados }}</td>
-                <td>{{ detalle.total_pago }}</td>
-                <td>
-                    <select name="proyecto_{{ detalle.id }}" class="form-control">
-                        <option value="">-- Selecciona --</option>
-                        {% for proyecto in proyectos %}
-                        <option value="{{ proyecto.id }}" {% if detalle.proyecto and detalle.proyecto.id == proyecto.id %}selected{% endif %}>{{ proyecto.nombre }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <h1 class="h3 mb-4 text-gray-800">Asignar Proyectos a Empleados - Nómina #{{ nomina.id }}</h1>
 
-    <button type="submit" class="btn btn-primary">Guardar asignaciones</button>
-    <div class="form-group text-right">
-    <button type="submit" class="btn btn-primary btn-lg">
-        Guardar Asignaciones
-    </button>
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Detalles de Nómina</h6>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+                <div class="mb-3">
+                    {% for message in messages %}
+                        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
 
-    &nbsp;
+            <form method="post"> {# Este formulario es para guardar las asignaciones de proyectos #}
+                {% csrf_token %}
 
-    <a href="javascript:history.back()" class="btn btn-secondary">
-        Regresar
-    </a>
-    
-    &nbsp;
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Empleado</th>
+                                <th>Sueldo Diario</th>
+                                <th>Días Trabajados</th>
+                                <th>Total Pago</th>
+                                <th>Proyecto Asignado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detalle in detalles %}
+                            <tr>
+                                <td>{{ detalle.empleado.nombre }}</td>
+                                <td>${{ detalle.sueldo_diario|floatformat:2 }}</td> {# Formato de moneda #}
+                                <td>{{ detalle.dias_trabajados }}</td>
+                                <td>${{ detalle.total_pago|floatformat:2 }}</td> {# Formato de moneda #}
+                                <td>
+                                    <select name="proyecto_{{ detalle.id }}" class="form-control">
+                                        <option value="">-- Selecciona un Proyecto --</option>
+                                        {% for proyecto in proyectos %}
+                                        <option value="{{ proyecto.id }}" {% if detalle.proyecto and detalle.proyecto.id == proyecto.id %}selected{% endif %}>{{ proyecto.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
 
-    {% if nomina and not nomina.estatus == 'Procesada' %}
-        <form action="{% url 'nom:cerrar_nomina' nomina.id %}" method="post" style="display:inline;">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger"
-                    onclick="return confirm('¿Estás seguro de que deseas cerrar esta nómina? Una vez cerrada, no podrá ser modificada.');">
-                Cerrar esta Nómina
-            </button>
-        </form>
-    {% elif nomina and nomina.estatus == 'Procesada' %}
-        <button type="button" class="btn btn-info" disabled>Nómina Procesada</button>
-    {% endif %}
+                <hr> 
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn btn-primary btn-icon-split mr-2">
+                        <span class="icon text-white-50">
+                            <i class="fas fa-save"></i> </span>
+                        <span class="text">Guardar Asignaciones</span>
+                    </button>
+
+                    <a href="javascript:history.back()" class="btn btn-secondary btn-icon-split mr-2">
+                        <span class="icon text-white-50">
+                            <i class="fas fa-arrow-left"></i> </span>
+                        <span class="text">Regresar</span>
+                    </a>
+
+                    {# El botón para abrir el modal de cerrar nómina #}
+                    {% if nomina and nomina.estatus != 'Cerrada' %} {# Usando 'estatus' como en tu modelo NominaHistorial #}
+                        <button type="button" class="btn btn-danger btn-icon-split" data-toggle="modal" data-target="#confirmCloseModal">
+                            <span class="icon text-white-50">
+                                <i class="fas fa-lock"></i> </span>
+                            <span class="text">Cerrar Nómina</span>
+                        </button>
+                    {% elif nomina and nomina.estatus == 'Cerrada' %}
+                        <button type="button" class="btn btn-info btn-icon-split" disabled>
+                            <span class="icon text-white-50">
+                                <i class="fas fa-check-double"></i> </span>
+                            <span class="text">Nómina Cerrada</span>
+                        </button>
+                    {% endif %}
+                </div>
+            </form> {# Cierre del formulario para guardar asignaciones #}
+        </div>
+    </div>
 </div>
-</form>
 
+{# Modal de Confirmación de Cierre de Nómina #}
+<div class="modal fade" id="confirmCloseModal" tabindex="-1" role="dialog" aria-labelledby="confirmCloseModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmCloseModalLabel">Confirmar Cierre de Nómina</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que deseas cerrar esta nómina?
+                <br>
+                **Una vez cerrada, no podrá ser modificada y los saldos de los proyectos asociados serán actualizados.**
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
+                {# === CAMBIO CRÍTICO AQUÍ: Añadir el input oculto con nomina.id === #}
+                <form action="{% url 'nom:cerrar_nomina' %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="nomina_historial_id" value="{{ nomina.id }}"> {# Pasa el ID de la NominaHistorial #}
+                    <button type="submit" class="btn btn-danger">Confirmar Cierre</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        var table = $('#dataTable').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json"
+            },
+            "columnDefs": [
+                { "orderable": false, "targets": [4] }
+            ]
+        });
+
+        
+    });
+</script>
 {% endblock %}
