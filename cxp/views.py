@@ -484,7 +484,8 @@ def compras_add_detalle_view(request, compra_id):
 
 def reporte_compras(request):
     form = FiltroCompraForm(request.GET or None)
-    compras = CompraEnc.objects.all()
+    #compras = CompraEnc.objects.all()
+    compras = CompraEnc.objects.all().prefetch_related('documentos_d')
 
     if form.is_valid():
         fecha_inicio = form.cleaned_data.get('fecha_inicio')
