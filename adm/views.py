@@ -1007,45 +1007,85 @@ def reporte_egresos_pdf(request):
     p = canvas.Canvas(response, pagesize=letter)
     width, height = letter
 
-    # Encabezado
-    p.setFont("Helvetica-Bold", 14)
-    p.drawString(200, height - 50, "Estado de Cuenta - Egresos")
+    def draw_header(p, width, height):
+        """Función para dibujar el encabezado en cada página"""
+        # Encabezado
+        p.setFont("Helvetica-Bold", 14)
+        p.drawString(200, height - 50, "Estado de Cuenta - Egresos")
 
-    # Fecha de generación
-    p.setFont("Helvetica", 10)
-    p.drawString(450, height - 70, f"Fecha: {now().strftime('%d/%m/%Y')}")
+        # Fecha de generación
+        p.setFont("Helvetica", 10)
+        p.drawString(450, height - 70, f"Fecha: {now().strftime('%d/%m/%Y')}")
 
-    # Columnas
-    y = height - 100
-    p.setFont("Helvetica-Bold", 10)
-    p.drawString(50, y, "ID")
-    p.drawString(100, y, "Fecha")
-    p.drawString(180, y, "Proveedor")
-    p.drawString(300, y, "Folio")
-    p.drawString(400, y, "Monto")
-    p.drawString(480, y, "Estado")
-    
-    # Línea separadora
-    p.line(50, y - 5, 550, y - 5)
+        # Columnas
+        y_header = height - 100
+        p.setFont("Helvetica-Bold", 10)
+        p.drawString(30, y_header, "Fecha")
+        p.drawString(120, y_header, "Proveedor")
+        p.drawString(300, y_header, "Folio")
+        p.drawString(400, y_header, "Monto")
+        p.drawString(480, y_header, "Estado")
+        
+        # Línea separadora
+        p.line(30, y_header - 5, 550, y_header - 5)
+        return y_header - 20
+
+    # Dibujar encabezado inicial
+    y = draw_header(p, width, height)
     
     # Obtener datos de compras (egresos)
-    compras = CompraEnc.objects.all()
+    compras = CompraEnc.objects.all().order_by('-fecha')  # Ordenar por fecha descendente
+    
+    # Establecer fuente para el contenido una sola vez
+    p.setFont("Helvetica", 9)
     
     # Dibujar cada compra
-    y -= 20
-    p.setFont("Helvetica", 9)
     for compra in compras:
-        p.drawString(50, y, str(compra.id))
-        p.drawString(100, y, compra.fecha.strftime('%d/%m/%Y'))
-        p.drawString(180, y, str(compra.proveedor))
-        p.drawString(300, y, compra.folio_documento)
+        # Verificar si necesitamos una nueva página
+        if y < 50:
+            p.showPage()  # Nueva página
+            y = draw_header(p, width, height)  # Redibujar encabezado
+            p.setFont("Helvetica", 9)  # Restablecer fuente del contenido
+        
+        # Dibujar los datos de la compra
+        p.drawString(30, y, compra.fecha.strftime('%d/%m/%Y'))
+        
+        # Truncar nombre del proveedor si es muy largo
+        proveedor_nombre = str(compra.proveedor)
+        if len(proveedor_nombre) > 25:
+            proveedor_nombre = proveedor_nombre[:22] + "..."
+        p.drawString(120, y, proveedor_nombre)
+        
+        # Folio
+        folio = compra.folio_documento if compra.folio_documento else "S/N"
+        p.drawString(300, y, folio)
+        
+        # Monto
         p.drawString(400, y, f"${compra.total:,.2f}")
-        p.drawString(480, y, "Activo" if compra.estado else "Inactivo")
+        
+        # Estado
+        estado = "Activo" if compra.estado else "Inactivo"
+        p.drawString(480, y, estado)
 
-        y -= 20
-        if y < 50:  # Nueva página si no hay espacio
+        y -= 15  # Espacio entre líneas más compacto
+
+    # Agregar total al final si hay datos
+    if compras.exists():
+        total_general = sum(compra.total for compra in compras)
+        
+        # Verificar si hay espacio para el total
+        if y < 80:
             p.showPage()
             y = height - 50
+        
+        # Línea separadora antes del total
+        p.line(30, y - 10, 550, y - 10)
+        y -= 25
+        
+        # Total general
+        p.setFont("Helvetica-Bold", 10)
+        p.drawString(300, y, "Total General:")
+        p.drawString(400, y, f"${total_general:,.2f}")
 
     p.save()
     return response

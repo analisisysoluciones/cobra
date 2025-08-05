@@ -493,6 +493,7 @@ def reporte_compras(request):
         proveedor = form.cleaned_data.get('proveedor')
         estatus_pago = form.cleaned_data.get('estatus_pago')
         proyecto = form.cleaned_data.get('proyecto')
+        print("Datos filtrados:", form.cleaned_data)
 
         if fecha_inicio:
             compras = compras.filter(fecha__gte=fecha_inicio)

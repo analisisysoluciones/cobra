@@ -56,7 +56,7 @@ class CompraEnc(ClaseModelo):
         ('proximo_vencer', 'Próximo a vencer'),
         ('pagado', 'Pagado'),
         ('vencido', 'Vencido'),
-        ('Recogido', 'Recogido'),
+        ('recogido', 'Recogido'),
     ]
     estatus_pago = models.CharField('Estatus de Pago', max_length=15, blank=True, null=True,choices=ESTATUS_PAGO_CHOICES, default='pendiente')
     evidencia_recoge=models.FileField('archivo pdf:', upload_to='documentos/pdfs/', blank=True, null=True)

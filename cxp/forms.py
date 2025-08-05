@@ -169,6 +169,12 @@ class FiltroCompraForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-control'})
     )
 
+    def clean_estatus_pago(self):
+        val = self.cleaned_data.get('estatus_pago')
+        if val:
+            return val.lower().strip()
+        return val
+
 
 
 class FiltroCompraMatForm(forms.Form):
