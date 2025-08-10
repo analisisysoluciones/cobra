@@ -1,0 +1,44 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Auditoría de Pagos de Compras</h2>
+    <a href="{% url 'cxp:corregir_estatus_pagos' %}" class="btn btn-primary mb-3">
+        Corregir estatus inconsistentes
+    </a>
+
+
+    <table class="table table-bordered table-hover table-sm">
+        <thead class="thead-dark">
+            <tr>
+                <th>ID</th>
+                <th>Proveedor</th>
+                <th>Total</th>
+                <th>Pagado</th>
+                <th>Saldo</th>
+                <th>Estatus Actual</th>
+                <th>Estatus Esperado</th>
+                <th>Observación</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in resultados %}
+                <tr class="{% if '❌' in r.observacion or '⚠️' in r.observacion %}table-warning{% elif '✅' in r.observacion %}table-success{% endif %}">
+                    <td>{{ r.compra.id }}</td>
+                    <td>{{ r.compra.proveedor.razon_social }}</td>
+                    <td>${{ r.total|floatformat:2 }}</td>
+                    <td>${{ r.pagado|floatformat:2 }}</td>
+                    <td>${{ r.saldo|floatformat:2 }}</td>
+                    <td>{{ r.estatus_actual }}</td>
+                    <td>{{ r.estatus_esperado }}</td>
+                    <td>{{ r.observacion }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="8">No hay compras registradas.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

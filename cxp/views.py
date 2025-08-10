@@ -15,7 +15,7 @@ from bases.views import SinPrivilegios
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from .models import(Proveedor, CompraEnc, CompraDet)
-from adm.models import(Proyecto, TipoDocumento, Cuenta)
+from adm.models import(Proyecto, TipoDocumento, Cuenta, Pago)
 
 from inv.models import Material
 #from .calculos import calcular_nomina_semanal_todos
@@ -797,3 +797,80 @@ def exportar_pdf_materiales(request):
 #         return JsonResponse(data)
 #     except Material.DoesNotExist:
 #         return JsonResponse({'error': 'Material no encontrado'}, status=404)
+
+
+
+
+def auditoria_pagos(request):
+    compras = CompraEnc.objects.all()
+    
+
+    resultados = []
+
+    for compra in compras:
+        print(f"Compra {compra.id} -> Estatus actual: {compra.estatus_pago}")
+        total = compra.total
+        pagado = compra.pagos.aggregate(total=Sum('monto'))['total'] or 0
+        saldo = total - pagado
+
+        # Determinar estatus esperado
+        if pagado == 0:
+            estatus_esperado = 'pendiente'
+        elif 0 < pagado < total:
+            estatus_esperado = 'parcial'
+        elif pagado >= total:
+            estatus_esperado = 'pagado'
+        else:
+            estatus_esperado = 'desconocido'
+
+        observacion = ''
+        if compra.estatus_pago != estatus_esperado:
+            observacion = '❌ Estatus incorrecto'
+        elif pagado > total:
+            observacion = '⚠️ Sobrepago'
+        else:
+            observacion = '✅ Correcto'
+
+        resultados.append({
+            'compra': compra,
+            'total': total,
+            'pagado': pagado,
+            'saldo': saldo,
+            'estatus_actual': compra.estatus_pago,
+            'estatus_esperado': estatus_esperado,
+            'observacion': observacion,
+        })
+
+    return render(request, 'cxp/auditoria_pagos.html', {
+        'resultados': resultados
+    })
+
+
+
+def corregir_estatus_pagos(request):
+    compras = CompraEnc.objects.all()
+    cambios = 0
+
+    for compra in compras:
+        total = compra.total
+        pagado = compra.pagos.aggregate(total=Sum('monto'))['total'] or 0
+
+        if pagado == 0:
+            estatus_esperado = 'pendiente'
+        elif 0 < pagado < total:
+            estatus_esperado = 'parcial'
+        elif pagado >= total:
+            estatus_esperado = 'pagado'
+        else:
+            estatus_esperado = 'desconocido'
+
+        print(f"Compra {compra.id}: actual={compra.estatus_pago}, esperado={estatus_esperado}")
+
+        if compra.estatus_pago != estatus_esperado:
+            compra.estatus_pago = estatus_esperado
+            compra.save()
+            cambios += 1
+            print(f"✓ Compra {compra.id} actualizada a {estatus_esperado}")
+
+    messages.success(request, f'Se corrigieron {cambios} estatus de compra.')
+    return redirect('cxp:auditoria_pagos')
