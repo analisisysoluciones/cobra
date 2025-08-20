@@ -12,12 +12,12 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required
 from .models import (
     Empleado, Asistencia, Nomina, NominaHistorial, NominaDetalle,
-    PeriodosNomina, EmpleadoArchivo)
+    PeriodosNomina, EmpleadoArchivo, AsignacionDiaria)
 from inv.models import Material
 from adm.models import MovimientoCuenta, Cuenta, Proyecto
 from .forms import (
     EmpleadoForm, FaltaForm,  PeriodosNominaForm, EmpleadoArchivoForm, AsignarProyectoForm, SeleccionarPeriodoForm,
-    NominaDetalleProyectoForm
+    NominaDetalleProyectoForm, AsignacionDiaria, AsignacionDiariaForm, AsignacionDiariaFormSet
 )
 from xhtml2pdf import pisa
 from django.template.loader import render_to_string, get_template
@@ -28,7 +28,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter, legal
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
-from django.db.models import Sum, Max, Q
+from django.db.models import Sum, Max, Q, Count
 from datetime import datetime, timedelta
 from decimal import Decimal
 import traceback
@@ -39,7 +39,43 @@ from reportlab.lib.utils import ImageReader
 
 
 
+
+
 logger = logging.getLogger(__name__)
+
+
+
+
+def poblar_nomina_detalle_desde_asignaciones(nomina_historial, horas_jornada=8):
+    asignaciones = AsignacionDiaria.objects.filter(
+        fecha__range=[nomina_historial.periodo_nomina.periodo_inicio,
+                      nomina_historial.periodo_nomina.periodo_final]
+    ).values('empleado', 'proyecto') \
+     .annotate(
+         dias=Count('id'),
+         horas=Sum('horas_trabajadas'),
+     )
+
+    for a in asignaciones:
+        empleado = Empleado.objects.get(id=a['empleado'])
+        proyecto = Proyecto.objects.get(id=a['proyecto'])
+
+        if a['horas']:  # pago proporcional por horas
+            total_pago = (empleado.pago_diario / horas_jornada) * float(a['horas'])
+        else:  # pago fijo diario
+            total_pago = empleado.pago_diario * a['dias']
+
+        NominaDetalle.objects.update_or_create(
+            nomina_historica=nomina_historial,
+            empleado=empleado,
+            proyecto=proyecto,
+            defaults={
+                'total_pago': total_pago,
+                'dias_trabajados': a['dias'],
+                'horas_trabajadas': a['horas'],
+            }
+        )
+
 
 
 def calcular_nomina_semanal_todos(fecha_inicio_semana):
@@ -342,6 +378,12 @@ def procesar_nomina(request):
                 fecha_procesada=timezone.now()
             )
             print(f"NominaHistorial creada con ID: {nomina_hist.id}")
+            # =====================================================
+            # >>> INYECTAR DETALLES DESDE ASIGNACIONES DIARIAS <<<
+            # =====================================================
+            poblar_nomina_detalle_desde_asignaciones(nomina_hist)
+            # =====================================================
+
 
             empleados_procesados = 0
             empleados_fallidos = []
@@ -365,6 +407,7 @@ def procesar_nomina(request):
                         proyecto=None  # Se asignará después
                     )
                     print(f"  NominaDetalle creado para {emp.nombre}.")
+                    
 
                     total_general += total_pago
                     empleados_procesados += 1
@@ -1115,8 +1158,47 @@ def seleccionar_periodo(request):
 # Agrega estos prints en seleccionar_periodo_nomina:
 
 # 1. Agrega estos prints en seleccionar_periodo_nomina:
+#=============================================================================
+# Bloque original seleccionar_periodo_nomina
+#=============================================================================
+# @login_required(login_url='bases:login')
+# def seleccionar_periodo_nomina(request):
+#     print("🔍 DEBUG: Entrando a seleccionar_periodo_nomina")
+#     print(f"🔍 DEBUG: Método: {request.method}")
+    
+#     if request.method == 'POST':
+#         print("🔍 DEBUG: Es POST")
+#         form = SeleccionarPeriodoForm(request.POST)
+#         print(f"🔍 DEBUG: Form data: {request.POST}")
+        
+#         if form.is_valid():
+#             print("🔍 DEBUG: Form es válido")
+#             periodo = form.cleaned_data['periodo']
+#             print(f"🔍 DEBUG: Periodo seleccionado: {periodo}")
 
-@login_required(login_url='bases:login')
+#             # Guardar los datos en la sesión
+#             request.session['periodo_id'] = periodo.id
+#             request.session['periodo_semana'] = periodo.semana
+#             request.session['periodo_inicio'] = str(periodo.periodo_inicio)
+#             request.session['periodo_final'] = str(periodo.periodo_final)
+            
+#             print(f"🔍 DEBUG: Datos guardados en session: {request.session.get('periodo_id')}")
+#             print("🔍 DEBUG Antes del redirect - Session keys:", list(request.session.keys()))
+#             print("🔍 DEBUG: Haciendo redirect a nom:calcular_nomina")
+
+#             return redirect('nom:calcular_nomina')
+#         else:
+#             print(f"🔍 DEBUG: Form NO es válido. Errores: {form.errors}")
+#     else:
+#         print("🔍 DEBUG: Es GET, creando form vacío")
+#         form = SeleccionarPeriodoForm()
+
+#     print("🔍 DEBUG: Renderizando template seleccionar_fecha.html")
+#     return render(request, 'nomina/seleccionar_fecha.html', {'form': form})
+#=============================================================================
+# Fin de bloque original
+#=============================================================================
+
 def seleccionar_periodo_nomina(request):
     print("🔍 DEBUG: Entrando a seleccionar_periodo_nomina")
     print(f"🔍 DEBUG: Método: {request.method}")
@@ -1139,9 +1221,9 @@ def seleccionar_periodo_nomina(request):
             
             print(f"🔍 DEBUG: Datos guardados en session: {request.session.get('periodo_id')}")
             print("🔍 DEBUG Antes del redirect - Session keys:", list(request.session.keys()))
-            print("🔍 DEBUG: Haciendo redirect a nom:calcular_nomina")
+            print("🔍 DEBUG: Haciendo redirect a nom:asignar_semana")
 
-            return redirect('nom:calcular_nomina')
+            return redirect('nom:asignar_semana')  # Cambiado a asignar_semana
         else:
             print(f"🔍 DEBUG: Form NO es válido. Errores: {form.errors}")
     else:
@@ -1152,39 +1234,39 @@ def seleccionar_periodo_nomina(request):
     return render(request, 'nomina/seleccionar_fecha.html', {'form': form})
 
 
-@login_required(login_url='bases:login')
-def seleccionar_periodo_nomina(request):
-    print("🔍 DEBUG: Entrando a seleccionar_periodo_nomina")
-    print(f"🔍 DEBUG: Método: {request.method}")
+# @login_required(login_url='bases:login')
+# def seleccionar_periodo_nomina(request):
+#     print("🔍 DEBUG: Entrando a seleccionar_periodo_nomina")
+#     print(f"🔍 DEBUG: Método: {request.method}")
     
-    if request.method == 'POST':
-        print("🔍 DEBUG: Es POST")
-        form = SeleccionarPeriodoForm(request.POST)
-        print(f"🔍 DEBUG: Form data: {request.POST}")
+#     if request.method == 'POST':
+#         print("🔍 DEBUG: Es POST")
+#         form = SeleccionarPeriodoForm(request.POST)
+#         print(f"🔍 DEBUG: Form data: {request.POST}")
         
-        if form.is_valid():
-            print("🔍 DEBUG: Form es válido")
-            periodo = form.cleaned_data['periodo']
-            print(f"🔍 DEBUG: Periodo seleccionado: {periodo}")
+#         if form.is_valid():
+#             print("🔍 DEBUG: Form es válido")
+#             periodo = form.cleaned_data['periodo']
+#             print(f"🔍 DEBUG: Periodo seleccionado: {periodo}")
 
-            # Guardar los datos en la sesión
-            request.session['periodo_id'] = periodo.id
-            request.session['periodo_semana'] = periodo.semana
-            request.session['periodo_inicio'] = str(periodo.periodo_inicio)
-            request.session['periodo_final'] = str(periodo.periodo_final)
+#             # Guardar los datos en la sesión
+#             request.session['periodo_id'] = periodo.id
+#             request.session['periodo_semana'] = periodo.semana
+#             request.session['periodo_inicio'] = str(periodo.periodo_inicio)
+#             request.session['periodo_final'] = str(periodo.periodo_final)
             
-            print(f"🔍 DEBUG: Datos guardados en session: {request.session.get('periodo_id')}")
-            print("🔍 DEBUG: Haciendo redirect a nom:calcular_nomina")
+#             print(f"🔍 DEBUG: Datos guardados en session: {request.session.get('periodo_id')}")
+#             print("🔍 DEBUG: Haciendo redirect a nom:calcular_nomina")
 
-            return redirect('nom:calcular_nomina')
-        else:
-            print(f"🔍 DEBUG: Form NO es válido. Errores: {form.errors}")
-    else:
-        print("🔍 DEBUG: Es GET, creando form vacío")
-        form = SeleccionarPeriodoForm()
+#             return redirect('nom:calcular_nomina')
+#         else:
+#             print(f"🔍 DEBUG: Form NO es válido. Errores: {form.errors}")
+#     else:
+#         print("🔍 DEBUG: Es GET, creando form vacío")
+#         form = SeleccionarPeriodoForm()
 
-    print("🔍 DEBUG: Renderizando template seleccionar_fecha.html")
-    return render(request, 'nomina/seleccionar_fecha.html', {'form': form})
+#     print("🔍 DEBUG: Renderizando template seleccionar_fecha.html")
+#     return render(request, 'nomina/seleccionar_fecha.html', {'form': form})
 
 def procesar_nomina_form(request):
     periodo_id = request.session.get('periodo_id')
@@ -1512,3 +1594,101 @@ def nominas_cerradas_list(request):
 #         "fecha": fecha_seleccionada
 #     })
 # 
+
+
+# views.py
+
+# En lugar de crear un diccionario simple, crea una estructura más manejable
+
+@login_required
+def asignar_semana_todos(request):
+    periodo_id = request.session.get('periodo_id')
+    if not periodo_id:
+        messages.error(request, "Seleccione un período primero.")
+        return redirect('nom:seleccionar_fecha')
+    
+    periodo = get_object_or_404(PeriodosNomina, id=periodo_id)
+    dias_semana = [periodo.periodo_inicio + timedelta(days=i) for i in range(6)]  # Lunes-Sábado
+    empleados = Empleado.objects.filter(estado=True)
+    proyectos = Proyecto.objects.all()
+    
+    # Pre-cargar asignaciones existentes
+    asignaciones_qs = AsignacionDiaria.objects.filter(empleado__in=empleados, fecha__in=dias_semana)
+    formset = AsignacionDiariaFormSet(queryset=asignaciones_qs)
+    
+    if request.method == 'POST':
+        formset = AsignacionDiariaFormSet(request.POST, queryset=asignaciones_qs)
+        if formset.is_valid():
+            with transaction.atomic():
+                for form in formset:
+                    instance = form.save(commit=False)
+                    # Asigna empleado/fecha desde POST si nuevo
+                    # Validación extra: Si falta añadida después, warning pero save
+                    if Asistencia.objects.filter(empleado=instance.empleado, fecha=instance.fecha).exists():
+                        messages.warning(request, f"Asignación para {instance.empleado} en {instance.fecha} tiene falta posterior. Revise.")
+                    instance.save()
+            messages.success(request, "Asignaciones guardadas.")
+            return redirect('nom:calcular_nomina')
+        else:
+            messages.error(request, "Errores en asignaciones. Verifique faltas.")
+    
+    context = {
+        'formset': formset,
+        'periodo': periodo,
+        'dias_semana': dias_semana,
+        'empleados': empleados,
+        'proyectos': proyectos,
+    }
+    return render(request, 'nomina/asignar_semanal.html', context)
+
+
+
+
+class AsignacionListView(generic.ListView):
+    model = AsignacionDiaria
+    template_name = 'nomina/asignacion_list.html'
+    context_object_name = 'asignaciones'
+
+class AsignacionCreateView(generic.CreateView):
+    model = AsignacionDiaria
+    form_class = AsignacionDiariaForm
+    template_name = 'nomina/asignacion_form.html'
+    success_url = reverse_lazy('nom:asignacion_list')
+
+    def form_valid(self, form):
+        form.instance.uc = self.request.user  # Asigna al usuario actual
+        return super().form_valid(form)
+
+class AsignacionUpdateView(generic.UpdateView):
+    model = AsignacionDiaria
+    form_class = AsignacionDiariaForm
+    template_name = 'nomina/asignacion_form.html'
+    success_url = reverse_lazy('nom:asignacion_list')
+
+    def form_valid(self, form):
+        form.instance.um = self.request.user.id  # Agrega al usuario que actualiza la bitácora
+        return super().form_valid(form)
+
+class AsignacionDeleteView(generic.DeleteView):
+    model = AsignacionDiaria
+    template_name = 'nomina/asignacion_confirm_delete.html'
+    success_url = reverse_lazy('nom:asignacion_list')
+
+
+
+# views.py
+
+def asignaciones_masivas(request):
+    # Filtramos las asignaciones a editar, por ejemplo las de hoy
+    queryset = AsignacionDiaria.objects.filter(fecha=timezone.now().date())
+
+    if request.method == 'POST':
+        formset = AsignacionDiariaFormSet(request.POST, queryset=queryset)
+        if formset.is_valid():
+            formset.save()
+            return redirect('nom:asignacion_list')
+    else:
+        formset = AsignacionDiariaFormSet(queryset=queryset)
+
+    return render(request, 'nomina/asignacion_formset.html', {'formset': formset})
+

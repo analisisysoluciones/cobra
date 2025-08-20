@@ -1,0 +1,25 @@
+{% extends 'base/base.html' %}
+{% block content %}
+<div style="border: 2px solid red; padding: 20px; margin: 20px; background-color: #fff;">
+    <h1>PRUEBA DE RENDERIZADO</h1>
+    <p>Periodo ID: {{ periodo.id }}</p>
+    <p>Semana: {{ periodo.semana }}</p>
+    <p>Período: {{ periodo.periodo_inicio|date:"d/m/Y" }} - {{ periodo.periodo_final|date:"d/m/Y" }}</p>
+    <p>Empleados ({{ empleados|length }}): {% for emp in empleados %}{{ emp.nombre|default:"Sin nombre" }} (ID: {{ emp.id }}), {% empty %}Ninguno{% endfor %}</p>
+    <p>Proyectos ({{ proyectos|length }}): {% for pro in proyectos %}{{ pro.nombre|default:"Sin nombre" }} (ID: {{ pro.id }}), {% empty %}Ninguno{% endfor %}</p>
+    <p>Días ({{ dias_semana|length }}): {% for dia in dias_semana %}{{ dia|date:"D d/m" }}, {% empty %}Ninguno{% endfor %}</p>
+    <form method="post">
+        {% csrf_token %}
+        <p>Asignar proyecto para {{ empleados.0.nombre|default:"Sin nombre" }} el {{ dias_semana.0|date:"D d/m" }}:</p>
+        <select name="emp_{{ empleados.0.id }}_{{ dias_semana.0|date:'Y-m-d' }}">
+            <option value="">--- Seleccione ---</option>
+            {% for proyecto in proyectos %}
+                <option value="{{ proyecto.id }}">{{ proyecto.nombre|default:"Sin nombre" }}</option>
+            {% endfor %}
+        </select>
+        <br><br>
+        <button type="submit">Probar Guardar</button>
+        <a href="{% url 'nom:seleccionar_fecha' %}">Volver</a>
+    </form>
+</div>
+{% endblock %}

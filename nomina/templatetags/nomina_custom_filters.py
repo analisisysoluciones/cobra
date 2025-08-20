@@ -20,3 +20,14 @@ def add(value, arg):
 @register.filter
 def add_days(value, days):
     return value + timedelta(days=days)
+
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get((key, None))
+
+@register.filter
+def fecha_match(asignaciones_dict, fecha):
+    # asignaciones_dict es un dict con clave (empleado_id, fecha)
+    # pero get_item no funcionaría directo porque necesitamos 2 llaves
+    return asignaciones_dict.get(fecha, None)

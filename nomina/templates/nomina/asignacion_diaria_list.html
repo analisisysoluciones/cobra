@@ -1,0 +1,79 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Lista de Asignaciones Diarias</h6>
+        <a href="" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Asignar Proyectos
+        </a>
+    </div>
+    <div class="card-body">
+        <!-- Filtro por periodo -->
+        <form method="get" class="mb-4">
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+        </form>
+        
+        {% if not empleados or not dias_semana %}
+            <div class="alert alert-info">Seleccione un período o no hay datos disponibles.</div>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover" id="asignacionesTable">
+                    <thead>
+                        <tr>
+                            <th>Empleado</th>
+                            {% for dia in dias_semana %}
+                                <th>{{ dia|date:"D d/m" }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for empleado in empleados %}
+                            <tr>
+                                <td>{{ empleado.nombre }}</td>
+                                {% for dia in dias_semana %}
+                                    <td data-falta="{% if asistencias|dict_get:empleado.id|dict_get:dia %}true{% else %}false{% endif %}">
+                                        {% with asignacion=asignaciones|dict_get:empleado.id|dict_get:dia %}
+                                            {{ asignacion.proyecto.nombre|default:"---" }}
+                                        {% endwith %}
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock page_content %}
+
+{% block js_page %}
+<script>
+    $(document).ready(function() {
+        // Inicializar DataTables
+        $('#asignacionesTable').DataTable({
+            "language": {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "Ningún dato disponible en esta tabla",
+                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                "sSearch": "Buscar:",
+                "oPaginate": {
+                    "sFirst": "<span class='fa fa-angle-double-left'></span>",
+                    "sLast": "<span class='fa fa-angle-double-right'></span>",
+                    "sNext": "<span class='fa fa-angle-right'></span>",
+                    "sPrevious": "<span class='fa fa-angle-left'></span>"
+                }
+            }
+        });
+
+        // Resaltar celdas con faltas
+        $('td[data-falta="true"]').addClass('bg-warning').attr('title', 'Falta registrada');
+    });
+</script>
+{% endblock js_page %}

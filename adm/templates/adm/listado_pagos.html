@@ -54,6 +54,7 @@
                             <table class="table table-bordered">
                                 <thead class="table-dark">
                                     <tr>
+                                        <th>ID</th>
                                         <th>Fecha</th>
                                         <th>Proveedor</th>
                                         <th>Compra</th>
@@ -64,6 +65,7 @@
                                 <tbody>
                                     {% for pago in pagos %}
                                         <tr>
+                                            <td>{{ pago.id }}</td>
                                             <td>{{ pago.fecha|date:"d-m-Y H:i" }}</td>
                                             <td>{{ pago.compra.proveedor.razon_social }}</td>
                                             <td>#{{ pago.compra.id }}</td>

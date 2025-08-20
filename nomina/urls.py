@@ -2,7 +2,7 @@
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import ( # Importa todas las vistas que usas directamente
+from .views import ( 
     EmpleadoList, EmpleadoEdit, EmpleadoNew, EmpleadoDel,
     calcular_nomina_view,
     generar_nomina_pdf, procesar_nomina, generar_nomina_individual_pdf,
@@ -10,7 +10,8 @@ from .views import ( # Importa todas las vistas que usas directamente
     DocumentoEmpleadoDelete, capturar_falta, validar_curp,
     AsistenciaListView, AsistenciaDeleteView, asignar_proyecto_individual,seleccionar_periodo_nomina,
     listar_detalles_nomina_procesada, procesar_nomina_form, NominaDetalleListView,
-    NominaDetalleUpdateView, asignar_proyectos, cerrar_nomina, nominas_cerradas_list
+    NominaDetalleUpdateView, asignar_proyectos, cerrar_nomina, nominas_cerradas_list, asignar_semana_todos, 
+    AsignacionCreateView, AsignacionListView, AsignacionUpdateView, AsignacionDeleteView, asignaciones_masivas
 )
 
 app_name = 'nom'
@@ -24,6 +25,12 @@ urlpatterns = [
     path('falta/', capturar_falta, name='capturar_falta'),
     path('seleccionar-fecha/', seleccionar_periodo_nomina, name='seleccionar_fecha'),
     path('calcular-nomina/', calcular_nomina_view, name='calcular_nomina'), # Renombrado para evitar conflicto con calcular_nomina_semanal_todos si es que la tenías como vista
+    path('asignar-semana/', asignar_semana_todos, name='asignar_semana'),
+    path('asignaciones-list/', AsignacionListView.as_view(), name='asignacion_list'),
+    path('asignaciones-nueva/', AsignacionCreateView.as_view(), name='asignacion_nueva'),
+    path('asignaciones-edita/', AsignacionUpdateView.as_view(), name='asignacion_edita'),
+    path('asignaciones-elimina/', AsistenciaDeleteView.as_view(), name='asignacion_elimina'),
+    path('asignaciones-masivas/', asignaciones_masivas, name='asignaciones_masivas'),
 
     #path('nomina-semanal/pdf/', generar_nomina_pdf, name='nomina_pdf'),
     path('nomina-semanal/pdf/<str:fecha_str>/', generar_nomina_pdf, name='nomina_pdf'),

@@ -98,6 +98,11 @@ class Asistencia(models.Model):
 
     def __str__(self):
         return f"{self.empleado.nombre} - {self.fecha}"
+    
+    def es_trabajado(self):
+        """Verifica si el día fue trabajado (asignado y sin falta registrada)."""
+        falta = Asistencia.objects.filter(empleado=self.empleado, fecha=self.fecha).exists()
+        return not falta  # Si hay falta, no cuenta como trabajado
 
     class Meta:
         verbose_name = "Asistencia"
@@ -241,10 +246,19 @@ class NominaDetalle(models.Model):
      dias_trabajados = models.IntegerField(default=0)
      total_pago = models.DecimalField(max_digits=10, decimal_places=2,default=0.00)
      proyecto = models.ForeignKey('adm.Proyecto', on_delete=models.SET_NULL, null=True, blank=True)
+     dias_trabajados = models.IntegerField(default=0)   # 👈 nuevo
+     horas_trabajadas = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)  # opcional
 
      
      def __str__(self):
          return f"{self.empleado} - {self.total_pago}"
+
+     def calcular_pago_proporcional(self, horas_jornada=8):
+         """Calcula pago basado en días/horas, considerando solo días trabajados."""
+         if self.horas_trabajadas:
+             return (self.sueldo_diario / Decimal(horas_jornada)) * self.horas_trabajadas
+         else:
+             return self.sueldo_diario * self.dias_trabajados
 
 
 class PeriodosNomina(models.Model):
@@ -256,6 +270,28 @@ class PeriodosNomina(models.Model):
 
     def __str__(self):
         return f"{self.semana} - {self.periodo_inicio} - {self.periodo_final}"
+    
+
+class AsignacionDiaria(ClaseModelo):
+    empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
+    proyecto = models.ForeignKey('adm.Proyecto', on_delete=models.CASCADE)
+    fecha = models.DateField()
+    horas_trabajadas = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # opcional
+
+    def __str__(self):
+        return f"{self.empleado} - {self.proyecto} - {self.fecha}"
+    
+    def save(self, *args, **kwargs):
+        # Validación opcional: No asignar si hay falta registrada
+        if Asistencia.objects.filter(empleado=self.empleado, fecha=self.fecha).exists():
+            raise ValidationError(f"No se puede asignar proyecto en {self.fecha}: El empleado tiene una falta registrada.")
+        super().save(*args, **kwargs)
+
+    class Meta:
+        unique_together = ('empleado', 'fecha')
+
+    
+
     
 
 

@@ -4,7 +4,7 @@ import datetime
 from django.core.exceptions import ValidationError
 from adm.models import Proyecto # <-- CORREGIDO: Importar Proyecto desde adm.models
 from .models import (
-    Cuenta, Empleado, Asistencia, Nomina, PeriodosNomina, EmpleadoArchivo, NominaDetalle
+    Cuenta, Empleado, Asistencia, Nomina, PeriodosNomina, EmpleadoArchivo, NominaDetalle, AsignacionDiaria
 )
 from django_select2.forms import Select2Widget
 from django.shortcuts import render, redirect
@@ -118,4 +118,47 @@ class NominaDetalleProyectoForm(forms.ModelForm):
         fields = ['proyecto']
         widgets = {
             'proyecto': forms.Select(attrs={'class': 'form-control'}),
+
+
+
         }    
+
+
+# ... (imports existentes)
+
+class AsignacionDiariaForm(forms.ModelForm):
+    class Meta:
+        model = AsignacionDiaria
+        fields = ['empleado', 'proyecto', 'fecha', 'horas_trabajadas']
+        widgets = {
+            'empleado': forms.Select(attrs={'class': 'form-control select2', 'id': 'id_empleado', 'style': 'width: 100%;'}),
+            'proyecto': forms.Select(attrs={'class': 'form-control select2', 'id': 'id_proyecto', 'style': 'width: 100%;'}),
+            'fecha': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'horas_trabajadas': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.5', 'min': '0', 'max': '12'}),
+        }
+
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['proyecto'].queryset = Proyecto.objects.all()
+        self.fields['proyecto'].empty_label = "--- Seleccione un Proyecto ---"
+        self.fields['empleado'].queryset = Empleado.objects.all()
+        self.fields['empleado'].empty_label = "--- Seleccione un Empleado ---"
+
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        # Validación en form: Reforzar si hay falta (redundante con model, pero para UX)
+        empleado = cleaned_data.get('empleado')  # Asume que se pasa en init si es formset
+        fecha = cleaned_data.get('fecha')
+        if empleado and fecha and Asistencia.objects.filter(empleado=empleado, fecha=fecha).exists():
+            raise ValidationError("No se puede asignar: Hay una falta registrada para este día.")
+        return cleaned_data
+
+# Formset para edición masiva
+AsignacionDiariaFormSet = modelformset_factory(
+    AsignacionDiaria,
+    form=AsignacionDiariaForm,
+    extra=5,  # No extras; genera basado en queryset en view
+    can_delete=False  # Opcional: permite eliminar asignaciones
+)
