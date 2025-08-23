@@ -292,6 +292,18 @@ class AsignacionDiaria(ClaseModelo):
 
     
 
+class MovimientoCuentaProyecto(models.Model):
+    proyecto = models.ForeignKey('adm.Proyecto', on_delete=models.CASCADE, related_name='movimientos')
+    empleado = models.ForeignKey('Empleado', on_delete=models.CASCADE)
+    periodo = models.ForeignKey('NominaHistorial', on_delete=models.CASCADE)  # Nómina cerrada
+    importe = models.DecimalField(max_digits=10, decimal_places=2)
+    fecha = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.proyecto.nombre} - {self.empleado.nombre} - {self.importe}"
+    
+
+
     
 
 

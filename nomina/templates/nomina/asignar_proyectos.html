@@ -111,7 +111,7 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
                 {# === CAMBIO CRÍTICO AQUÍ: Añadir el input oculto con nomina.id === #}
-                <form action="{% url 'nom:cerrar_nomina' %}" method="post" style="display:inline;">
+                <form action="{% url 'nom:cerrar_nomina' nomina.id %}" method="post" style="display:inline;">
                     {% csrf_token %}
                     <input type="hidden" name="nomina_historial_id" value="{{ nomina.id }}"> {# Pasa el ID de la NominaHistorial #}
                     <button type="submit" class="btn btn-danger">Confirmar Cierre</button>

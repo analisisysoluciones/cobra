@@ -1,0 +1,37 @@
+<!-- templates/nomina/nomina_detalle.html -->
+{% extends 'base/base.html' %}
+{% block page_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Detalle Nómina: {{ nomina.periodo }}</h6>
+        {% if nomina.estatus != 'cerrada' %}
+        <a href="{% url 'nomina:cerrar_nomina' nomina.id %}" class="btn btn-success btn-sm"
+           onclick="return confirm('¿Deseas cerrar esta nómina?')">
+           <i class="fas fa-lock"></i> Cerrar Nómina
+        </a>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Empleado</th>
+                    <th>Proyecto</th>
+                    <th>Días</th>
+                    <th>Importe</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in detalles %}
+                <tr>
+                    <td>{{ detalle.empleado.nombre }}</td>
+                    <td>{{ detalle.proyecto.nombre }}</td>
+                    <td>{{ detalle.dias }}</td>
+                    <td>${{ detalle.importe }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

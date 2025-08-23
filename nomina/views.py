@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required
 from .models import (
     Empleado, Asistencia, Nomina, NominaHistorial, NominaDetalle,
-    PeriodosNomina, EmpleadoArchivo, AsignacionDiaria)
+    PeriodosNomina, EmpleadoArchivo, AsignacionDiaria, MovimientoCuentaProyecto)
 from inv.models import Material
 from adm.models import MovimientoCuenta, Cuenta, Proyecto
 from .forms import (
@@ -39,10 +39,7 @@ from reportlab.lib.utils import ImageReader
 
 
 
-
-
 logger = logging.getLogger(__name__)
-
 
 
 
@@ -347,7 +344,8 @@ def procesar_nomina(request):
                 print(f"¡ADVERTENCIA! Nómina existente encontrada (ID: {nomina_existente.id}). Redirigiendo a asignar_proyectos.")
                 messages.info(request, f"La nómina para el periodo del {fecha_inicio} al {fecha_fin} ya ha sido calculada. Puedes continuar con la asignación de proyectos.")
                 # AHORA nomina_existente.id está definido y se puede usar
-                return redirect('nom:asignar_proyectos', nomina_id=nomina_existente.id) 
+                #return redirect('nom:asignar_proyectos', nomina_id=nomina_existente.id) 
+                return redirect('nom:nomina_detalle', nomina_id=nomina_existente.id) 
             else:
                 print("No se encontró nómina existente para este período con estatus 'Procesada'. Procediendo a crearla.")
 
@@ -432,9 +430,10 @@ def procesar_nomina(request):
                 for emp_id, error in empleados_fallidos:
                     print(f"Empleado con error: ID {emp_id}, Motivo: {error}")
 
-            print(f"Redirigiendo a 'nom:asignar_proyectos' con nomina_id={nomina_hist.id}")
-            return redirect('nom:asignar_proyectos', nomina_id=nomina_hist.id)
-
+            print(f"Redirigiendo a 'nom:asignacion_list' con nomina_id={nomina_hist.id}")
+            #return redirect('nom:asignacion_list', nomina_id=nomina_hist.id)
+            #return redirect('nom:asignacion_list')
+            return redirect('nom:cerrar_nomina', pk=nomina_hist.id)
         except Exception as e:
             messages.error(request, f"Ocurrió un error al procesar la nómina: {e}")
             print(f"--- ERROR GENERAL EN PROCESAR_NOMINA (OUTER EXCEPT): {e} ---")
@@ -467,7 +466,7 @@ def listar_detalles_nomina_procesada(request, nomina_historial_id):
         'nomina_historial': nomina_historial,
         'detalles_nomina': detalles_nomina,
     }
-    return render(request, 'nomina/detalles_nomina_procesada.html', context)
+    return render(request, 'nomina/nomina_detalle.html', context)
 
 @login_required(login_url='bases:login')
 def asignar_proyecto_individual(request, detalle_id):
@@ -1223,7 +1222,8 @@ def seleccionar_periodo_nomina(request):
             print("🔍 DEBUG Antes del redirect - Session keys:", list(request.session.keys()))
             print("🔍 DEBUG: Haciendo redirect a nom:asignar_semana")
 
-            return redirect('nom:asignar_semana')  # Cambiado a asignar_semana
+            #return redirect('nom:asignar_semana')  # Cambiado a asignar_semana
+            return redirect('nom:calcular_nomina')  # Cambiado a asignar_semana
         else:
             print(f"🔍 DEBUG: Form NO es válido. Errores: {form.errors}")
     else:
@@ -1372,7 +1372,8 @@ def asignar_proyectos(request, nomina_id):
             return redirect('nom:asignar_proyectos', nomina_id=nomina.id)
 
     print("DEBUG: Renderizando template nomina/asignar_proyectos.html")
-    return render(request, 'nomina/asignar_proyectos.html', {
+    #return render(request, 'nomina/asignar_proyectos.html', {
+    return render(request, 'nomina/nomina_detalle.html', {
         'nomina': nomina,
         'detalles': detalles,
         'proyectos': proyectos,
@@ -1387,24 +1388,6 @@ class NominaDetalleUpdateView(generic.UpdateView):
         print(f"DEBUG: Redirigiendo desde NominaDetalleUpdateView a nom:asignar_proyectos con nomina_id={nomina_historial_id}")
         return reverse_lazy('nom:asignar_proyectos', kwargs={'nomina_id': nomina_historial_id})
 
-
-
-@login_required
-def cerrar_nomina(request, nomina_id):
-    if request.method == 'POST':
-        nomina = get_object_or_404(NominaHistorial, pk=nomina_id)
-        try:
-            # Aquí puedes añadir más validaciones si es necesario
-            if nomina.estatus == 'Procesada':
-                messages.error(request, "Esta nómina ya está procesada y no puede ser cerrada de nuevo.")
-            else:
-                nomina.estatus = 'Procesada' # O 'Cerrada', si añades ese estatus a tu modelo
-                # Si 'Procesada' ya establece la fecha en el save del modelo, no la repitas aquí
-                nomina.save()
-                messages.success(request, f"La nómina del período {nomina.periodo_inicio} ha sido cerrada exitosamente.")
-        except Exception as e:
-            messages.error(request, f"Ocurrió un error al cerrar la nómina: {e}")
-    return redirect('nom:seleccionar_fecha') # Redirige a donde consideres apropiado
 
 
 
@@ -1428,121 +1411,47 @@ def procesar_nomina_form(request):
 
 
 
-@login_required(login_url='bases:login')
-def cerrar_nomina(request):
-    logger.debug("--- INICIO DE CERRAR_NOMINA ---")
+@transaction.atomic
+def cerrar_nomina(request, pk):
+    periodo = get_object_or_404(NominaHistorial, pk=pk)
 
-    if request.method == 'POST':
-        logger.debug("Método: POST")
-        nomina_historial_id = request.POST.get('nomina_historial_id')
+    if periodo.estatus == 'CERRADO':
+        messages.warning(request, "Este periodo ya está cerrado.")
+        return redirect('nom:detalle_periodo', pk=pk)
 
-        if not nomina_historial_id:
-            logger.error("ERROR: No se recibió nomina_historial_id en la solicitud POST.")
-            messages.error(request, "No se pudo identificar la nómina a cerrar. Intente de nuevo.")
-            return redirect('nom:seleccionar_fecha')
+    # Procesamos asignaciones por empleado y proyecto
+    asignaciones = AsignacionDiaria.objects.filter(
+    fecha__range=(periodo.periodo_inicio, periodo.periodo_fin)
+    )
+    movimientos = []
 
-        try:
-            nomina_historial = get_object_or_404(NominaHistorial, pk=nomina_historial_id)
-            logger.debug(f"NominaHistorial encontrada: ID {nomina_historial.id}, Estatus actual: {nomina_historial.estatus}")
+    for asignacion in asignaciones:
+        proyecto = asignacion.proyecto
+        empleado = asignacion.empleado
+        importe = asignacion.importe_dia  # Suponiendo que ya está calculado en asignación
 
-            if nomina_historial.estatus == 'Procesada':
-                logger.info(f"Nómina ID {nomina_historial.id} ya está procesada. Redirigiendo.")
-                messages.info(
-                    request,
-                    f"La nómina de la semana {nomina_historial.periodo_nomina.semana} "
-                    f"({nomina_historial.periodo_nomina.periodo_inicio} al {nomina_historial.periodo_nomina.periodo_final}) "
-                    f"ya ha sido cerrada."
-                )
-                return redirect('nom:nominas_cerradas_list')
+        if proyecto and importe > 0:
+            # Restamos del saldo del proyecto
+            proyecto.cuenta -= importe
+            proyecto.save()
 
-            with transaction.atomic():
-                total_descontado_de_cuentas = Decimal('0.00')
-                detalles_nomina = NominaDetalle.objects.filter(nomina_historica=nomina_historial)
-                logger.debug(f"Procesando {detalles_nomina.count()} detalles de nómina.")
+            # Registramos movimiento
+            movimiento = MovimientoCuentaProyecto(
+                proyecto=proyecto,
+                empleado=empleado,
+                periodo=periodo,
+                importe=importe
+            )
+            movimientos.append(movimiento)
 
-                if not detalles_nomina.exists():
-                    logger.warning(f"No hay detalles de nómina para NominaHistorial ID {nomina_historial.id}.")
-                    messages.warning(request, "No se encontraron detalles de empleados para esta nómina. No se realizaron descuentos de cuentas.")
-                    
-                    nomina_historial.estatus = 'Procesada'
-                    nomina_historial.fecha_procesada = timezone.now()
-                    nomina_historial.save()
-                    
-                    messages.success(
-                        request,
-                        f"Nómina semana {nomina_historial.periodo_nomina.semana} "
-                        f"({nomina_historial.periodo_nomina.periodo_inicio} al {nomina_historial.periodo_nomina.periodo_final}) "
-                        f"marcada como procesada (sin descuentos)."
-                    )
-                    return redirect('nom:nominas_cerradas_list')
+    MovimientoCuentaProyecto.objects.bulk_create(movimientos)
 
-                for detalle in detalles_nomina:
-                    if detalle.empleado and detalle.proyecto and detalle.proyecto.cuenta:
-                        try:
-                            cuenta = detalle.proyecto.cuenta
-                            monto_a_descontar = detalle.total_pago
+    periodo.estatus = 'CERRADO'
+    periodo.save()
 
-                            if monto_a_descontar <= 0:
-                                logger.warning(f"Monto a descontar para {detalle.empleado.nombre} es cero o negativo. No se realizará descuento.")
-                                continue
-
-                            if cuenta.saldo_actual < monto_a_descontar:
-                                raise ValueError(
-                                    f"Saldo insuficiente en la cuenta '{cuenta.cuenta}' "
-                                    f"del proyecto '{detalle.proyecto.nombre}' para cubrir la nómina de '{detalle.empleado.nombre}'. "
-                                    f"Saldo: {cuenta.saldo_actual}, Requerido: {monto_a_descontar}"
-                                )
-
-                            cuenta.saldo_actual -= monto_a_descontar
-                            cuenta.save()
-                            total_descontado_de_cuentas += monto_a_descontar
-                            logger.debug(f"Descontado {monto_a_descontar} de la cuenta {cuenta.cuenta}. Nuevo saldo: {cuenta.saldo_actual}")
-
-                        except ValueError as ve:
-                            logger.error(f"Error de validación para NominaDetalle ID {detalle.id}: {ve}")
-                            messages.error(request, f"Error al descontar el pago de {detalle.empleado.nombre}: {ve}")
-                            raise
-                        except Exception as e:
-                            logger.error(f"Error inesperado al procesar NominaDetalle ID {detalle.id}: {e}", exc_info=True)
-                            messages.error(request, f"Error interno al procesar el pago de {detalle.empleado.nombre}: {e}")
-                            raise
-                    else:
-                        emp_nombre = detalle.empleado.nombre if detalle.empleado else 'N/A'
-                        logger.warning(f"NominaDetalle ID {detalle.id} para '{emp_nombre}' sin proyecto o cuenta.")
-                        messages.warning(request, f"No se pudo descontar el pago de {emp_nombre}; falta asignar proyecto o cuenta bancaria.")
-
-                # Actualiza estatus y guarda
-                nomina_historial.estatus = 'Procesada'
-                nomina_historial.fecha_procesada = timezone.now()
-                nomina_historial.save()
-                logger.info(f"Nómina ID {nomina_historial.id} actualizada a estatus 'Procesada'. Total descontado: {total_descontado_de_cuentas}")
-
-                messages.success(
-                    request,
-                    f"Nómina semana {nomina_historial.periodo_nomina.semana} "
-                    f"({nomina_historial.periodo_nomina.periodo_inicio} al {nomina_historial.periodo_nomina.periodo_final}) "
-                    f"cerrada exitosamente. Total descontado: ${total_descontado_de_cuentas:,.2f}."
-                )
-                return redirect('nom:nominas_cerradas_list')
-
-        except NominaHistorial.DoesNotExist:
-            logger.error(f"NominaHistorial con ID {nomina_historial_id} no encontrada.")
-            messages.error(request, "La nómina que intenta cerrar no existe.")
-            return redirect('nom:seleccionar_fecha')
-
-        except ValueError as ve:
-            logger.error(f"Fallo en transacción de cierre de nómina: {ve}")
-            messages.error(request, f"Error de validación: {ve}")
-            return redirect('nom:calcular_nomina')
-
-        except Exception as e:
-            logger.error(f"ERROR CRÍTICO al cerrar nómina ID {nomina_historial_id}: {e}", exc_info=True)
-            messages.error(request, f"Ocurrió un error inesperado: {e}")
-            return redirect('nom:calcular_nomina')
-
-    logger.debug("--- FIN DE CERRAR_NOMINA (NO POST) ---")
-    messages.warning(request, "Acceso inválido. Use el botón 'Cerrar Nómina'.")
-    return redirect('nom:seleccionar_fecha')
+    messages.success(request, "Nómina cerrada y movimientos aplicados correctamente.")
+    #return redirect('nom:nomina_detalle', pk=pk)
+    return redirect('nom:asignacion_list')
 
 @login_required(login_url='bases:login')
 def nominas_cerradas_list(request):
@@ -1649,6 +1558,12 @@ class AsignacionListView(generic.ListView):
     template_name = 'nomina/asignacion_list.html'
     context_object_name = 'asignaciones'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        periodo_activo = NominaHistorial.objects.filter(estatus='ABIERTO').last()
+        context['periodo'] = periodo_activo
+        return context
+
 class AsignacionCreateView(generic.CreateView):
     model = AsignacionDiaria
     form_class = AsignacionDiariaForm
@@ -1678,17 +1593,56 @@ class AsignacionDeleteView(generic.DeleteView):
 
 # views.py
 
+# def asignaciones_masivas(request):
+#     queryset = AsignacionDiaria.objects.filter(fecha=timezone.now().date())
+
+#     if request.method == 'POST':
+#         formset = AsignacionDiariaFormSet(request.POST, queryset=queryset)
+#         if formset.is_valid():
+#             instances = formset.save(commit=False)
+#             for instance in instances:
+#                 # Asignar automáticamente al usuario que crea/edita
+#                 if not instance.uc_id:  # si es nueva o no tiene uc
+#                     instance.uc = request.user
+#                 instance.um = request.user.id  # usuario que modifica
+#                 instance.save()
+#             return redirect('nom:asignacion_list')
+#     else:
+#         formset = AsignacionDiariaFormSet(queryset=queryset)
+
+#     return render(request, 'nomina/asignacion_formset.html', {'formset': formset})
+
+
+
+
 def asignaciones_masivas(request):
-    # Filtramos las asignaciones a editar, por ejemplo las de hoy
-    queryset = AsignacionDiaria.objects.filter(fecha=timezone.now().date())
+    empleados = Empleado.objects.all().order_by('nombre')
+    proyectos = Proyecto.objects.all().order_by('nombre')
 
     if request.method == 'POST':
-        formset = AsignacionDiariaFormSet(request.POST, queryset=queryset)
-        if formset.is_valid():
-            formset.save()
-            return redirect('nom:asignacion_list')
-    else:
-        formset = AsignacionDiariaFormSet(queryset=queryset)
+        empleados_ids = request.POST.getlist('empleados')  # checkbox seleccionados
+        proyecto_id = request.POST.get('proyecto')
+        fecha = request.POST.get('fecha')
+        horas = request.POST.get('horas_trabajadas')
 
-    return render(request, 'nomina/asignacion_formset.html', {'formset': formset})
+        if not empleados_ids or not proyecto_id or not fecha:
+            messages.error(request, "Selecciona al menos un empleado, proyecto y fecha.")
+        else:
+            for emp_id in empleados_ids:
+                asignacion = AsignacionDiaria(
+                    empleado_id=emp_id,
+                    proyecto_id=proyecto_id,
+                    fecha=fecha,
+                    horas_trabajadas=horas or 0,
+                    uc=request.user,
+                    um=request.user.id
+                )
+                asignacion.save()
+            messages.success(request, f"Se asignó el proyecto a {len(empleados_ids)} empleados.")
 
+        return redirect('nom:asignaciones_masivas')
+
+    return render(request, 'nomina/asignacion_masiva.html', {
+        'empleados': empleados,
+        'proyectos': proyectos
+    })

@@ -1,0 +1,17 @@
+<h4>Resumen por Proyectos</h4>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Proyecto</th>
+      <th>Total a Descontar</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for proyecto in resumen_proyectos %}
+      <tr>
+        <td>{{ proyecto.nombre }}</td>
+        <td>{{ proyecto.total|floatformat:2 }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

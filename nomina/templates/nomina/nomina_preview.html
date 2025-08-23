@@ -1,0 +1,136 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="row">
+
+  <!-- Encabezado -->
+  <div class="col-12">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">
+          <i class="fas fa-file-invoice-dollar"></i> Vista previa de Nómina
+        </h6>
+        <div>
+          <a href="{% url 'nom:seleccionar_fecha' %}" class="btn btn-sm btn-secondary">
+            <i class="fas fa-arrow-left"></i> Regresar
+          </a>
+          <a href="{% url 'nom:nomina_procesar' periodo.id %}" class="btn btn-sm btn-success">
+            <i class="fas fa-check"></i> Procesar Nómina
+          </a>
+        </div>
+      </div>
+      <div class="card-body">
+        <p class="mb-0">
+          <strong>Periodo:</strong> {{ periodo.periodo_inicio }} al {{ periodo.periodo_final }}<br>
+          <strong>Total general (previa):</strong> ${{ total_general|floatformat:2 }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resumen por empleado y proyecto -->
+  <div class="col-12">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-users"></i> Desglose por Empleado</h6>
+      </div>
+      <div class="card-body">
+        {% for row in resumen_empleados %}
+          <div class="mb-4 p-3 border rounded">
+            <div class="d-flex justify-content-between">
+              <div>
+                <strong>{{ row.empleado.nombre }}</strong><br>
+                Días trabajados: {{ row.dias_trabajados }} |
+                Faltas: {{ row.faltas }} |
+                Desc. séptimo: ${{ row.septimo_descuento|floatformat:2 }}
+              </div>
+              <div>
+                <span class="badge badge-success">Total: ${{ row.total_empleado|floatformat:2 }}</span>
+              </div>
+            </div>
+
+            <div class="table-responsive mt-2">
+              <table class="table table-sm table-striped">
+                <thead>
+                  <tr>
+                    <th>Proyecto</th>
+                    <th>Días</th>
+                    <th>Horas</th>
+                    <th>Importe</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for p in row.por_proyecto %}
+                  <tr>
+                    <td>{{ p.proyecto.nombre }}</td>
+                    <td>{{ p.dias }}</td>
+                    <td>{% if p.horas %}{{ p.horas }}{% else %}-{% endif %}</td>
+                    <td>${{ p.importe|floatformat:2 }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr><td colspan="4" class="text-center text-muted">Sin asignaciones en el período.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        {% empty %}
+          <p class="text-muted">No hay empleados con asignaciones en el período.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Resumen por proyecto (para saber cuánto se descontará al cerrar) -->
+  <div class="col-12">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-project-diagram"></i> Resumen por Proyecto</h6>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped">
+            <thead>
+              <tr>
+                <th>Proyecto</th>
+                <th>Cuenta</th>
+                <th>Total a descontar</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for rp in resumen_proyectos %}
+              <tr>
+                <td>{{ rp.proyecto.nombre }}</td>
+                <td>{% if rp.cuenta %}{{ rp.cuenta.cuenta }}{% else %}<span class="text-warning">Sin cuenta</span>{% endif %}</td>
+                <td><strong>${{ rp.total|floatformat:2 }}</strong></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-center text-muted">Sin importes por proyecto.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Form para cerrar nómina (cuando ya esté procesada y quieras afectar cuentas) -->
+        {% if periodo %}
+        <form method="post" action="{% url 'nom:cerrar_nomina' %}" class="mt-3">
+          {% csrf_token %}
+          {# cuando proceses, crea/actualiza NominaHistorial y pásalo a esta vista para habilitar el botón #}
+          {% if periodo.nomina_historial %}
+            <input type="hidden" name="nomina_historial_id" value="{{ periodo.nomina_historial.id }}">
+            <button type="submit" class="btn btn-danger">
+              <i class="fas fa-lock"></i> Cerrar Nómina (descontar a proyectos)
+            </button>
+          {% else %}
+            <button type="button" class="btn btn-secondary" disabled title="Primero procesa la nómina">
+              <i class="fas fa-lock"></i> Cerrar Nómina
+            </button>
+          {% endif %}
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

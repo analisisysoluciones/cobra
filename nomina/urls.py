@@ -28,9 +28,10 @@ urlpatterns = [
     path('asignar-semana/', asignar_semana_todos, name='asignar_semana'),
     path('asignaciones-list/', AsignacionListView.as_view(), name='asignacion_list'),
     path('asignaciones-nueva/', AsignacionCreateView.as_view(), name='asignacion_nueva'),
-    path('asignaciones-edita/', AsignacionUpdateView.as_view(), name='asignacion_edita'),
-    path('asignaciones-elimina/', AsistenciaDeleteView.as_view(), name='asignacion_elimina'),
+    path('asignaciones-edita/<int:pk>/', AsignacionUpdateView.as_view(), name='asignacion_edita'),
+    path('asignaciones-elimina/<int:pk>/', AsistenciaDeleteView.as_view(), name='asignacion_elimina'),
     path('asignaciones-masivas/', asignaciones_masivas, name='asignaciones_masivas'),
+    
 
     #path('nomina-semanal/pdf/', generar_nomina_pdf, name='nomina_pdf'),
     path('nomina-semanal/pdf/<str:fecha_str>/', generar_nomina_pdf, name='nomina_pdf'),
@@ -40,7 +41,7 @@ urlpatterns = [
 
     path('procesar-nomina/', procesar_nomina, name='procesar_nomina'),
     
-    path('cerrar-nomina',cerrar_nomina,name='cerrar_nomina'),
+    path('cerrar-nomina/<int:pk>/',cerrar_nomina,name='cerrar_nomina'),
     path('nominas-cerradas/', nominas_cerradas_list, name='nominas_cerradas_list'),
 
     path('periodos/', PeriodosNominaList.as_view(), name='periodos_list'),
