@@ -28,7 +28,8 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter, legal
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
-from django.db.models import Sum, Max, Q, Count
+from django.db.models import Sum, Max, Q, Count, F, Value, DecimalField
+from django.db.models.functions import Coalesce
 from datetime import datetime, timedelta
 from decimal import Decimal
 import traceback
@@ -43,33 +44,50 @@ logger = logging.getLogger(__name__)
 
 
 
+
 def poblar_nomina_detalle_desde_asignaciones(nomina_historial, horas_jornada=8):
-    asignaciones = AsignacionDiaria.objects.filter(
-        fecha__range=[nomina_historial.periodo_nomina.periodo_inicio,
-                      nomina_historial.periodo_nomina.periodo_final]
-    ).values('empleado', 'proyecto') \
-     .annotate(
-         dias=Count('id'),
-         horas=Sum('horas_trabajadas'),
-     )
+    """
+    Llena/actualiza NominaDetalle para el periodo de nomina_historial
+    a partir de AsignacionDiaria, agrupando por empleado y proyecto.
+    Usa los nombres de campo correctos del modelo:
+      - dias_trabajados
+      - horas_trabajadas
+      - total_pago
+    """
+    qs = (AsignacionDiaria.objects
+          .filter(fecha__range=(nomina_historial.periodo_inicio, nomina_historial.periodo_fin))
+          .values('empleado', 'proyecto')
+          .annotate(
+              dias=Count('id'),
+              horas=Coalesce(
+                  Sum('horas_trabajadas'),
+                  Value(0.0),  # Cambia Value(0) a Value(0.0) para indicar decimal
+                  output_field=DecimalField(max_digits=10, decimal_places=2)  # Especifica tipo de salida
+              )
+          ))
 
-    for a in asignaciones:
-        empleado = Empleado.objects.get(id=a['empleado'])
-        proyecto = Proyecto.objects.get(id=a['proyecto'])
+    detalles_bulk = []
+    for row in qs:
+        emp = Empleado.objects.get(pk=row['empleado'])
+        proyecto_id = row['proyecto']  # puede ser None si permites asignaciones sin proyecto
+        dias = int(row['dias'] or 0)
+        horas = Decimal(row['horas'] or 0)
 
-        if a['horas']:  # pago proporcional por horas
-            total_pago = (empleado.pago_diario / horas_jornada) * float(a['horas'])
-        else:  # pago fijo diario
-            total_pago = empleado.pago_diario * a['dias']
+        if horas > 0:
+            total = (emp.sueldo_diario / Decimal(horas_jornada)) * horas
+        else:
+            total = emp.sueldo_diario * dias
 
-        NominaDetalle.objects.update_or_create(
+        # Crea/actualiza un detalle por empleado+proyecto
+        det, created = NominaDetalle.objects.update_or_create(
             nomina_historica=nomina_historial,
-            empleado=empleado,
-            proyecto=proyecto,
+            empleado=emp,
+            proyecto_id=proyecto_id,
             defaults={
-                'total_pago': total_pago,
-                'dias_trabajados': a['dias'],
-                'horas_trabajadas': a['horas'],
+                'sueldo_diario': emp.sueldo_diario,
+                'dias_trabajados': dias,
+                'horas_trabajadas': horas if horas > 0 else None,
+                'total_pago': total,
             }
         )
 
@@ -313,134 +331,85 @@ def capturar_falta(request):
 
 def procesar_nomina(request):
     if request.method == 'POST':
-        print("\n--- INICIO DE PROCESAR_NOMINA (POST) ---")
-        print(">>> VERSIÓN DE CÓDIGO ACTUALIZADA - JULIO 2025 <<<") # <--- AÑADE ESTA LÍNEA
-        print("POST recibido:", request.POST)
-        # Opcional: imprimir los datos de la sesión para depuración
-        print("Periodo en sesión (para referencia):")
-        print("ID:", request.session.get('periodo_id'))
-        print("Semana:", request.session.get('periodo_semana'))
-        print("Inicio S:", request.session.get('periodo_inicio'))
-        print("Fin S:", request.session.get('periodo_final'))
+        logger.info("\n--- INICIO DE PROCESAR_NOMINA (POST) ---")
+        logger.info(">>> VERSIÓN DE CÓDIGO ACTUALIZADA - JULIO 2025 <<<")
+        logger.info(f"POST recibido: {request.POST}")
+        logger.info("Periodo en sesión (para referencia):")
+        logger.info(f"ID: {request.session.get('periodo_id')}")
+        logger.info(f"Semana: {request.session.get('periodo_semana')}")
+        logger.info(f"Inicio S: {request.session.get('periodo_inicio')}")
+        logger.info(f"Fin S: {request.session.get('periodo_final')}")
 
         try:
             fecha_inicio_str = request.POST.get('fecha_inicio_nomina')
             fecha_fin_str = request.POST.get('fecha_fin_nomina')
-            
-            # Asegúrate de que las fechas se conviertan correctamente a objetos date
             fecha_inicio = datetime.strptime(fecha_inicio_str, '%Y-%m-%d').date()
             fecha_fin = datetime.strptime(fecha_fin_str, '%Y-%m-%d').date()
-            print(f"Fechas convertidas a date: Inicio={fecha_inicio}, Fin={fecha_fin}")
+            logger.info(f"Fechas convertidas a date: Inicio={fecha_inicio}, Fin={fecha_fin}")
 
-            # Validación: verificar si la nómina YA FUE CALCULADA/PROCESADA para el mismo periodo
-            # Obtener el objeto si existe, no solo verificar si existe
+            # Verificar si la nómina ya existe
             nomina_existente = NominaHistorial.objects.filter(
                 periodo_inicio=fecha_inicio,
                 periodo_fin=fecha_fin,
-                estatus='Procesada' # Mantenemos el estatus 'Procesada' aquí
-            ).first() # Usa .first() para obtener el objeto o None
+                estatus='Procesada'
+            ).first()
 
             if nomina_existente:
-                print(f"¡ADVERTENCIA! Nómina existente encontrada (ID: {nomina_existente.id}). Redirigiendo a asignar_proyectos.")
-                messages.info(request, f"La nómina para el periodo del {fecha_inicio} al {fecha_fin} ya ha sido calculada. Puedes continuar con la asignación de proyectos.")
-                # AHORA nomina_existente.id está definido y se puede usar
-                #return redirect('nom:asignar_proyectos', nomina_id=nomina_existente.id) 
-                return redirect('nom:nomina_detalle', nomina_id=nomina_existente.id) 
-            else:
-                print("No se encontró nómina existente para este período con estatus 'Procesada'. Procediendo a crearla.")
+                logger.info(f"¡ADVERTENCIA! Nómina existente encontrada (ID: {nomina_existente.id}). Redirigiendo a nomina_detalle.")
+                messages.info(request, f"La nómina para el periodo del {fecha_inicio} al {fecha_fin} ya ha sido calculada.")
+                return redirect('nom:nomina_detalle', pk=nomina_existente.id)
 
-            # --- Si la nómina NO existe con estatus 'Procesada', esta sección se ejecutará ---
-            empleados = Empleado.objects.filter(estado=True)
-            print("Empleados activos encontrados:", empleados.count())
+            logger.info("No se encontró nómina existente para este período con estatus 'Procesada'. Procediendo a crearla.")
 
-            if not empleados.exists():
-                print("ERROR: No hay empleados activos para procesar.")
-                messages.error(request, "No hay empleados activos para procesar la nómina.")
-                return redirect('nom:seleccionar_fecha')
-
-            total_general = Decimal('0.00')
+            # Validar cuenta
             cuenta = Cuenta.objects.first()
             if not cuenta:
-                print("ERROR: No hay una cuenta configurada.")
+                logger.error("ERROR: No hay una cuenta configurada.")
                 messages.error(request, "No hay una cuenta de banco configurada para procesar la nómina.")
                 return redirect('nom:seleccionar_fecha')
 
             # Crear encabezado de nómina
-            print("Creando NominaHistorial...")
             nomina_hist = NominaHistorial.objects.create(
                 periodo_inicio=fecha_inicio,
                 periodo_fin=fecha_fin,
                 total_pago=Decimal('0.00'),
                 cuenta=cuenta,
-                estatus='Procesada', # O 'Calculada' si tienes un estatus intermedio
+                estatus='Procesada',
                 fecha_procesada=timezone.now()
             )
-            print(f"NominaHistorial creada con ID: {nomina_hist.id}")
-            # =====================================================
-            # >>> INYECTAR DETALLES DESDE ASIGNACIONES DIARIAS <<<
-            # =====================================================
+            logger.info(f"NominaHistorial creada con ID: {nomina_hist.id}")
+
+            # Poblar detalles desde asignaciones diarias
             poblar_nomina_detalle_desde_asignaciones(nomina_hist)
-            # =====================================================
+            logger.info("Detalles poblados desde asignaciones diarias.")
 
+            # Calcular total general
+            detalles = NominaDetalle.objects.filter(nomina_historica=nomina_hist)
+            if not detalles.exists():
+                logger.error("ERROR: No se generaron detalles para la nómina.")
+                messages.error(request, "No se encontraron asignaciones para el periodo seleccionado.")
+                nomina_hist.delete()  # Eliminar si no hay detalles
+                return redirect('nom:seleccionar_fecha')
 
-            empleados_procesados = 0
-            empleados_fallidos = []
-
-            print("Iniciando procesamiento de detalles de nómina por empleado...")
-            for emp in empleados:
-                try:
-                    print(f"Procesando registro de nómina para empleado: {emp.id} - {emp.nombre}")
-
-                    sueldo_diario = emp.sueldo_diario or Decimal('0.00')
-                    dias_trabajados = 6  # Esto se puede hacer dinámico más adelante
-                    total_pago = sueldo_diario * dias_trabajados
-                    print(f"  Sueldo diario: {sueldo_diario}, Días trabajados: {dias_trabajados}, Pago calculado: {total_pago}")
-
-                    NominaDetalle.objects.create(
-                        nomina_historica=nomina_hist,
-                        empleado=emp,
-                        sueldo_diario=sueldo_diario,
-                        dias_trabajados=dias_trabajados,
-                        total_pago=total_pago,
-                        proyecto=None  # Se asignará después
-                    )
-                    print(f"  NominaDetalle creado para {emp.nombre}.")
-                    
-
-                    total_general += total_pago
-                    empleados_procesados += 1
-
-                except Exception as e:
-                    # Este except es para errores por empleado individual
-                    print(f"❌ Error CRÍTICO al procesar empleado ID {emp.id} ({emp.nombre}): {e}")
-                    messages.warning(request, f"Error al procesar empleado {emp.nombre}: {e}") # Mensaje específico para el usuario
-                    empleados_fallidos.append((emp.id, str(e)))
-                    # No redirigir aquí, dejar que el bucle continúe y el error general lo capture si es necesario
-
-            print(f"Total general de pago calculado: {total_general}")
-            # Actualizar total de la nómina
+            total_general = sum(detalle.total_pago for detalle in detalles)
             nomina_hist.total_pago = total_general
             nomina_hist.save()
-            print(f"NominaHistorial (ID: {nomina_hist.id}) actualizada con total_pago: {nomina_hist.total_pago}")
+            logger.info(f"NominaHistorial (ID: {nomina_hist.id}) actualizada con total_pago: {nomina_hist.total_pago}")
 
-            messages.success(request, f"Nómina procesada correctamente. {empleados_procesados} empleados procesados.")
+            messages.success(request, f"Nómina procesada correctamente. {detalles.count()} detalles generados.")
 
-            if empleados_fallidos:
-                messages.warning(request, f"{len(empleados_fallidos)} empleados no fueron procesados.")
-                for emp_id, error in empleados_fallidos:
-                    print(f"Empleado con error: ID {emp_id}, Motivo: {error}")
+            # Renderizar detalles
+            return render(request, 'nomina/nomina_detalle.html', {
+                'nomina': nomina_hist,
+                'detalles': detalles,
+            })
 
-            print(f"Redirigiendo a 'nom:asignacion_list' con nomina_id={nomina_hist.id}")
-            #return redirect('nom:asignacion_list', nomina_id=nomina_hist.id)
-            #return redirect('nom:asignacion_list')
-            return redirect('nom:cerrar_nomina', pk=nomina_hist.id)
         except Exception as e:
+            logger.error(f"--- ERROR GENERAL EN PROCESAR_NOMINA: {e} ---", exc_info=True)
             messages.error(request, f"Ocurrió un error al procesar la nómina: {e}")
-            print(f"--- ERROR GENERAL EN PROCESAR_NOMINA (OUTER EXCEPT): {e} ---")
-            traceback.print_exc() # Esto imprimirá la traza completa del error
             return redirect('nom:seleccionar_fecha')
 
-    print("\n--- FIN DE PROCESAR_NOMINA (NO POST) ---")
+    logger.info("\n--- FIN DE PROCESAR_NOMINA (NO POST) ---")
     return redirect('nom:seleccionar_fecha')
 
 #=================================================================
@@ -1411,47 +1380,25 @@ def procesar_nomina_form(request):
 
 
 
-@transaction.atomic
+
 def cerrar_nomina(request, pk):
-    periodo = get_object_or_404(NominaHistorial, pk=pk)
+    if request.method == 'POST':
+        try:
+            nomina_hist = NominaHistorial.objects.get(id=pk)
+            if nomina_hist.estatus == 'Procesada':
+                nomina_hist.estatus = 'Cerrada'
+                nomina_hist.save()
+                messages.success(request, f"Nómina del {nomina_hist.periodo_inicio} al {nomina_hist.periodo_fin} cerrada correctamente.")
+                logger.info(f"Nómina ID {pk} cerrada.")
+            else:
+                messages.warning(request, f"La nómina ya está en estado {nomina_hist.estatus}.")
+        except NominaHistorial.DoesNotExist:
+            messages.error(request, "La nómina no existe.")
+            logger.error(f"Intento de cerrar nómina inexistente ID {pk}.")
+        return redirect('nom:seleccionar_fecha')
+    
+    return redirect('nom:seleccionar_fecha')
 
-    if periodo.estatus == 'CERRADO':
-        messages.warning(request, "Este periodo ya está cerrado.")
-        return redirect('nom:detalle_periodo', pk=pk)
-
-    # Procesamos asignaciones por empleado y proyecto
-    asignaciones = AsignacionDiaria.objects.filter(
-    fecha__range=(periodo.periodo_inicio, periodo.periodo_fin)
-    )
-    movimientos = []
-
-    for asignacion in asignaciones:
-        proyecto = asignacion.proyecto
-        empleado = asignacion.empleado
-        importe = asignacion.importe_dia  # Suponiendo que ya está calculado en asignación
-
-        if proyecto and importe > 0:
-            # Restamos del saldo del proyecto
-            proyecto.cuenta -= importe
-            proyecto.save()
-
-            # Registramos movimiento
-            movimiento = MovimientoCuentaProyecto(
-                proyecto=proyecto,
-                empleado=empleado,
-                periodo=periodo,
-                importe=importe
-            )
-            movimientos.append(movimiento)
-
-    MovimientoCuentaProyecto.objects.bulk_create(movimientos)
-
-    periodo.estatus = 'CERRADO'
-    periodo.save()
-
-    messages.success(request, "Nómina cerrada y movimientos aplicados correctamente.")
-    #return redirect('nom:nomina_detalle', pk=pk)
-    return redirect('nom:asignacion_list')
 
 @login_required(login_url='bases:login')
 def nominas_cerradas_list(request):
@@ -1633,9 +1580,8 @@ def asignaciones_masivas(request):
                     empleado_id=emp_id,
                     proyecto_id=proyecto_id,
                     fecha=fecha,
-                    horas_trabajadas=horas or 0,
-                    uc=request.user,
-                    um=request.user.id
+                    horas_trabajadas=horas or 0
+                    
                 )
                 asignacion.save()
             messages.success(request, f"Se asignó el proyecto a {len(empleados_ids)} empleados.")
@@ -1646,3 +1592,31 @@ def asignaciones_masivas(request):
         'empleados': empleados,
         'proyectos': proyectos
     })
+
+
+def nomina_detalle(request, pk):
+    nomina = get_object_or_404(NominaHistorial, pk=pk)
+    detalles = NominaDetalle.objects.filter(nomina_historica=nomina)
+    return render(request, 'nomina/nomina_detalle.html', {
+        'nomina': nomina,
+        'detalles': detalles
+    })
+
+
+
+
+def crear_asignacion_diaria(request):
+    if request.method == 'POST':
+        form = AsignacionDiariaForm(request.POST)
+        if form.is_valid():
+            asignacion = form.save()
+            logger.info(f"Asignación creada: Empleado {asignacion.empleado}, Fecha {asignacion.fecha}, Proyecto {asignacion.proyecto}")
+            messages.success(request, "Asignación registrada correctamente.")
+            return redirect('nom:seleccionar_fecha')  # O a una lista de asignaciones
+        else:
+            logger.warning(f"Error en el formulario: {form.errors}")
+            messages.error(request, "Error al registrar la asignación. Verifica los datos.")
+    else:
+        form = AsignacionDiariaForm()
+
+    return render(request, 'nomina/crear_asignacion_diaria.html', {'form': form})

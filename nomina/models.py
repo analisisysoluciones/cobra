@@ -6,6 +6,7 @@ from inv.models import Material
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from decimal import Decimal
+from django.db.models import Sum
 import re
 from django.utils import timezone
 from datetime import date, timedelta
@@ -272,24 +273,32 @@ class PeriodosNomina(models.Model):
         return f"{self.semana} - {self.periodo_inicio} - {self.periodo_final}"
     
 
-class AsignacionDiaria(ClaseModelo):
+class AsignacionDiaria(models.Model):
     empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
-    proyecto = models.ForeignKey('adm.Proyecto', on_delete=models.CASCADE)
     fecha = models.DateField()
-    horas_trabajadas = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # opcional
-
-    def __str__(self):
-        return f"{self.empleado} - {self.proyecto} - {self.fecha}"
-    
-    def save(self, *args, **kwargs):
-        # Validación opcional: No asignar si hay falta registrada
-        if Asistencia.objects.filter(empleado=self.empleado, fecha=self.fecha).exists():
-            raise ValidationError(f"No se puede asignar proyecto en {self.fecha}: El empleado tiene una falta registrada.")
-        super().save(*args, **kwargs)
+    proyecto = models.ForeignKey('adm.Proyecto', on_delete=models.SET_NULL, null=True, blank=True)
+    horas_trabajadas = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
 
     class Meta:
-        unique_together = ('empleado', 'fecha')
+        unique_together = (('empleado', 'fecha', 'proyecto'),)
 
+    def clean(self):
+        # Validar unicidad en el nivel de aplicación
+        if AsignacionDiaria.objects.filter(
+            empleado=self.empleado,
+            fecha=self.fecha,
+            proyecto=self.proyecto
+        ).exclude(pk=self.pk).exists():
+            raise ValidationError(
+                f"Ya existe una asignación para {self.empleado} en {self.fecha} con el proyecto {self.proyecto or 'Sin Proyecto'}."
+            )
+        # Validar horas totales por día (opcional, máximo 12 horas)
+        total_horas = AsignacionDiaria.objects.filter(
+            empleado=self.empleado,
+            fecha=self.fecha
+        ).exclude(pk=self.pk).aggregate(total=Sum('horas_trabajadas'))['total'] or 0
+        if total_horas + self.horas_trabajadas > 12:
+            raise ValidationError("El total de horas por día no puede exceder 12.")
     
 
 class MovimientoCuentaProyecto(models.Model):
@@ -308,3 +317,16 @@ class MovimientoCuentaProyecto(models.Model):
 
 
 
+from django.db import migrations
+
+class Migration(migrations.Migration):
+    dependencies = [
+        ('nomina', 'anterior_migracion'),  # Reemplaza con tu última migración
+    ]
+
+    operations = [
+        migrations.RemoveConstraint(
+            model_name='AsignacionDiaria',
+            name='nomina_asignaciondiaria_empleado_id_fecha_d3e3b95b_uniq',
+        ),
+    ]

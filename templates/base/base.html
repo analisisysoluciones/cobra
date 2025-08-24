@@ -140,17 +140,18 @@
                 <div id="empleadosMenu" class="collapse">
                     <div class="bg-gradient-light py-2 collapse-inner rounded">
                         <h6 class="collapse-header text-primary">👷 Gestión de Personal:</h6>
+                        <a class="collapse-item" href="{% url 'nom:periodos_list' %}">
+                            <i class="fa fa-calendar-check text-danger"></i> Periodos de Nómina
+                        </a>
+                        
                         <a class="collapse-item" href="{% url 'nom:empleado_list' %}">
                             <i class="fas fa-user-tie text-info"></i> Lista de Empleados
                         </a>
                         <a class="collapse-item" href="{% url 'nom:asistencia_list' %}">
-                            <i class="fas fa-calendar-check text-success"></i> Asistencia
-                        </a>
-                        <a class="collapse-item" href="{% url 'nom:asignacion_list' %}">
-                            <i class="fas fa-hard-hat text-primary"></i> Asignación proyectos
+                            <i class="fas fa-calendar-check text-success"></i>1.- Asistencia
                         </a>
                         <a class="collapse-item" href="{% url 'nom:asignaciones_masivas' %}">
-                            <i class="fas fa-hard-hat text-primary"></i> Asignación Masivas
+                            <i class="fas fa-hard-hat text-primary"></i>2.- Asignación Masivas
                         </a>
                         <div class="dropdown-divider"></div>
                         <h6 class="collapse-header text-primary">💰 Nómina:</h6>
@@ -158,9 +159,7 @@
                         {% comment %} <a class="collapse-item" href="http://127.0.0.1:8000/adm/nomina/2025-02-01/">
                             <i class="fas fa-file-invoice-dollar text-danger"></i> Cálculo de Nómina
                         </a> {% endcomment %}
-                        <a class="collapse-item" href="{% url 'nom:periodos_list' %}">
-                            <i class="fa fa-calendar-check text-danger"></i> Periodos de Nómina
-                        </a>
+                        
                         
 
                         <a class="collapse-item" href="{% url 'nom:seleccionar_fecha' %}">

@@ -2,7 +2,6 @@
 from django import forms
 import datetime
 from django.core.exceptions import ValidationError
-from adm.models import Proyecto # <-- CORREGIDO: Importar Proyecto desde adm.models
 from .models import (
     Cuenta, Empleado, Asistencia, Nomina, PeriodosNomina, EmpleadoArchivo, NominaDetalle, AsignacionDiaria
 )
@@ -13,7 +12,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.forms import inlineformset_factory, modelformset_factory, BaseModelFormSet
 from django.urls import reverse_lazy
-
+from django.db.models import Sum
 
 class EmpleadoForm(forms.ModelForm):
     class Meta:
@@ -84,6 +83,7 @@ class AsignarProyectoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        from adm.models import Proyecto
         # Asegura que el queryset sea de todos los proyectos o filtra si es necesario
         self.fields['proyecto'].queryset = Proyecto.objects.all()
         self.fields['proyecto'].empty_label = "--- Seleccione un Proyecto ---" # Opcional
@@ -126,33 +126,71 @@ class NominaDetalleProyectoForm(forms.ModelForm):
 
 # ... (imports existentes)
 
+
+    
 class AsignacionDiariaForm(forms.ModelForm):
     class Meta:
         model = AsignacionDiaria
-        fields = ['empleado', 'proyecto', 'fecha', 'horas_trabajadas']
+        # Temporalmente excluimos 'proyecto' para evitar la carga automática
+        fields = ['empleado', 'fecha', 'horas_trabajadas']
         widgets = {
             'empleado': forms.Select(attrs={'class': 'form-control select2', 'id': 'id_empleado', 'style': 'width: 100%;'}),
-            'proyecto': forms.Select(attrs={'class': 'form-control select2', 'id': 'id_proyecto', 'style': 'width: 100%;'}),
             'fecha': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'horas_trabajadas': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.5', 'min': '0', 'max': '12'}),
         }
 
-    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['proyecto'].queryset = Proyecto.objects.all()
-        self.fields['proyecto'].empty_label = "--- Seleccione un Proyecto ---"
+        # Importar Proyecto dentro de __init__ para evitar circularidad
+        from adm.models import Proyecto
+        
+        # Agregar manualmente el campo proyecto
+        self.fields['proyecto'] = forms.ModelChoiceField(
+            queryset=Proyecto.objects.all(),
+            widget=forms.Select(attrs={'class': 'form-control select2', 'id': 'id_proyecto', 'style': 'width: 100%;'}),
+            empty_label="--- Seleccione un Proyecto ---",
+            required=False  # Ajusta según tus necesidades
+        )
+        
         self.fields['empleado'].queryset = Empleado.objects.all()
         self.fields['empleado'].empty_label = "--- Seleccione un Empleado ---"
+        
+        # Reordenar los campos para que aparezcan en el orden deseado
+        field_order = ['empleado', 'proyecto', 'fecha', 'horas_trabajadas']
+        self.fields = {key: self.fields[key] for key in field_order if key in self.fields}
 
-    
+    # ... resto de los métodos clean() igual
     def clean(self):
         cleaned_data = super().clean()
-        # Validación en form: Reforzar si hay falta (redundante con model, pero para UX)
-        empleado = cleaned_data.get('empleado')  # Asume que se pasa en init si es formset
+        empleado = cleaned_data.get('empleado')
         fecha = cleaned_data.get('fecha')
+        proyecto = cleaned_data.get('proyecto')
+        horas_trabajadas = cleaned_data.get('horas_trabajadas')
+
+        # Validar unicidad de empleado, fecha y proyecto
+        if empleado and fecha and proyecto is not None:
+            if AsignacionDiaria.objects.filter(
+                empleado=empleado,
+                fecha=fecha,
+                proyecto=proyecto
+            ).exclude(pk=self.instance.pk).exists():
+                raise forms.ValidationError(
+                    f"Ya existe una asignación para {empleado} en {fecha} con el proyecto {proyecto or 'Sin Proyecto'}."
+                )
+
+        # Validar falta en Asistencia
         if empleado and fecha and Asistencia.objects.filter(empleado=empleado, fecha=fecha).exists():
-            raise ValidationError("No se puede asignar: Hay una falta registrada para este día.")
+            raise forms.ValidationError("No se puede asignar: Hay una falta registrada para este día.")
+
+        # Validar máximo 12 horas por día
+        if empleado and fecha and horas_trabajadas:
+            total_horas = AsignacionDiaria.objects.filter(
+                empleado=empleado,
+                fecha=fecha
+            ).exclude(pk=self.instance.pk).aggregate(total=Sum('horas_trabajadas'))['total'] or 0
+            if total_horas + horas_trabajadas > 12:
+                raise forms.ValidationError("El total de horas por día no puede exceder 12.")
+
         return cleaned_data
 
 # Formset para edición masiva

@@ -11,7 +11,8 @@ from .views import (
     AsistenciaListView, AsistenciaDeleteView, asignar_proyecto_individual,seleccionar_periodo_nomina,
     listar_detalles_nomina_procesada, procesar_nomina_form, NominaDetalleListView,
     NominaDetalleUpdateView, asignar_proyectos, cerrar_nomina, nominas_cerradas_list, asignar_semana_todos, 
-    AsignacionCreateView, AsignacionListView, AsignacionUpdateView, AsignacionDeleteView, asignaciones_masivas
+    AsignacionCreateView, AsignacionListView, AsignacionUpdateView, AsignacionDeleteView, asignaciones_masivas,
+    nomina_detalle, crear_asignacion_diaria
 )
 
 app_name = 'nom'
@@ -31,6 +32,7 @@ urlpatterns = [
     path('asignaciones-edita/<int:pk>/', AsignacionUpdateView.as_view(), name='asignacion_edita'),
     path('asignaciones-elimina/<int:pk>/', AsistenciaDeleteView.as_view(), name='asignacion_elimina'),
     path('asignaciones-masivas/', asignaciones_masivas, name='asignaciones_masivas'),
+    path('crear-asignacion/', crear_asignacion_diaria, name='crear_asignacion'),
     
 
     #path('nomina-semanal/pdf/', generar_nomina_pdf, name='nomina_pdf'),
@@ -43,6 +45,8 @@ urlpatterns = [
     
     path('cerrar-nomina/<int:pk>/',cerrar_nomina,name='cerrar_nomina'),
     path('nominas-cerradas/', nominas_cerradas_list, name='nominas_cerradas_list'),
+    path('nomina-detalle/<int:pk>/', nomina_detalle, name='nomina_detalle'),
+
 
     path('periodos/', PeriodosNominaList.as_view(), name='periodos_list'),
     path('periodos/nuevo/', PeriodosNominaNew.as_view(), name='periodos_new'),
