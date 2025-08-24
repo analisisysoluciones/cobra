@@ -14,7 +14,7 @@ from .models import (
     Empleado, Asistencia, Nomina, NominaHistorial, NominaDetalle,
     PeriodosNomina, EmpleadoArchivo, AsignacionDiaria, MovimientoCuentaProyecto)
 from inv.models import Material
-from adm.models import MovimientoCuenta, Cuenta, Proyecto
+from adm.models import MovimientoCuenta, Cuenta, Proyecto, RegistroCuenta
 from .forms import (
     EmpleadoForm, FaltaForm,  PeriodosNominaForm, EmpleadoArchivoForm, AsignarProyectoForm, SeleccionarPeriodoForm,
     NominaDetalleProyectoForm, AsignacionDiaria, AsignacionDiariaForm, AsignacionDiariaFormSet
@@ -1381,23 +1381,162 @@ def procesar_nomina_form(request):
 
 
 
+
+# @transaction.atomic
+# def cerrar_nomina(request, pk):
+#     periodo = get_object_or_404(NominaHistorial, pk=pk)
+
+#     # Validación: Si ya está cerrada, salir
+#     if periodo.estatus == 'CERRADO':
+#         messages.warning(request, "Este periodo ya está cerrado.")
+#         return redirect('nom:nomina_detalle', pk=pk)
+
+#     # Obtener asignaciones de la semana
+#     asignaciones = AsignacionDiaria.objects.filter(
+#         fecha__range=(periodo.periodo_inicio, periodo.periodo_fin)
+#     )
+
+#     if not asignaciones.exists():
+#         messages.error(request, "No hay asignaciones para cerrar esta nómina.")
+#         return redirect('nom:nomina_detalle', pk=pk)
+
+#     movimientos = []
+#     total_nomina = Decimal('0.00')
+
+#     for asignacion in asignaciones:
+#         proyecto = asignacion.proyecto
+#         empleado = asignacion.empleado
+
+#         # Validar datos
+#         if not proyecto or not proyecto.cuenta:
+#             continue  # Sin cuenta asociada, no se descuenta
+
+#         # Calcular importe basado en horas trabajadas
+#         if asignacion.horas_trabajadas and asignacion.horas_trabajadas > 0:
+#             importe = (empleado.sueldo_diario / Decimal(8)) * Decimal(asignacion.horas_trabajadas)
+#         else:
+#             importe = empleado.sueldo_diario
+
+#         # Si el importe es válido, descontar y crear movimiento
+#         if importe > 0:
+#             # 1. Descontar saldo en la cuenta del proyecto
+#             cuenta = proyecto.cuenta
+#             cuenta.saldo_actual -= importe
+#             cuenta.save(update_fields=['saldo_actual'])
+
+#             # 2. Acumular importe global
+#             total_nomina += importe
+
+#             # 3. Crear movimiento (para aplicar después con bulk_create)
+#             movimientos.append(
+#                 MovimientoCuentaProyecto(
+#                     proyecto=proyecto,
+#                     empleado=empleado,
+#                     periodo=periodo,
+#                     importe=importe
+#                 )
+#             )
+
+#     # Insertar movimientos en lote
+#     if movimientos:
+#         MovimientoCuentaProyecto.objects.bulk_create(movimientos)
+
+#     # Actualizar estatus de la nómina y total
+#     periodo.estatus = 'CERRADO'
+#     periodo.total_pago = total_nomina
+#     periodo.save(update_fields=['estatus', 'total_pago'])
+
+#     messages.success(request, f"Nómina cerrada correctamente. Total aplicado: ${total_nomina:,.2f}")
+#     return redirect('nom:nomina_detalle', pk=pk)
+
+
+@transaction.atomic
 def cerrar_nomina(request, pk):
-    if request.method == 'POST':
-        try:
-            nomina_hist = NominaHistorial.objects.get(id=pk)
-            if nomina_hist.estatus == 'Procesada':
-                nomina_hist.estatus = 'Cerrada'
-                nomina_hist.save()
-                messages.success(request, f"Nómina del {nomina_hist.periodo_inicio} al {nomina_hist.periodo_fin} cerrada correctamente.")
-                logger.info(f"Nómina ID {pk} cerrada.")
-            else:
-                messages.warning(request, f"La nómina ya está en estado {nomina_hist.estatus}.")
-        except NominaHistorial.DoesNotExist:
-            messages.error(request, "La nómina no existe.")
-            logger.error(f"Intento de cerrar nómina inexistente ID {pk}.")
-        return redirect('nom:seleccionar_fecha')
-    
-    return redirect('nom:seleccionar_fecha')
+    periodo = get_object_or_404(NominaHistorial, pk=pk)
+
+    # Validación: Si ya está cerrada, salir
+    if periodo.estatus == 'CERRADO':
+        messages.warning(request, "Este periodo ya está cerrado.")
+        return redirect('nom:nomina_detalle', pk=pk)
+
+    # Obtener asignaciones de la semana
+    asignaciones = AsignacionDiaria.objects.filter(
+        fecha__range=(periodo.periodo_inicio, periodo.periodo_fin)
+    )
+
+    if not asignaciones.exists():
+        messages.error(request, "No hay asignaciones para cerrar esta nómina.")
+        return redirect('nom:nomina_detalle', pk=pk)
+
+    movimientos = []
+    registros_contables = []  # Lista para registros contables
+    total_nomina = Decimal('0.00')
+
+    for asignacion in asignaciones:
+        proyecto = asignacion.proyecto
+        empleado = asignacion.empleado
+
+        # Validar datos
+        if not proyecto or not proyecto.cuenta:
+            continue  # Sin cuenta asociada, no se descuenta
+
+        # Calcular importe basado en horas trabajadas
+        if asignacion.horas_trabajadas and asignacion.horas_trabajadas > 0:
+            importe = (empleado.sueldo_diario / Decimal(8)) * Decimal(asignacion.horas_trabajadas)
+        else:
+            importe = empleado.sueldo_diario
+
+        # Si el importe es válido, descontar y crear movimiento
+        if importe > 0:
+            # 1. Descontar saldo en la cuenta del proyecto
+            cuenta = proyecto.cuenta
+            cuenta.saldo_actual -= importe
+            cuenta.save(update_fields=['saldo_actual'])
+
+            # 2. Crear registro contable para RegistroCuenta
+            registros_contables.append(
+                RegistroCuenta(
+                    fecha_movimiento=periodo.periodo_fin,
+                    concepto=f"Pago nómina {empleado.nombre} - {periodo}",
+                    cantidad=importe,
+                    cuenta=cuenta,
+                    folio_documento=f"NOM-{periodo.id}",
+                    reposicion_flujo=False,
+                    uc=request.user
+                )
+            )
+
+            # 3. Acumular importe global
+            total_nomina += importe
+
+            # 4. Crear movimiento (para aplicar después con bulk_create)
+            movimientos.append(
+                MovimientoCuentaProyecto(
+                    proyecto=proyecto,
+                    empleado=empleado,
+                    periodo=periodo,
+                    importe=importe
+                )
+            )
+
+    # Insertar movimientos en lote
+  
+    if movimientos:
+        MovimientoCuentaProyecto.objects.bulk_create(movimientos)
+
+    # Insertar registros contables en lote
+    if registros_contables:
+        RegistroCuenta.objects.bulk_create(registros_contables)
+
+    # Actualizar estatus de la nómina y total
+    periodo.estatus = 'CERRADO'
+    periodo.total_pago = total_nomina
+    periodo.save(update_fields=['estatus', 'total_pago'])
+
+    messages.success(request, f"Nómina cerrada correctamente. Total aplicado: ${total_nomina:,.2f}")
+    return redirect('nom:nomina_detalle', pk=pk)
+
+
 
 
 @login_required(login_url='bases:login')
