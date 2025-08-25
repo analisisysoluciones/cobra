@@ -3,16 +3,39 @@
 {% block page_content %}
 <div class="card shadow mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-hard-hat"></i> Asignación Masiva de Proyecto</h6>
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-hard-hat"></i> Asignación Masiva de Proyecto
+        </h6>
     </div>
     <div class="card-body">
 
-        <!-- Filtro / buscador -->
-        <input type="text" id="buscarEmpleado" class="form-control mb-3" placeholder="Buscar empleado...">
-
         <form method="post">
             {% csrf_token %}
-            
+
+            <!-- Proyecto / Fecha / Horas en la parte superior -->
+            <div class="form-row mb-3">
+                <div class="form-group col-md-4">
+                    <label><strong>Proyecto</strong></label>
+                    <select name="proyecto" class="form-control select2" style="width:100%;" required>
+                        <option value="">--- Seleccione un Proyecto ---</option>
+                        {% for pro in proyectos %}
+                        <option value="{{ pro.id }}">{{ pro.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group col-md-4">
+                    <label><strong>Fecha</strong></label>
+                    <input type="date" name="fecha" class="form-control" value="{{ today|default:'' }}" required>
+                </div>
+                <div class="form-group col-md-4">
+                    <label><strong>Horas trabajadas</strong></label>
+                    <input type="number" name="horas_trabajadas" class="form-control" step="0.5" min="0" max="12" required>
+                </div>
+            </div>
+
+            <!-- Filtro / buscador -->
+            <input type="text" id="buscarEmpleado" class="form-control mb-3" placeholder="Buscar empleado...">
+
             <!-- Tabla de empleados -->
             <table class="table table-bordered" id="empleadosTable">
                 <thead>
@@ -33,28 +56,9 @@
                 </tbody>
             </table>
 
-            <!-- Modal de asignación -->
-            <div class="form-row">
-                <div class="form-group col-md-4">
-                    <label>Proyecto</label>
-                    <select name="proyecto" class="form-control select2" style="width:100%;">
-                        <option value="">--- Seleccione un Proyecto ---</option>
-                        {% for pro in proyectos %}
-                        <option value="{{ pro.id }}">{{ pro.nombre }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="form-group col-md-4">
-                    <label>Fecha</label>
-                    <input type="date" name="fecha" class="form-control" value="{{ today|default:None }}">
-                </div>
-                <div class="form-group col-md-4">
-                    <label>Horas trabajadas</label>
-                    <input type="number" name="horas_trabajadas" class="form-control" step="0.5" min="0" max="12">
-                </div>
-            </div>
-
-            <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Asignar Masivamente</button>
+            <button type="submit" class="btn btn-success mt-3">
+                <i class="fas fa-save"></i> Asignar Masivamente
+            </button>
         </form>
 
     </div>

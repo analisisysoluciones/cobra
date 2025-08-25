@@ -1656,9 +1656,7 @@ class AsignacionCreateView(generic.CreateView):
     template_name = 'nomina/asignacion_form.html'
     success_url = reverse_lazy('nom:asignacion_list')
 
-    def form_valid(self, form):
-        form.instance.uc = self.request.user  # Asigna al usuario actual
-        return super().form_valid(form)
+    
 
 class AsignacionUpdateView(generic.UpdateView):
     model = AsignacionDiaria
@@ -1666,14 +1664,16 @@ class AsignacionUpdateView(generic.UpdateView):
     template_name = 'nomina/asignacion_form.html'
     success_url = reverse_lazy('nom:asignacion_list')
 
-    def form_valid(self, form):
-        form.instance.um = self.request.user.id  # Agrega al usuario que actualiza la bitácora
-        return super().form_valid(form)
-
+    
 class AsignacionDeleteView(generic.DeleteView):
     model = AsignacionDiaria
     template_name = 'nomina/asignacion_confirm_delete.html'
     success_url = reverse_lazy('nom:asignacion_list')
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        print(obj.fecha, obj.empleado, obj.proyecto, obj.horas_trabajadas)  # Depuración
+        return obj
 
 
 

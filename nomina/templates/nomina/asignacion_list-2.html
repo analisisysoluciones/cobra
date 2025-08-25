@@ -1,0 +1,84 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Asignar Proyectos a Empleados - Nómina #{{ nomina.id }}</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Detalles de Nómina</h6>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post"> {# Guardar asignaciones de proyectos #}
+                {% csrf_token %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>Empleado</th>
+                                <th>Sueldo Diario</th>
+                                <th>Días Trabajados</th>
+                                <th>Total Pago</th>
+                                <th>Proyecto Asignado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detalle in detalles %}
+                            <tr>
+                                <td>{{ detalle.empleado.nombre }}</td>
+                                <td>${{ detalle.sueldo_diario|floatformat:2 }}</td>
+                                <td>{{ detalle.dias_trabajados }}</td>
+                                <td>${{ detalle.total_pago|floatformat:2 }}</td>
+                                <td>
+                                    <select name="proyecto_{{ detalle.id }}" class="form-control">
+                                        <option value="">-- Selecciona un Proyecto --</option>
+                                        {% for proyecto in proyectos %}
+                                        <option value="{{ proyecto.id }}" {% if detalle.proyecto and detalle.proyecto.id == proyecto.id %}selected{% endif %}>
+                                            {{ proyecto.nombre }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <hr>
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn btn-primary mr-2">
+                        Guardar Asignaciones
+                    </button>
+
+                    {% if nomina and nomina.estatus != 'CERRADO' %}
+                        <form action="{% url 'nom:cerrar_nomina' nomina.id %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                                Cerrar Nómina
+                            </button>
+                        </form>
+                    {% else %}
+                        <button type="button" class="btn btn-info" disabled>
+                            Nómina Cerrada
+                        </button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

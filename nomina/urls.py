@@ -30,7 +30,7 @@ urlpatterns = [
     path('asignaciones-list/', AsignacionListView.as_view(), name='asignacion_list'),
     path('asignaciones-nueva/', AsignacionCreateView.as_view(), name='asignacion_nueva'),
     path('asignaciones-edita/<int:pk>/', AsignacionUpdateView.as_view(), name='asignacion_edita'),
-    path('asignaciones-elimina/<int:pk>/', AsistenciaDeleteView.as_view(), name='asignacion_elimina'),
+    path('asignaciones-elimina/<int:pk>/', AsignacionDeleteView.as_view(), name='asignacion_elimina'),
     path('asignaciones-masivas/', asignaciones_masivas, name='asignaciones_masivas'),
     path('crear-asignacion/', crear_asignacion_diaria, name='crear_asignacion'),
     
