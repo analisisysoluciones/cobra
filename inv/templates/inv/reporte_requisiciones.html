@@ -1,0 +1,54 @@
+{% extends 'base/base.html' %}
+{% block page_content %}
+
+<div class="card shadow mb-4">
+    <div class="card-header font-weight-bold">
+        Reporte de Requisiciones
+    </div>
+    <div class="card-body">
+        <form method="get" class="form-inline mb-3">
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary ml-2">
+                <i class="fa fa-filter"></i> Filtrar
+            </button>
+        </form>
+
+        <div class="table-responsive">
+            <a href="{% url 'inv:reporte_requisiciones_pdf' %}?{{ request.GET.urlencode }}" 
+            class="btn btn-success mb-3" target="_blank">
+            <i class="fa fa-file-pdf"></i> Exportar PDF
+            </a>
+
+            <table class="table table-bordered table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Folio</th>
+                        <th>Solicitante</th>
+                        <th>Fecha</th>
+                        <th>Estatus</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for req in requisiciones %}
+                    <tr>
+                        <td>{{ req.folio }}</td>
+                        <td>{{ req.solicitante }}</td>
+                        <td>{{ req.fecha_solicitud|date:"d/m/Y H:i" }}</td>
+                        <td>{{ req.get_estatus_display }}</td>
+                        <td>
+                            <a href="{% url 'inv:requisicion_pdf' req.id %}" class="btn btn-sm btn-info" target="_blank">
+                                <i class="fa fa-file-pdf"></i> PDF
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5" class="text-center text-muted">No hay requisiciones con esos filtros.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

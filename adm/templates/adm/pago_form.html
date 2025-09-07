@@ -1,0 +1,174 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        {% if object %}
+        <div class="card border-left-primary shadow h-100 py-2 bg-dark text-light">
+        {% else %}
+        <div class="card border-left-info shadow h-100 py-2 bg-dark text-light">
+        {% endif %}
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            {% if object %}Editar{% else %}Nuevo{% endif %} Pago Indirecto
+                        </div>
+                        <div class="dropdown-divider border-light"></div>
+
+                        <div class="form-group row">
+                            <label for="{{ form.descripcion.id_for_label }}" class="col-sm-3 col-form-label text-light">Descripción:</label>
+                            <div class="col-sm-9">
+                                {{ form.descripcion }}
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="{{ form.proveedor.id_for_label }}" class="col-sm-3 col-form-label text-light">Proveedor:</label>
+                            <div class="col-sm-9">
+                                {{ form.proveedor }}
+                                {% if not form.proveedor.field.queryset %}
+                                    <small class="text-warning">Advertencia: No se encontraron proveedores.</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="{{ form.monto.id_for_label }}" class="col-sm-3 col-form-label text-light">Monto:</label>
+                            <div class="col-sm-9">
+                                {{ form.monto }}
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="{{ form.fecha.id_for_label }}" class="col-sm-3 col-form-label text-light">Fecha:</label>
+                            <div class="col-sm-9">
+                                {{ form.fecha }}
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="{{ form.proyecto.id_for_label }}" class="col-sm-3 col-form-label text-light">Proyecto:</label>
+                            <div class="col-sm-9">
+                                {{ form.proyecto }}
+                                {% if not form.proyecto.field.queryset %}
+                                    <small class="text-warning">Advertencia: No se encontraron proyectos.</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="{{ form.tipo_pago.id_for_label }}" class="col-sm-3 col-form-label text-light">Tipo de Pago:</label>
+                            <div class="col-sm-9">
+                                {{ form.tipo_pago }}
+                                {% if not form.tipo_pago.field.choices %}
+                                    <small class="text-warning">Advertencia: No se encontraron opciones para tipo de pago.</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="{{ form.documento.id_for_label }}" class="col-sm-3 col-form-label text-light">Tipo de Documento:</label>
+                            <div class="col-sm-9">
+                                {{ form.documento }}
+                                {% if not form.documento.field.queryset %}
+                                    <small class="text-warning">Advertencia: No se encontraron tipos de documento.</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="{{ form.folio_documento.id_for_label }}" class="col-sm-3 col-form-label text-light">Folio:</label>
+                            <div class="col-sm-9">
+                                {{ form.folio_documento }}
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="{{ form.comprobante.id_for_label }}" class="col-sm-3 col-form-label text-light">Comprobante:</label>
+                            <div class="col-sm-9">
+                                {{ form.comprobante }}
+                                {% if object and object.comprobante %}
+                                    <br>
+                                    <a href="{{ object.comprobante.url }}" target="_blank" class="btn btn-info">Ver Comprobante</a>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="dropdown-divider border-light"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-primary"><span class="fa fa-save"></span> Guardar</button>
+                                <a href="{% url 'adm:pagoindirecto_list' %}" class="btn btn-secondary"><span class="fa fa-undo"></span> Cancelar</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}
+
+{% block js_page %}
+<!-- Select2 CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<!-- Select2 JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.full.min.js"></script>
+<!-- Inicialización de Select2 -->
+<script type="text/javascript">
+    $(document).ready(function() {
+        // Verificar si jQuery y Select2 están cargados
+        if (typeof jQuery === 'undefined') {
+            console.error("jQuery no está cargado. Asegúrate de incluirlo en base/base.html.");
+        }
+        if (typeof $.fn.select2 === 'undefined') {
+            console.error("Select2 no está cargado. Verifica la inclusión del script de Select2.");
+        }
+
+        // Inicializar Select2 para proveedor, proyecto, tipo_pago y documento
+        $('#{{ form.proveedor.id_for_label }}').select2({
+            placeholder: "Seleccione un proveedor",
+            allowClear: true
+        });
+        $('#{{ form.proyecto.id_for_label }}').select2({
+            placeholder: "Seleccione un proyecto",
+            allowClear: true
+        });
+        $('#{{ form.tipo_pago.id_for_label }}').select2({
+            placeholder: "Seleccione un tipo de pago",
+            allowClear: true
+        });
+        $('#{{ form.documento.id_for_label }}').select2({
+            placeholder: "Seleccione un tipo de documento",
+            allowClear: true
+        });
+
+        // Ajustar estilos para tema oscuro
+        $(".select2-container .select2-selection").css({
+            "background-color": "#495057",
+            "color": "#f8f9fa",
+            "border-color": "#6c757d"
+        });
+        $(".select2-container .select2-selection__rendered").css({
+            "color": "#f8f9fa"
+        });
+        $(".select2-container .select2-selection__placeholder").css({
+            "color": "#adb5bd"
+        });
+        $(".select2-container .select2-dropdown").css({
+            "background-color": "#343a40",
+            "border-color": "#6c757d"
+        });
+        $(".select2-container .select2-results__option").css({
+            "background-color": "#343a40",
+            "color": "#f8f9fa"
+        });
+        $(".select2-container .select2-results__option--highlighted").css({
+            "background-color": "#0d6efd",
+            "color": "#fff"
+        });
+    });
+</script>
+{% endblock js_page %}

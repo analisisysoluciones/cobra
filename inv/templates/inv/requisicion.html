@@ -1,0 +1,312 @@
+{% extends 'base/base.html' %}
+{% block page_content %}
+<form method="post" id="frmRequisiciones" enctype="multipart/form-data">
+{% csrf_token %}
+
+<div class="card mb-4 border-left-primary shadow">
+    <div class="card-header font-weight-bold">
+        {% if encabezado %}Editar{% else %}Nueva{% endif %} Requisición
+    </div>
+    <div class="card-body">
+        {% if form_enc.non_field_errors %}
+        <div class="alert alert-danger">{{ form_enc.non_field_errors }}</div>
+        {% endif %}
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="form-row">
+            <div class="form-group col-md-4">
+                <label for="id_solicitante">Solicitante:</label>
+                {{ form_enc.solicitante }}
+            </div>
+            <div class="form-group col-md-4">
+                <label for="id_proyecto">Proyecto:</label>
+                {{ form_enc.proyecto }}
+            </div>
+            <div class="form-group col-md-4">
+                <label for="id_fecha_solicitud">Fecha Solicitud:</label>
+                {{ encabezado.fecha_solicitud|date:"Y-m-d H:i" }}
+            </div>
+            <div class="form-group col-md-4">
+                <label for="id_estatus">Estatus:</label>
+                {{ form_enc.estatus }}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-12">
+                <label for="id_comentarios">Comentarios:</label>
+                {{ form_enc.comentarios }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4 border-left-info shadow">
+    <div class="card-header font-weight-bold">
+        Materiales Solicitados
+        {% if encabezado %}
+        <button type="button" class="btn btn-primary" onclick="$('#modalCaptura').modal('show')">
+            <i class="fa fa-plus"></i> Agregar Material
+        </button>
+        {% else %}
+        <span class="text-muted ml-3">(Guarda primero para agregar materiales)</span>
+        {% endif %}
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover dt-responsive nowrap" id="tablaDetalles">
+                <thead>
+                    <tr>
+                        <th>Clave</th>
+                        <th>Descripción</th>
+                        <th>Solicitada</th>
+                        <th>Entregada</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in detalle %}
+                    <tr>
+                        <td>{{ item.material.clave }}</td>
+                        <td>{{ item.material.descripcion }}</td>
+                        <td>{{ item.cantidad_solicitada }}</td>
+                        <td>{{ item.cantidad_entregada }}</td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-circle"
+                                    onclick="return abrir_modal('{% url 'inv:item_requisiciones_del' pk=item.id %}')">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No hay materiales capturados.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="form-row justify-content-end mb-4">
+    <div class="form-group col-md-2">
+        <button type="submit" class="btn btn-danger btn-block">
+            <i class="fa fa-save"></i> Guardar Encabezado
+        </button>
+    </div>
+    <div class="form-group col-md-2">
+        <a href="{% url 'inv:requisicion_list' %}" class="btn btn-success btn-block">
+            <i class="far fa-hand-point-left"></i> Terminar
+        </a>
+    </div>
+</div>
+</form>
+
+<!-- Modal para agregar materiales -->
+<div class="modal fade" id="modalCaptura" tabindex="-1" role="dialog" aria-labelledby="modalCapturaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+     {% if encabezado %}
+      <form method="post" action="{% url 'inv:requisiciones_add_detalle' requisicion_id=encabezado.pk %}" id="formDetalleRequisicion">
+        {% csrf_token %}
+        <div class="modal-header py-2">
+  <h5 class="modal-title mb-0">Agregar Material</h5>
+  <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+</div>
+
+        <div class="modal-body">
+          <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+            <table id="tablaMateriales" class="table table-striped table-hover">
+              <thead>
+                <tr>
+                  <th>Id</th>
+                  <th>Clave</th>
+                  <th>Descripción</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in materiales %}
+                <tr>
+                    <td>{{ item.id }}</td>
+                    <td>{{ item.clave }}</td>
+                    <td>{{ item.descripcion }}</td>
+                    <td>
+                      <button type="button" class="btn btn-warning btn-circle"
+                              onclick="selectProductoModal('{{item.id}}', '{{item.clave}}', '{{item.descripcion}}')">
+                          <i class="far fa-hand-pointer"></i>
+                      </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-muted text-center">No hay materiales disponibles.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+<div class="form-row mt-3">
+  <div class="form-group col-md-2">
+    <label>ID Material</label>
+    <input type="text" readonly class="form-control" id="id_id_producto_modal_visible">
+    <input type="hidden" name="material_id" id="id_id_producto_modal">
+  </div>
+
+  <div class="form-group col-md-4">
+    <label>Descripción</label>
+    <input type="text" readonly class="form-control" id="id_descripcion_producto_modal">
+  </div>
+
+  <div class="form-group col-md-3">
+    <label>Cantidad Solicitada</label>
+    <input type="number" class="form-control" name="cantidad_solicitada" id="id_cantidad_modal" min="0" step="0.001" required>
+  </div>
+
+  <div class="form-group col-md-3">
+    <label>Cantidad Entregada</label>
+    <input type="number" class="form-control" name="cantidad_entregada" id="id_cantidad_entregada_modal" min="0" step="0.001" value="0">
+  </div>
+</div>
+
+
+
+        </div>
+        <div class="modal-footer">
+  <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+  <button type="button" class="btn btn-primary" id="btnGuardarDetalle">Guardar Detalle</button>
+</div>
+
+      </form>
+      {% else %}
+        <div class="p-3">
+          <p class="text-muted mb-0">Debes guardar primero la requisición antes de poder agregar materiales.</p>
+        </div>
+     {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block js_page %}
+<script>
+    $(document).ready(function() {
+        // Initialize the main requisitions table
+        $('#tablaDetalles').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json"
+            }
+        });
+
+        // Initialize the DataTables for materials only after the modal is shown
+        $('#modalCaptura').on('shown.bs.modal', function () {
+            // Check if DataTable is already initialized to prevent re-initialization
+            if ($.fn.DataTable.isDataTable('#tablaMateriales')) {
+                $('#tablaMateriales').DataTable().destroy();
+            }
+            $('#tablaMateriales').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json"
+                }
+            });
+        });
+    });
+
+    // This function can remain outside of the ready block
+    function selectProductoModal(id, clave, descripcion) {
+    $('#id_id_producto_modal').val(id);
+    $('#id_id_producto_modal_visible').val(clave);   // mostramos la clave, no el id
+    $('#id_descripcion_producto_modal').val(descripcion);
+}
+
+$('#btnGuardarDetalle').on('click', function(e) {
+    e.preventDefault();
+
+    var form = $('#formDetalleRequisicion');
+    var url = form.attr('action');
+    var data = form.serialize();
+
+    $.ajax({
+        type: 'POST',
+        url: url,
+        data: data,
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                var tabla = $('#tablaDetalles').DataTable();
+                var deleteUrl = `/inv/requisiciones/${response.requisicion_id}/delete/${response.item.id}`;
+
+                // 👇 Insertamos la nueva fila en la tabla
+                tabla.row.add([
+                    response.item.material_clave,
+                    response.item.material_descripcion,
+                    response.item.cantidad_solicitada,
+                    response.item.cantidad_entregada,
+                    `
+                    <button type="button" class="btn btn-danger btn-circle"
+                            onclick="return abrir_modal('${deleteUrl}')">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                    `
+                ]).draw(false);
+
+                // Limpiar campos del modal
+                $('#id_id_producto_modal').val('');
+                $('#id_id_producto_modal_visible').val('');
+                $('#id_descripcion_producto_modal').val('');
+                $('#id_cantidad_modal').val('');
+                $('#id_cantidad_entregada_modal').val('');
+
+                // Cerrar modal
+                $('#modalCaptura').modal('hide');
+
+                // Notificación de éxito
+                $('.card-body').first().prepend(`
+                    <div class="alert alert-success alert-dismissible fade show mt-2">
+                        ${response.message}
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    </div>
+                `);
+
+            } else {
+                // Mostrar error desde la respuesta
+                $('.card-body').first().prepend(`
+                    <div class="alert alert-danger alert-dismissible fade show mt-2">
+                        Error: ${response.errors}
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    </div>
+                `);
+            }
+        },
+        error: function(xhr, status, error) {
+            // Manejo de errores inesperados
+            $('.card-body').first().prepend(`
+                <div class="alert alert-danger alert-dismissible fade show mt-2">
+                    Ocurrió un error: ${error}
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                </div>
+            `);
+            console.error(xhr.responseText);
+        }
+    });
+});
+
+$('#tablaMateriales').DataTable({
+    language: {
+        url: "//cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json"
+    },
+    pageLength: 5,
+    dom: 'ftip'
+});
+
+</script>
+{% endblock %}

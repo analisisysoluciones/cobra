@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from bases.models import ClaseModelo
+from bases.models import ClaseModelo, Folios
 from cxp.models import CompraEnc
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -10,6 +10,7 @@ from django.utils import timezone
 from datetime import date, timedelta
 from django.apps import apps
 from django.db.models import Sum, F
+from django.core.validators import FileExtensionValidator
 
 
 
@@ -386,6 +387,77 @@ class ReporteEquipo(ClaseModelo):
         return f"{self.equipo} - {self.operador}"
     
     class Meta:
-        verbose_name = "Reporte de Equipo"
         verbose_name_plural = "Reportes de Equipo"
     
+
+class PagoIndirecto(ClaseModelo):
+    ESTATUS_CHOICES = [
+        ('PENDIENTE', 'Pendiente'),
+        ('AFECTADO', 'Afectado'),
+    ]
+    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE, related_name="pagos_indirectos_proyecto")
+    proveedor = models.ForeignKey('cxp.Proveedor', on_delete=models.CASCADE, related_name="pagos_indirectos_proveedor")
+    documento = models.ForeignKey(TipoDocumento, on_delete=models.SET_NULL, null=True, blank=True, related_name="pagos_indirectos_documento")
+    folio_documento = models.CharField('Folio', max_length=20, blank=True)
+    descripcion = models.CharField(max_length=200)
+    monto = models.DecimalField(max_digits=12, decimal_places=2)
+    fecha = models.DateField(default=timezone.now)
+    tipo_pago = models.ForeignKey(TipoPago, on_delete=models.PROTECT, related_name="pagos_indirectos_tipopago")
+    comprobante = models.FileField(
+        upload_to='comprobantes/%Y/%m/%d/',
+        blank=True,
+        null=True,
+        validators=[FileExtensionValidator(allowed_extensions=['pdf'])]
+    )
+    estatus = models.CharField(max_length=20, choices=ESTATUS_CHOICES, default='PENDIENTE')
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            # Permitir guardar si se llama desde afectar_pago o si es un nuevo registro
+            allow_afectado = kwargs.pop('allow_afectado', False)
+            if self.pk and self.estatus.upper() == 'AFECTADO' and not allow_afectado:
+                raise ValueError("No se puede editar un pago en estatus AFECTADO.")
+            
+            # Asignar folio si es "s/n" o está vacío y documento no es nulo
+            if (not self.folio_documento or self.folio_documento.lower() in ['s/n', 'sn']) and self.documento:
+                folio_registro, created = Folios.objects.get_or_create(
+                    tipo_documento=self.documento.tipo,
+                    anio=timezone.now().year,
+                    defaults={'consecutivo': 0}
+                )
+                self.folio_documento = folio_registro.next_consecutivo()
+            
+            super().save(*args, **kwargs)
+
+    def afectar_pago(self):
+        """Confirma el pago, deduce saldos y registra en MovimientoCuenta."""
+        with transaction.atomic():
+            if self.estatus.upper() == 'AFECTADO':
+                raise ValueError("El pago ya está afectado.")
+            if not hasattr(self.proyecto, 'cuenta') or self.proyecto.cuenta is None:
+                raise ValueError("El proyecto no tiene una cuenta asociada.")
+            if self.proyecto.presupuesto < self.monto or self.proyecto.cuenta.saldo_actual < self.monto:
+                raise ValueError("Saldo insuficiente en el proyecto o la cuenta.")
+            
+            # Deducir saldos
+            self.proyecto.presupuesto -= self.monto
+            self.proyecto.cuenta.saldo_actual -= self.monto
+            self.proyecto.save()
+            self.proyecto.cuenta.save()
+
+            # Registrar movimiento
+            MovimientoCuenta.objects.create(
+                cuenta=self.proyecto.cuenta,
+                fecha=self.fecha,
+                descripcion=f"Gasto indirecto: {self.descripcion} (Folio: {self.folio_documento or 'Sin folio'})",
+                cargo=self.monto,
+                abono=0,
+                saldo=self.proyecto.cuenta.saldo_actual,
+            )
+
+            # Cambiar estatus y guardar con permiso especial
+            self.estatus = 'AFECTADO'
+            self.save(allow_afectado=True)
+
+    def __str__(self):
+        return f"{self.proyecto.nombre} - {self.descripcion} - ${self.monto} ({self.get_estatus_display()}) - Folio: {self.folio_documento or 'Sin folio'}"

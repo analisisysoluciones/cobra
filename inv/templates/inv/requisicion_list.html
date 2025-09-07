@@ -1,0 +1,138 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="card shadow mb-4">
+  <!-- Card Header - Dropdown -->
+  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary">Listado de Requisiciones</h6>
+    <a href="{% url 'inv:reporte_requisiciones_pdf' %}?{{ request.GET.urlencode }}"
+       class="btn btn-danger btn-sm" target="_blank">
+        <i class="fas fa-file-pdf"></i> Reporte PDF
+    </a>
+    <div class="dropdown no-arrow">
+      <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+      </a>
+      <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+        <div class="dropdown-header">Acciones:</div>
+        <a class="dropdown-item" href="{% url 'inv:requisicion_create' %}"><i class="fas fa-file-alt mr-2 text-warning"></i> Nueva</a>
+        <a class="dropdown-item" href="#" target="reportes"><i class="fas fa-print"></i> Listado</a>
+        <a href="{% url 'inv:requisicion_pdf' 0 %}" class="btn btn-outline-info" onclick="alert('Seleccione una requisición para ver el reporte'); return false;">
+          <i class="fas fa-chart-bar"></i> Ver Reporte
+        </a>
+      </div>
+    </div>
+  </div>
+  <!-- Card Body -->
+  <div class="card-body">
+    {% if not obj %}
+    <div class="alert alert-info">No hay requisiciones</div>
+    {% endif %}
+    <table class="table table-striped table-hover dt-responsive nowrap" style="width:100%">
+      <thead>
+        <th>Folio</th>
+        <th>Fecha</th>
+        <th style="width: 50px;">Semáforo</th>
+        <th>Solicitante</th>
+        
+        <th>Estatus</th>
+        <th class="all">Acciones</th>
+      </thead>
+      <tbody>
+        {% for item in obj %}
+        <tr>
+          <td>{{ item.folio }}</td>
+          <td>{{ item.fecha_solicitud|date:"d/m/Y" }}</td>
+          <td style="width: 50px; text-align: center;">
+            {% with total_solicitada=item.calcular_totales.0 total_entregada=item.calcular_totales.1 %}
+              {% if item.estatus == 'ENTREGADA' %}
+                <span class="status green" title="Entregada"></span>
+              {% elif total_entregada > 0 %}
+                <span class="status yellow" title="Parcialmente entregada"></span>
+              {% else %}
+                <span class="status red" title="Pendiente"></span>
+              {% endif %}
+            {% endwith %}
+          </td>
+          <td>{{ item.solicitante.nombre }}</td>
+          <td>
+            {% if item.estatus == 'ENTREGADA' %}
+              <span class="badge badge-success">Entregada</span>
+            {% elif item.estatus == 'CANCELADA' %}
+              <span class="badge badge-danger">Cancelada</span>
+            {% else %}
+              <span class="badge badge-warning">Pendiente</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if item.estatus != 'CANCELADA' %}
+              <a class="btn btn-warning btn-circle" href="{% url 'inv:requisicion_edit' item.id %}">
+                <i class="far fa-edit"></i>
+              </a>
+
+              <!-- Botón entregar -->
+                <a href="{% url 'inv:requisicion_entregar' item.id %}" class="btn btn-sm btn-success">
+                    <i class="fas fa-box-open"></i> Entregar
+                </a>
+
+            {% else %}
+              <button class="btn btn-secondary btn-circle" disabled title="Requisición cancelada">
+                <i class="far fa-edit"></i>
+              </button>
+            {% endif %}
+            <a class="btn btn-success btn-circle" href="{% url 'inv:requisicion_pdf' item.id %}" target="reportes">
+              <i class="fas fa-print"></i>
+            </a>
+            <a href="#" class="btn btn-sm btn-outline-primary">
+              <i class="fa fa-file-upload"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <style>
+      .status {
+          display: inline-block;
+          width: 15px;
+          height: 15px;
+          border-radius: 50%;
+      }
+      .status.green { background-color: green; }
+      .status.yellow { background-color: yellow; }
+      .status.red { background-color: red; }
+      .status.gray { background-color: gray; }
+    </style>
+  </div>
+</div>
+{% endblock %}
+
+{% block js_page %}
+<script>
+$(document).ready(function() {
+  $('.table').DataTable({      
+      "order": [[1, "desc"]],
+      "language": {
+      "sProcessing": "Procesando...",
+      "sLengthMenu": "Mostrar _MENU_ registros",
+      "sZeroRecords": "No se encontraron resultados",
+      "sEmptyTable": "Ningún dato disponible en esta tabla",
+      "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+      "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+      "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+      "sSearch": "Buscar:",
+      "oPaginate": {
+          "sFirst": "<span class='fa fa-angle-double-left'></span>",
+          "sLast": "<span class='fa fa-angle-double-right'></span>",
+          "sNext": "<span class='fa fa-angle-right'></span>",
+          "sPrevious": "<span class='fa fa-angle-left'></span>"
+      },
+      "oAria": {
+          "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+          "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

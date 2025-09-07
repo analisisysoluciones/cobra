@@ -3,16 +3,17 @@ from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMix
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic.edit import FormView
 from django.views import generic
+from reportlab.platypus import Image
 from openpyxl import Workbook
 from django.templatetags.static import static
 from reportlab.lib.utils import simpleSplit
 from django.http import JsonResponse
 from bases.views import SinPrivilegios
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.contrib.auth.decorators import login_required
 from .models import( Banco, Cuenta, Residente, Proyecto, TipoDocumento,
                     Simbologia, Equipo, Bitacora, RegistroCuenta, TipoPago, Pago, MovimientoCuenta, DocumentoGeneral,
-                    CargaCombustible, ReporteEquipo
+                    CargaCombustible, ReporteEquipo, PagoIndirecto
                     )
 
 from ventas.models import ProductoInmobiliario, Venta, Movimiento
@@ -23,7 +24,7 @@ from cxp.models import Proveedor, CompraEnc
 from .forms import( BancoForm, CuentaForm, ResidenteForm, TipoDocumentoForm, ProyectoForm, 
                    SimbologiaForm, PagoForm,
                    ReporteMovimientoForm, EquipoForm, BitacoraForm, TipoPagoForm, RegistroCuentaForm, DocumentoGeneralForm,
-                   CargaCombustibleForm, FiltroCombustibleForm, ReporteEquipoForm)
+                   CargaCombustibleForm, FiltroCombustibleForm, ReporteEquipoForm, PagoIndirectoForm)
 
 from xhtml2pdf import pisa
 from django.http import HttpResponse
@@ -1101,12 +1102,12 @@ def generar_estado_cuenta_pdf(request, cuenta_id):
     p = canvas.Canvas(response, pagesize=letter)
     width, height = letter
 
-    # 🔹 Buscar logotipo en STATICFILES_DIRS
-    logo_path = os.path.join(settings.BASE_DIR, 'static', 'base', 'img', 'inemo.png')
-
-    # 🔹 Verificar si el logotipo existe
+    # --- LOGOTIPO ---
+    logo_path = os.path.join(settings.BASE_DIR, "static", "base", "inemo.png")
     if os.path.exists(logo_path):
-        p.drawImage(logo_path, 40, height - 80, width=100, height=50, preserveAspectRatio=True, mask='auto')
+        logo = Image(logo_path, width=100, height=70)
+        logo.hAlign = "LEFT"
+        logo.drawOn(p, 40, height - 80)  # Parte superior izquierda
     else:
         print("⚠ No se encontró el logotipo en:", logo_path)
 
@@ -1129,40 +1130,56 @@ def generar_estado_cuenta_pdf(request, cuenta_id):
     p.line(50, y - 5, 550, y - 5)
     y -= 20
 
+    # 🔹 Calcular totales
+    total_cargo = sum(movimiento.cargo for movimiento in movimientos)
+    total_abono = sum(movimiento.abono for movimiento in movimientos)
+
     # 🔹 Alternar colores en filas
     p.setFont("Helvetica", 9)
     row_colors = [colors.lightgrey, colors.whitesmoke]  # Alterna entre gris claro y blanco
 
     for index, movimiento in enumerate(movimientos):
-        # Aplicar color de fondo
-        p.setFillColorRGB(*row_colors[index % 2].rgb())  
-        p.rect(50, y - 2, 500, 15, fill=1, stroke=0)
+        # Aplicar color de fondo para ambos renglones
+        p.setFillColorRGB(*row_colors[index % 2].rgb())
+        p.rect(50, y - 15, 500, 30, fill=1, stroke=0)
 
         # Restaurar color del texto a negro
         p.setFillColorRGB(0, 0, 0)
 
-        # 🔹 Escribir datos de la fila
+        # 🔹 Primer renglón: Fecha y Descripción
         p.drawString(50, y, movimiento.fecha.strftime("%d-%m-%Y"))
         p.drawString(150, y, movimiento.descripcion)
-        p.drawString(350, y, f"${movimiento.cargo:.2f}")
-        p.drawString(420, y, f"${movimiento.abono:.2f}")
-        p.drawString(490, y, f"${movimiento.saldo:.2f}")
 
-        y -= 20
+        # 🔹 Segundo renglón: Cargo, Abono, Saldo
+        p.drawString(350, y - 15, f"${movimiento.cargo:.2f}")
+        p.drawString(420, y - 15, f"${movimiento.abono:.2f}")
+        p.drawString(490, y - 15, f"${movimiento.saldo:.2f}")
+
+        y -= 35  # Espacio para dos renglones
 
         # 🔹 Verificar si es necesario agregar una nueva página
-        if y < 50:
+        if y < 80:  # Reservar espacio para los totales
             p.showPage()
             y = height - 50  # Reiniciar posición de impresión
+            p.setFont("Helvetica", 9)  # Restaurar fuente para la nueva página
+
+    # 🔹 Mostrar totales al final del reporte
+    if y < 80:  # Si no hay espacio, crear nueva página
+        p.showPage()
+        y = height - 50
+        p.setFont("Helvetica", 9)
+
+    p.setFont("Helvetica-Bold", 10)
+    p.drawString(50, y, "Totales")
+    p.setFont("Helvetica", 9)
+    p.drawString(350, y, f"${total_cargo:.2f}")
+    p.drawString(420, y, f"${total_abono:.2f}")
+    y -= 15
+    p.line(50, y, 550, y)  # Línea separadora para los totales
 
     # 🔹 Finalizar y guardar PDF
     p.save()
     return response
-
-
-
-
-
 
 def dashboard_proyectos(request):
     proyectos = Proyecto.objects.all()
@@ -1411,3 +1428,99 @@ class ReporteEquipoDeleteView(generic.DeleteView):
     template_name = 'adm/reporte_equipo_confirm_delete.html' # Template de confirmación de eliminación
     success_url = reverse_lazy('adm:reporte_equipo_list') # Redirige a la lista después de eliminar
     login_url = 'bases:login'
+
+
+
+
+class PagoIndirectoListView(LoginRequiredMixin, PermissionRequiredMixin, generic.ListView):
+    model = PagoIndirecto
+    template_name = "adm/pago_list.html"
+    context_object_name = "pagos"
+    permission_required = "app.view_pagoindirecto"
+
+    def get_queryset(self):
+        return PagoIndirecto.objects.select_related("proyecto", "proveedor", "tipo_pago")
+
+
+class PagoIndirectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, generic.CreateView):
+    model = PagoIndirecto
+    form_class = PagoIndirectoForm
+    template_name = "adm/pago_form.html"
+    success_url = reverse_lazy("adm:pagoindirecto_list")
+    permission_required = "app.add_pagoindirecto"
+
+    def form_valid(self, form):
+        form.instance.uc = self.request.user
+        messages.success(self.request, "✅ Pago indirecto registrado correctamente.")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, "⚠️ Error al registrar el pago indirecto.")
+        return super().form_invalid(form)
+
+class PagoIndirectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, generic.UpdateView):
+    model = PagoIndirecto
+    form_class = PagoIndirectoForm
+    template_name = "adm/pago_form.html"
+    success_url = reverse_lazy("adm:pagoindirecto_list")
+    permission_required = "app.change_pagoindirecto"
+
+    def get(self, request, *args, **kwargs):
+        pago = self.get_object()
+        if pago.estatus == 'AFECTADO':
+            messages.error(self.request, "❌ No se puede editar un pago afectado.")
+            return redirect('adm:pagoindirecto_list')
+        return super().get(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.um = self.request.user
+        try:
+            form.save()
+            messages.success(self.request, "✏️ Pago indirecto actualizado correctamente.")
+            return super().form_valid(form)
+        except ValueError as e:
+            messages.error(self.request, f"❌ Error: {str(e)}")
+            return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, "⚠️ Error al actualizar el pago indirecto.")
+        return super().form_invalid(form)
+
+class PagoIndirectoDeleteView(LoginRequiredMixin, PermissionRequiredMixin, generic.DeleteView):
+    model = PagoIndirecto
+    template_name = "adm/pago_confirm_delete.html"
+    success_url = reverse_lazy("adm:pagoindirecto_list")
+    permission_required = "app.delete_pagoindirecto"
+
+    def delete(self, request, *args, **kwargs):
+        pago = self.get_object()
+        if pago.estatus == 'AFECTADO':
+            messages.error(self.request, "❌ No se puede eliminar un pago afectado.")
+            return redirect('adm:pagoindirecto_list')
+        
+        messages.warning(self.request, "🗑️ Pago indirecto eliminado.")
+        return super().delete(request, *args, **kwargs)
+
+class PagoIndirectoAfectarView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
+    permission_required = "app.change_pagoindirecto"
+
+    def post(self, request, pk):
+        try:
+            with transaction.atomic():
+                pago = get_object_or_404(PagoIndirecto, pk=pk)
+                # Depurar el estatus
+                #messages.info(self.request, f"DEBUG: Estatus del pago {pk}: {pago.estatus}")
+                if pago.estatus.upper() == 'AFECTADO':
+                    messages.error(self.request, "❌ El pago ya está afectado.")
+                    return redirect('adm:pagoindirecto_list')
+                
+                pago.afectar_pago()
+                messages.success(self.request, "✅ Pago afectado correctamente.")
+        except ValueError as e:
+            messages.error(self.request, f"❌ Error al afectar el pago: {str(e)}")
+        except IntegrityError as e:
+            messages.error(self.request, f"❌ Error de integridad en la base de datos: {str(e)}")
+        except Exception as e:
+            messages.error(self.request, f"❌ Error inesperado: {str(e)}")
+        
+        return redirect('adm:pagoindirecto_list')

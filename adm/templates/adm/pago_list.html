@@ -1,0 +1,77 @@
+{% extends 'base/base.html' %}
+{% block page_content %}
+<div class="col-xl-12 mb-4">
+    <div class="card border-left-primary shadow h-100 py-2 bg-dark text-light">
+        <div class="card-body">
+            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                Lista de Pagos Indirectos
+            </div>
+            <div class="dropdown-divider border-light"></div>
+            <table class="table table-dark table-bordered">
+                <thead>
+                    <tr>
+                        <th>Proyecto</th>
+                        <th>Proveedor</th>
+                        <th>Descripción</th>
+                        <th>Monto</th>
+                        <th>Fecha</th>
+                        <th>Tipo de Pago</th>
+                        <th>Tipo de Documento</th>
+                        <th>Folio</th>
+                        <th>Comprobante</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pago in object_list %}
+                    <tr>
+                        <td>{{ pago.proyecto.nombre }}</td>
+                        <td>{{ pago.proveedor.razon_social }}</td>
+                        <td>{{ pago.descripcion }}</td>
+                        <td>{{ pago.monto }}</td>
+                        <td>{{ pago.fecha|date:"Y-m-d" }}</td>
+                        <td>{{ pago.tipo_pago.nombre }}</td>
+                        <td>{{ pago.documento.tipo|default:"Sin documento" }}</td>
+                        <td>{{ pago.folio_documento|default:"Sin folio" }}</td>
+                        <td>
+                            {% if pago.comprobante %}
+                                <a href="{{ pago.comprobante.url }}" target="_blank" class="btn btn-info btn-sm">Ver</a>
+                            {% else %}
+                                <span class="text-muted">Sin comprobante</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ pago.get_estatus_display }}</td>
+                        <td>
+                            {% if pago.estatus == 'PENDIENTE' %}
+                            <a href="{% url 'adm:pagoindirecto_update' pago.pk %}" class="btn btn-primary btn-sm">
+                                <span class="fa fa-edit"></span> Editar
+                            </a>
+                            <form method="post" action="{% url 'adm:pagoindirecto_afectar' pago.pk %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <span class="fa fa-check"></span> Afectar
+                                </button>
+                            </form>
+                            <a href="{% url 'adm:pagoindirecto_delete' pago.pk %}" class="btn btn-danger btn-sm">
+                                <span class="fa fa-trash"></span> Borrar
+                            </a>
+                            {% else %}
+                            <span class="text-muted">No editable</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="11">No hay pagos indirectos.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <a href="{% url 'adm:pagoindirecto_create' %}" class="btn btn-primary">
+                <span class="fa fa-plus"></span> Nuevo Pago
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

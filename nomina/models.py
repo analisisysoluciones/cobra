@@ -312,21 +312,15 @@ class MovimientoCuentaProyecto(models.Model):
         return f"{self.proyecto.nombre} - {self.empleado.nombre} - {self.importe}"
     
 
+# Modelo para registro de asistencia (reloj checador)
+class RegistraAsistencia(models.Model):
+    empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
+    fecha_hora_entrada = models.DateTimeField()
+    fecha_hora_salida = models.DateTimeField(blank=True, null=True)
+    latitud = models.FloatField()
+    longitud = models.FloatField()
 
-    
+    def __str__(self):
+        return f"Asistencia de {self.usuario} - {self.fecha_hora_entrada}"
 
 
-
-from django.db import migrations
-
-class Migration(migrations.Migration):
-    dependencies = [
-        ('nomina', 'anterior_migracion'),  # Reemplaza con tu última migración
-    ]
-
-    operations = [
-        migrations.RemoveConstraint(
-            model_name='AsignacionDiaria',
-            name='nomina_asignaciondiaria_empleado_id_fecha_d3e3b95b_uniq',
-        ),
-    ]

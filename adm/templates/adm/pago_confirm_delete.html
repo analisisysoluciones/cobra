@@ -1,0 +1,19 @@
+{% extends 'base/base.html' %}
+{% block page_content %}
+<div class="col-xl-12 mb-4">
+    <div class="card border-left-warning shadow h-100 py-2 bg-dark text-light">
+        <div class="card-body">
+            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                Confirmar Eliminación de Pago Indirecto
+            </div>
+            <div class="dropdown-divider border-light"></div>
+            <p>¿Estás seguro de eliminar el pago indirecto "{{ object.descripcion }}" por {{ object.monto }} (Folio: {{ object.folio_documento|default:"Sin folio" }})?</p>
+            <form method="post" action="{% url 'adm:pagoindirecto_delete' object.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary"><span class="fa fa-check"></span> Confirmar</button>
+                <a href="{% url 'adm:pagoindirecto_list' %}" class="btn btn-secondary"><span class="fa fa-undo"></span> Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

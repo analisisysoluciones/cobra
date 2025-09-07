@@ -1,0 +1,58 @@
+{% extends 'base/base.html' %}
+{% block page_content %}
+
+<h4>Entrega de Requisición {{ requisicion.folio }}</h4>
+<hr>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="card shadow mb-4">
+        <div class="card-header font-weight-bold">
+            Materiales de la requisición
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Clave</th>
+                            <th>Descripción</th>
+                            <th>Solicitada</th>
+                            <th>Entregada</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.material.clave }}</td>
+                            <td>{{ item.material.descripcion }}</td>
+                            <td>{{ item.cantidad_solicitada }}</td>
+                            <td>
+                                <input type="number" name="entregada_{{ item.id }}"
+                                       value="{{ item.cantidad_entregada }}"
+                                       min="0" max="{{ item.cantidad_solicitada }}"
+                                       class="form-control form-control-sm">
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-row justify-content-end">
+        <div class="form-group col-md-3">
+            <button type="submit" class="btn btn-success btn-block">
+                <i class="fas fa-check"></i> Registrar Entrega
+            </button>
+        </div>
+        <div class="form-group col-md-3">
+            <a href="{% url 'inv:requisicion_list' %}" class="btn btn-secondary btn-block">
+                <i class="fas fa-arrow-left"></i> Cancelar
+            </a>
+        </div>
+    </div>
+</form>
+
+{% endblock %}

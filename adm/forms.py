@@ -2,7 +2,9 @@ from django import forms
 import datetime
 from django.core.exceptions import ValidationError
 from .models import( Cuenta, Banco, Residente, TipoDocumento, Proyecto, Simbologia, 
-                     RegistroCuenta, Equipo, Bitacora, TipoPago, Pago, DocumentoGeneral, CargaCombustible, ReporteEquipo) #CostoProyecto)
+                     RegistroCuenta, Equipo, Bitacora, TipoPago, Pago, DocumentoGeneral, 
+                     CargaCombustible, ReporteEquipo, PagoIndirecto) #CostoProyecto)
+from cxp.models import Proveedor
 from django_select2.forms import Select2Widget
 from django.shortcuts import render, redirect
 import re
@@ -378,3 +380,43 @@ class ReporteEquipoForm(forms.ModelForm):
             'fallas': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Si hubo fallas, descríbelas aquí'}),
             'observa': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Cualquier otra observación relevante'}),
         }
+
+
+
+class PagoIndirectoForm(forms.ModelForm):
+    class Meta:
+        model = PagoIndirecto
+        fields = ['proyecto', 'proveedor', 'descripcion', 'monto', 'fecha', 'tipo_pago', 'documento', 'folio_documento', 'comprobante']
+        widgets = {
+            'proyecto': forms.Select(attrs={'class': 'form-control'}),
+            'proveedor': forms.Select(attrs={'class': 'form-control'}),
+            'descripcion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Descripción del gasto'}),
+            'monto': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'fecha': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'tipo_pago': forms.Select(attrs={'class': 'form-control'}),
+            'documento': forms.Select(attrs={'class': 'form-control'}),
+            'folio_documento': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Folio o s/n'}),
+            'comprobante': forms.FileInput(attrs={'class': 'form-control bg-dark text-light border-secondary', 'accept': 'application/pdf'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['proyecto'].queryset = Proyecto.objects.all()
+        self.fields['proveedor'].queryset = Proveedor.objects.all()
+        self.fields['documento'].queryset = TipoDocumento.objects.all()
+        self.fields['documento'].required = False
+        self.fields['comprobante'].required = False
+
+    def clean_folio_documento(self):
+        folio = self.cleaned_data['folio_documento']
+        documento = self.cleaned_data['documento']
+        if folio and folio.lower() != 's/n' and documento:
+            if PagoIndirecto.objects.filter(folio_documento=folio, documento=documento).exclude(pk=self.instance.pk).exists():
+                raise forms.ValidationError("El folio ya está en uso para este tipo de documento.")
+        return folio
+
+    def clean_comprobante(self):
+        comprobante = self.cleaned_data.get('comprobante')
+        if comprobante and not comprobante.name.endswith('.pdf'):
+            raise forms.ValidationError("El archivo debe ser un PDF.")
+        return comprobante

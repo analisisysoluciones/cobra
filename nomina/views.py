@@ -271,6 +271,8 @@ class EmpleadoList(LoginRequiredMixin, generic.ListView):
     context_object_name = "empleados"
     login_url = 'bases:login'
 
+    
+
 class EmpleadoNew(LoginRequiredMixin, generic.CreateView):
     model = Empleado
     template_name = "nomina/empleado_form.html"
@@ -279,12 +281,21 @@ class EmpleadoNew(LoginRequiredMixin, generic.CreateView):
     success_url = reverse_lazy("nom:empleado_list")
     login_url = "bases:login"
 
+    def form_valid(self, form):
+        form.instance.uc = self.request.user
+        return super().form_valid(form)
+    
+
 class EmpleadoEdit(LoginRequiredMixin, generic.UpdateView):
     model = Empleado
     template_name = "nomina/empleado_form.html"
     form_class = EmpleadoForm
     success_url = reverse_lazy("nom:empleado_list")
     login_url = "bases:login"
+
+    def form_valid(self, form):
+        form.instance.um = self.request.user.id
+        return super().form_valid(form)
 
 class EmpleadoDel(LoginRequiredMixin, generic.DeleteView):
     model = Empleado
@@ -1706,32 +1717,102 @@ def asignaciones_masivas(request):
     proyectos = Proyecto.objects.all().order_by('nombre')
 
     if request.method == 'POST':
-        empleados_ids = request.POST.getlist('empleados')  # checkbox seleccionados
+        empleados_ids = request.POST.getlist('empleados')
         proyecto_id = request.POST.get('proyecto')
-        fecha = request.POST.get('fecha')
+        fecha_str = request.POST.get('fecha')
         horas = request.POST.get('horas_trabajadas')
 
-        if not empleados_ids or not proyecto_id or not fecha:
+        # Validar campos requeridos
+        if not empleados_ids or not proyecto_id or not fecha_str:
             messages.error(request, "Selecciona al menos un empleado, proyecto y fecha.")
-        else:
-            for emp_id in empleados_ids:
-                asignacion = AsignacionDiaria(
-                    empleado_id=emp_id,
-                    proyecto_id=proyecto_id,
-                    fecha=fecha,
-                    horas_trabajadas=horas or 0
-                    
-                )
-                asignacion.save()
-            messages.success(request, f"Se asignó el proyecto a {len(empleados_ids)} empleados.")
+            return render(request, 'nomina/asignacion_masiva.html', {
+                'empleados': empleados,
+                'proyectos': proyectos
+            })
 
-        return redirect('nom:asignaciones_masivas')
+        # Convertir fecha
+        try:
+            fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        except ValueError:
+            messages.error(request, "Formato de fecha inválido. Usa YYYY-MM-DD.")
+            return render(request, 'nomina/asignacion_masiva.html', {
+                'empleados': empleados,
+                'proyectos': proyectos
+            })
+
+        # Validar horas
+        try:
+            horas = float(horas) if horas else 0
+            if horas < 0 or horas > 12:
+                messages.error(request, "Las horas trabajadas deben estar entre 0 y 12.")
+                return render(request, 'nomina/asignacion_masiva.html', {
+                    'empleados': empleados,
+                    'proyectos': proyectos
+                })
+        except ValueError:
+            messages.error(request, "Horas trabajadas inválidas.")
+            return render(request, 'nomina/asignacion_masiva.html', {
+                'empleados': empleados,
+                'proyectos': proyectos
+            })
+
+        errores = []
+        with transaction.atomic():
+            for emp_id in empleados_ids:
+                # Validar duplicados
+                if AsignacionDiaria.objects.filter(
+                    empleado_id=emp_id,
+                    fecha=fecha,
+                    proyecto_id=proyecto_id
+                ).exists():
+                    empleado = Empleado.objects.get(id=emp_id)
+                    proyecto = Proyecto.objects.get(id=proyecto_id) if proyecto_id else None
+                    errores.append(
+                        f"Ya existe una asignación para {empleado} "
+                        f"en {fecha.strftime('%Y-%m-%d')} con proyecto {proyecto or 'Sin Proyecto'}."
+                    )
+                    continue
+
+                # Validar límite de 12 horas
+                total_horas = AsignacionDiaria.objects.filter(
+                    empleado_id=emp_id,
+                    fecha=fecha
+                ).aggregate(total=Sum('horas_trabajadas'))['total'] or 0
+                if total_horas + horas > 12:
+                    empleado = Empleado.objects.get(id=emp_id)
+                    errores.append(
+                        f"El total de horas para {empleado} en {fecha.strftime('%Y-%m-%d')} "
+                        f"excede el límite de 12 horas."
+                    )
+                    continue
+
+                # Crear la asignación
+                try:
+                    AsignacionDiaria.objects.create(
+                        empleado_id=emp_id,
+                        proyecto_id=proyecto_id,
+                        fecha=fecha,
+                        horas_trabajadas=horas
+                    )
+                except Exception as e:
+                    empleado = Empleado.objects.get(id=emp_id)
+                    errores.append(f"Error al guardar asignación para {empleado}: {str(e)}")
+
+        if errores:
+            for error in errores:
+                messages.error(request, error)
+            return render(request, 'nomina/asignacion_masiva.html', {
+                'empleados': empleados,
+                'proyectos': proyectos
+            })
+
+        messages.success(request, f"Se asignó el proyecto a {len(empleados_ids)} empleados.")
+        return redirect('nom:asignacion_list')
 
     return render(request, 'nomina/asignacion_masiva.html', {
         'empleados': empleados,
         'proyectos': proyectos
     })
-
 
 def nomina_detalle(request, pk):
     nomina = get_object_or_404(NominaHistorial, pk=pk)
@@ -1759,3 +1840,9 @@ def crear_asignacion_diaria(request):
         form = AsignacionDiariaForm()
 
     return render(request, 'nomina/crear_asignacion_diaria.html', {'form': form})
+
+class NominaCerradaListView(LoginRequiredMixin, PermissionRequiredMixin, generic.ListView):
+    model = Nomina
+    template_name = "nomina/nomina_cerrada_list.html"
+    permission_required = "app.view_nomina"
+    queryset = Nomina.objects.filter(estado='CERRADA')

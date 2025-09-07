@@ -1,98 +1,135 @@
 {% extends 'base/base.html' %}
 
 {% block page_content %}
-<div class="card shadow mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">
-            <i class="fas fa-hard-hat"></i> Asignación Masiva de Proyecto
-        </h6>
-    </div>
-    <div class="card-body">
+<div class="col-xl-12 mb-4">
+    <div class="card shadow h-100 py-2">
+        <div class="card-body">
+            <h5 class="card-title">Carga Masiva de Asignaciones</h5>
+            <p>Seleccione empleados, proyecto, fecha y horas trabajadas para asignar masivamente.</p>
 
-        <form method="post">
-            {% csrf_token %}
-
-            <!-- Proyecto / Fecha / Horas en la parte superior -->
-            <div class="form-row mb-3">
-                <div class="form-group col-md-4">
-                    <label><strong>Proyecto</strong></label>
-                    <select name="proyecto" class="form-control select2" style="width:100%;" required>
-                        <option value="">--- Seleccione un Proyecto ---</option>
-                        {% for pro in proyectos %}
-                        <option value="{{ pro.id }}">{{ pro.nombre }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="form-group col-md-4">
-                    <label><strong>Fecha</strong></label>
-                    <input type="date" name="fecha" class="form-control" value="{{ today|default:'' }}" required>
-                </div>
-                <div class="form-group col-md-4">
-                    <label><strong>Horas trabajadas</strong></label>
-                    <input type="number" name="horas_trabajadas" class="form-control" step="0.5" min="0" max="12" required>
-                </div>
-            </div>
-
-            <!-- Filtro / buscador -->
-            <input type="text" id="buscarEmpleado" class="form-control mb-3" placeholder="Buscar empleado...">
-
-            <!-- Tabla de empleados -->
-            <table class="table table-bordered" id="empleadosTable">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" id="selectAll"></th>
-                        <th>Empleado</th>
-                        <th>Departamento</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for emp in empleados %}
-                    <tr>
-                        <td><input type="checkbox" name="empleados" value="{{ emp.id }}"></td>
-                        <td>{{ emp.nombre }}</td>
-                        <td>{{ emp.departamento }}</td>
-                    </tr>
+            {% if messages %}
+                <div class="alert alert-danger alert-dismissible fade show text-left" role="alert">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
                     {% endfor %}
-                </tbody>
-            </table>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
 
-            <button type="submit" class="btn btn-success mt-3">
-                <i class="fas fa-save"></i> Asignar Masivamente
-            </button>
-        </form>
+            <form method="POST">
+                {% csrf_token %}
+                <!-- Campos superiores -->
+                <div class="form-group row mb-3">
+                    <div class="col-sm-4">
+                        <label class="col-form-label">Proyecto</label>
+                        <select name="proyecto" id="proyecto_top" class="form-control select2" style="width: 100%;" required>
+                            <option value="">--- Seleccione un Proyecto ---</option>
+                            {% for proyecto in proyectos %}
+                                <option value="{{ proyecto.id }}">{{ proyecto.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="col-form-label">Fecha</label>
+                        <input type="date" name="fecha" class="form-control" required>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="col-form-label">Horas Trabajadas</label>
+                        <input type="number" name="horas_trabajadas" class="form-control" step="0.5" min="0" max="12" value="8">
+                    </div>
+                </div>
 
+                <!-- Lista de empleados -->
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label text-left">Empleados</label>
+                    <div class="col-sm-10">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th class="text-left" style="width: 10%;">Seleccionar</th>
+                                        <th class="text-left" style="width: 90%;">Nombre</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for empleado in empleados %}
+                                        <tr>
+                                            <td class="text-left">
+                                                <input class="form-check-input" type="checkbox" name="empleados" value="{{ empleado.id }}" id="empleado_{{ empleado.id }}">
+                                            </td>
+                                            <td class="text-left">{{ empleado.nombre }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Campos inferiores -->
+                <div class="form-group row mb-3">
+                    <div class="col-sm-4">
+                        <label class="col-form-label">Proyecto</label>
+                        <select name="proyecto" id="proyecto_bottom" class="form-control select2" style="width: 100%;" required>
+                            <option value="">--- Seleccione un Proyecto ---</option>
+                            {% for proyecto in proyectos %}
+                                <option value="{{ proyecto.id }}">{{ proyecto.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="col-form-label">Fecha</label>
+                        <input type="date" name="fecha" class="form-control" required>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="col-form-label">Horas Trabajadas</label>
+                        <input type="number" name="horas_trabajadas" class="form-control" step="0.5" min="0" max="12" value="8">
+                    </div>
+                </div>
+
+                <div class="dropdown-divider"></div>
+                <div class="row">
+                    <div class="col-sm-12 text-left">
+                        <button type="submit" class="btn btn-danger"><span class="fa fa-save"></span> Guardar</button>
+                        <a href="{% url 'nom:asignacion_list' %}" class="btn btn-success"><span class="fa fa-undo"></span> Cancelar</a>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
-{% endblock %}
+{% endblock page_content %}
 
-{% block extra_scripts %}
-<!-- jQuery -->
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<!-- Select2 -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
+{% block js_page %}
 <script>
-$(document).ready(function(){
-    // Select2 para proyecto
-    $('.select2').select2({
-        placeholder: '--- Seleccione un Proyecto ---',
-        width: 'style',
-        allowClear: true
-    });
+    // Verificar que jQuery esté cargado
+    if (typeof jQuery === 'undefined') {
+        console.error('jQuery no está cargado');
+    } else {
+        jQuery(document).ready(function() {
+            jQuery('#proyecto_top, #proyecto_bottom').select2({
+                width: '100%',
+                placeholder: 'Seleccione un proyecto'
+            });
 
-    // Buscar empleado en la tabla
-    $("#buscarEmpleado").on("keyup", function() {
-        var value = $(this).val().toLowerCase();
-        $("#empleadosTable tbody tr").filter(function() {
-            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            // Sincronizar selects de proyecto
+            jQuery('#proyecto_top').on('change', function() {
+                jQuery('#proyecto_bottom').val(jQuery(this).val()).trigger('change');
+            });
+            jQuery('#proyecto_bottom').on('change', function() {
+                jQuery('#proyecto_top').val(jQuery(this).val()).trigger('change');
+            });
+
+            // Sincronizar campos de fecha
+            jQuery('input[name="fecha"]').on('change', function() {
+                jQuery('input[name="fecha"]').val(jQuery(this).val());
+            });
+
+            // Sincronizar campos de horas trabajadas
+            jQuery('input[name="horas_trabajadas"]').on('change', function() {
+                jQuery('input[name="horas_trabajadas"]').val(jQuery(this).val());
+            });
         });
-    });
-
-    // Seleccionar todos
-    $("#selectAll").click(function(){
-        $('input[name="empleados"]').prop('checked', this.checked);
-    });
-});
+    }
 </script>
-{% endblock %}
+{% endblock js_page %}

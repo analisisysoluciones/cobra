@@ -3,7 +3,7 @@ from django import forms
 import datetime
 from django.core.exceptions import ValidationError
 from .models import (
-    Cuenta, Empleado, Asistencia, Nomina, PeriodosNomina, EmpleadoArchivo, NominaDetalle, AsignacionDiaria
+    Cuenta, Empleado, Asistencia, Nomina, PeriodosNomina, EmpleadoArchivo, NominaDetalle, AsignacionDiaria, RegistraAsistencia
 )
 from django_select2.forms import Select2Widget
 from django.shortcuts import render, redirect
@@ -209,22 +209,17 @@ class AsignacionDiariaForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Configurar querysets
         from adm.models import Proyecto
         self.fields['empleado'].queryset = Empleado.objects.all()
         self.fields['empleado'].empty_label = "--- Seleccione un Empleado ---"
         self.fields['proyecto'].queryset = Proyecto.objects.all()
         self.fields['proyecto'].empty_label = "--- Seleccione un Proyecto ---"
-        self.fields['proyecto'].required = False  # Coherente con null=True
+        self.fields['proyecto'].required = False
 
-        # Inicializar valores existentes
         if self.instance and self.instance.pk:
-            if self.instance.empleado:
-                self.fields['empleado'].initial = self.instance.empleado.pk
-            if self.instance.proyecto:
-                self.fields['proyecto'].initial = self.instance.proyecto.pk
-            if self.instance.fecha:
-                self.fields['fecha'].initial = self.instance.fecha  # YYYY-MM-DD automático
+            self.fields['empleado'].initial = self.instance.empleado.pk
+            self.fields['proyecto'].initial = self.instance.proyecto.pk if self.instance.proyecto else None
+            self.fields['fecha'].initial = self.instance.fecha  # YYYY-MM-DD
 
     def clean(self):
         cleaned_data = super().clean()
@@ -233,15 +228,19 @@ class AsignacionDiariaForm(forms.ModelForm):
         proyecto = cleaned_data.get('proyecto')
         horas_trabajadas = cleaned_data.get('horas_trabajadas')
 
-        # Validar unicidad
-        if empleado and fecha and proyecto is not None:
-            if AsignacionDiaria.objects.filter(
+        # Validar unicidad, incluyendo proyecto=None
+        if empleado and fecha:
+            query = AsignacionDiaria.objects.filter(
                 empleado=empleado,
                 fecha=fecha,
-                proyecto=proyecto
-            ).exclude(pk=self.instance.pk).exists():
+                proyecto=proyecto  # Incluye None explícitamente
+            )
+            if self.instance and self.instance.pk:
+                query = query.exclude(pk=self.instance.pk)
+            if query.exists():
                 raise forms.ValidationError(
-                    f"Ya existe una asignación para {empleado} en {fecha} con el proyecto {proyecto or 'Sin Proyecto'}."
+                    f"Ya existe una asignación para {empleado} en {fecha.strftime('%Y-%m-%d')} "
+                    f"con el proyecto {proyecto or 'Sin Proyecto'}."
                 )
 
         # Validar falta en Asistencia
@@ -253,12 +252,11 @@ class AsignacionDiariaForm(forms.ModelForm):
             total_horas = AsignacionDiaria.objects.filter(
                 empleado=empleado,
                 fecha=fecha
-            ).exclude(pk=self.instance.pk).aggregate(total=Sum('horas_trabajadas'))['total'] or 0
+            ).exclude(pk=self.instance.pk if self.instance else None).aggregate(total=Sum('horas_trabajadas'))['total'] or 0
             if total_horas + horas_trabajadas > 12:
                 raise forms.ValidationError("El total de horas por día no puede exceder 12.")
 
-        return cleaned_data
-    
+        return cleaned_data    
 
 # Formset para edición masiva
 AsignacionDiariaFormSet = modelformset_factory(
@@ -267,3 +265,16 @@ AsignacionDiariaFormSet = modelformset_factory(
     extra=5,  # No extras; genera basado en queryset en view
     can_delete=False  # Opcional: permite eliminar asignaciones
 )
+
+# Formset para ítems de requisición
+
+class RegistraAsistenciaForm(forms.ModelForm):
+    class Meta:
+        model = RegistraAsistencia
+        fields = ['fecha_hora_entrada', 'latitud', 'longitud']
+        widgets = {
+            'fecha_hora_entrada': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+            'latitud': forms.NumberInput(attrs={'class': 'form-control'}),
+            'longitud': forms.NumberInput(attrs={'class': 'form-control'}),
+            
+        }

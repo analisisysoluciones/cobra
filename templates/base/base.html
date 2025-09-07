@@ -118,9 +118,11 @@
                             <i class="fas fa-credit-card mr-2 text-info"></i> Tipos de Pago
                         </a>
                         {% endif %}
-                        <a class="collapse-item" href="{% url 'cxp:auditoria_pagos' %}">
-                            <i class="fas fa-credit-card mr-2 text-info"></i> Auditoria
+
+                        <a class="collapse-item" href="{% url 'adm:pagoindirecto_list' %}">
+                            💸 Pagos Indirectos
                         </a>
+
                         
                     </div>
                 </div>
@@ -170,7 +172,12 @@
                         <a class="collapse-item" href="{% url 'nom:seleccionar_fecha' %}">
                             <i class="fas fa-file-invoice-dollar text-danger"></i> Cálculo de Nómina
                         </a>
+
                         
+                        <a class="collapse-item" href="{% url 'nom:nominas_cerradas_list' %}">
+                            <i class="fas fa-lock text-success"></i> Nóminas Cerradas
+                        </a>
+                         
                         <a class="collapse-item" href="">
                             <i class="fas fa-plane text-secondary"></i> Vacaciones
                         </a>
@@ -257,6 +264,11 @@
                         <a class="collapse-item" href="{% url 'adm:reporte_equipo_list' %}">
                             <i class="fas fa-cogs mr-2 text-warning"></i> Reportes de Equipo
                         </a>
+
+                        <a class="collapse-item" href="{% url 'inv:requisicion_list' %}">
+                            <i class="fas fa-file-alt"></i> Requisiciones
+                        </a>
+            
             
                     </div>
                 </div>
@@ -680,6 +692,9 @@
   <!-- Bootstrap core JavaScript-->
   <script src="{% static  'base/vendor/jquery/jquery.min.js' %}"></script>
   <script src="{% static  'base/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  <!-- Custom scripts for all pages-->
+  
+
   <!-- Bootstrap CSS -->
     {% comment %} <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet"> {% endcomment %}
 
@@ -689,9 +704,7 @@
   <!-- Core plugin JavaScript-->
   <script src="{% static  'base/vendor/jquery-easing/jquery.easing.min.js' %}"></script>
 
-  <!-- Custom scripts for all pages-->
   <script src="{% static  'base/js/sb-admin-2.min.js' %}"></script>
-
   <!-- Page level plugins -->
   <script src="{% static 'base/vendor/datatables/jquery.dataTables.min.js'%}"></script>
   <script src="{% static 'base/vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>

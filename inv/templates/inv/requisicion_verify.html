@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar Requisición - Inemo</title>
+    <link href="https://cdn.jsdelivr.net/npm/sb-admin@7.0.7/dist/css/styles.css" rel="stylesheet">
+</head>
+<body class="sb-nav-fixed">
+    <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+        <a class="navbar-brand ps-3" href="#">Inemo</a>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="{% url 'almacen:requisicion_create' %}">Nueva Requisición</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'nomina:asistencia_create' %}">Registrar Asistencia</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'almacen:requisicion_list' %}">Lista de Requisiciones</a></li>
+            </ul>
+        </div>
+    </nav>
+    <div id="layoutSidenav">
+        <div id="layoutSidenav_content">
+            <main>
+                <div class="container-fluid px-4">
+                    <h1 class="mt-4">Verificar Requisición {{ object.folio }}</h1>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <h3>Ítems</h3>
+                        {{ formset.management_form }}
+                        {% for form in formset %}
+                        <div class="row mb-3">
+                            <div class="col-md-3">{{ form.producto|as_crispy_field }}</div>
+                            <div class="col-md-2">{{ form.cantidad_solicitada|as_crispy_field }}</div>
+                            <div class="col-md-2">{{ form.cantidad_entregada|as_crispy_field }}</div>
+                            <div class="col-md-2">{{ form.verificado|as_crispy_field }}</div>
+                            <div class="col-md-3">
+                                <p>Stock actual: {{ form.instance.producto.stock_actual }}</p>
+                            </div>
+                        </div>
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            {{ form.errors }}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary">Verificar y Guardar</button>
+                    </form>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

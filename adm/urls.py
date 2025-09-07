@@ -13,7 +13,8 @@ from .views import(
     TipoPagoCreateView, TipoPagoListView, TipoPagoDeleteView, TipoPagoUpdateView, registrar_pago, listado_pagos, dashboard,
     compras_pagadas, reporte_egresos_pdf, generar_estado_cuenta_pdf, dashboard_proyectos, CargaCombustibleListView, CargaCombustibleCreateView,
     CargaCombustibleUpdateView, CargaCombustibleDeleteView, ReporteEquipoCreateView, ReporteEquipoListView, ReporteEquipoUpdateView,
-    ReporteEquipoDeleteView, ReporteEquipoDetailView
+    ReporteEquipoDeleteView, ReporteEquipoDetailView, PagoIndirectoListView, PagoIndirectoCreateView,
+    PagoIndirectoDeleteView, PagoIndirectoUpdateView
 ) 
 
 
@@ -100,6 +101,11 @@ urlpatterns = [
     path('reportes/<int:pk>/editar/', views.ReporteEquipoUpdateView.as_view(), name='reporte_equipo_update'),
     path('reportes/<int:pk>/eliminar/', views.ReporteEquipoDeleteView.as_view(), name='reporte_equipo_delete'),
 
+    path("pagos-indirectos/", PagoIndirectoListView.as_view(), name="pagoindirecto_list"),
+    path("pagos-indirectos/nuevo/", PagoIndirectoCreateView.as_view(), name="pagoindirecto_create"),
+    path("pagos-indirectos/<int:pk>/editar/", PagoIndirectoUpdateView.as_view(), name="pagoindirecto_update"),
+    path("pagos-indirectos/<int:pk>/eliminar/", PagoIndirectoDeleteView.as_view(), name="pagoindirecto_delete"),
+    path('pagoindirecto/afectar/<int:pk>/', views.PagoIndirectoAfectarView.as_view(), name='pagoindirecto_afectar'),
 
     
 ]

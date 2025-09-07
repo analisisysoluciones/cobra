@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header img { width: 120px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid black; padding: 6px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .firmas { margin-top: 60px; display: flex; justify-content: space-around; }
+        .firma { text-align: center; width: 40%; }
+        .firma span { border-top: 1px solid black; padding-top: 5px; display: inline-block; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ STATIC_ROOT }}/base/inemo.jpg" alt="Logo">
+        <h2>REQUISICIÓN DE MATERIALES</h2>
+    </div>
+
+    <p><strong>Folio:</strong> {{ requisicion.folio }}</p>
+    <p><strong>Solicitante:</strong> {{ requisicion.solicitante }}</p>
+    <p><strong>Fecha Solicitud:</strong> {{ requisicion.fecha_solicitud|date:"d/m/Y H:i" }}</p>
+    <p><strong>Estatus:</strong> {{ requisicion.estatus }}</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Clave</th>
+                <th>Descripción</th>
+                <th>Cant. Solicitada</th>
+                <th>Cant. Entregada</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in requisicion.items.all %}
+            <tr>
+                <td>{{ item.material.clave }}</td>
+                <td>{{ item.material.descripcion }}</td>
+                <td>{{ item.cantidad_solicitada }}</td>
+                <td>{{ item.cantidad_entregada }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="firmas">
+        <div class="firma">
+            <p>Firma de recibido</p>
+            <span>{{ requisicion.solicitante }}</span>
+        </div>
+        <div class="firma">
+            <p>Responsable de almacén</p>
+            <span>_________________________</span>
+        </div>
+    </div>
+</body>
+</html>
