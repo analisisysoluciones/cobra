@@ -1,0 +1,39 @@
+{% extends 'base/base.html' %}
+{% block page_content %}
+<div class="card shadow mb-4">
+  <div class="card-header bg-info text-white d-flex justify-content-between">
+    <h4>Horas Extras Registradas</h4>
+    <a href="{% url 'nom:horas_extras_new' %}" class="btn btn-light">➕ Nuevo Registro</a>
+  </div>
+  <div class="card-body">
+    <table class="table table-bordered table-hover">
+      <thead class="thead-dark">
+        <tr>
+          <th>Empleado</th>
+          <th>Período</th>
+          <th>Fecha</th>
+          <th>Horas</th>
+          <th>Pago por Hora</th>
+          <th>Total Pago</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in horas %}
+        <tr>
+          <td>{{ h.empleado.nombre }}</td>
+          <td>{{ h.periodo.semana }}</td>
+          <td>{{ h.fecha|date:"d/m/Y" }}</td>
+          <td>{{ h.horas }}</td>
+          <td>${{ h.pago_por_hora|floatformat:2 }}</td>
+          <td>${{ h.total_pago|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center">Sin registros</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

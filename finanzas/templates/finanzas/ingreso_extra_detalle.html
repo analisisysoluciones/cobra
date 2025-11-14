@@ -1,0 +1,50 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex justify-content-between align-items-center">
+    <h6 class="m-0 font-weight-bold text-primary">Detalle del Ingreso</h6>
+    <a href="{% url 'finanzas:ingreso_list' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-arrow-left"></i> Regresar
+    </a>
+  </div>
+
+  <div class="card-body">
+
+    <table class="table table-bordered table-sm">
+      <tr><th>Folio</th><td>{{ ingreso.folio }}</td></tr>
+      <tr><th>Fecha</th><td>{{ ingreso.fecha|date:"d/m/Y" }}</td></tr>
+      <tr><th>Cuenta</th><td>{{ ingreso.cuenta.cuenta }}</td></tr>
+      <tr><th>Proyecto</th><td>{{ ingreso.proyecto.nombre|default:"—" }}</td></tr>
+      <tr><th>Tipo</th><td>{{ ingreso.get_tipo_display }}</td></tr>
+      <tr><th>Monto</th><td>${{ ingreso.monto|floatformat:2 }}</td></tr>
+      <tr><th>Concepto</th><td>{{ ingreso.concepto }}</td></tr>
+      <tr><th>Referencia</th><td>{{ ingreso.referencia|default:"—" }}</td></tr>
+      <tr><th>Estatus</th>
+        <td>
+          {% if ingreso.estatus == 'AFECTADO' %}
+            <span class="badge badge-success">Afectado</span>
+          {% else %}
+            <span class="badge badge-warning">Pendiente</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% if ingreso.fecha_afectado %}
+      <tr><th>Fecha afectado</th><td>{{ ingreso.fecha_afectado|date:"d/m/Y H:i" }}</td></tr>
+      {% endif %}
+    </table>
+
+    {% if ingreso.estatus == "PENDIENTE" %}
+    <a href="{% url 'finanzas:ingreso_afectar' ingreso.id %}" class="btn btn-success">
+      <i class="fas fa-check"></i> Afectar Movimiento
+    </a>
+    <a href="{% url 'finanzas:ingreso_eliminar' ingreso.id %}" class="btn btn-danger">
+      <i class="fas fa-trash"></i> Eliminar
+    </a>
+    {% else %}
+    <div class="alert alert-info mt-3">Este ingreso ya fue afectado y no puede modificarse ni eliminarse.</div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock page_content %}

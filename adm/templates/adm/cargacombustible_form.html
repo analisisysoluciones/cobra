@@ -1,135 +1,90 @@
 {% extends 'base/base.html' %}
 
 {% block page_content %}
-<form method="POST">
+<form method="post" id="frmCargaCombustible">
     {% csrf_token %}
-    <div class="col-xl-12 mb-4">
-        {% if form.instance.pk %}
-        <div class="card border-left-warning shadow h-100 py-2">
-        {% else %}
-        <div class="card border-left-success shadow h-100 py-2">
-        {% endif %}
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            {% if form.instance.pk %} Editar {% else %} Nueva {% endif %} Carga de Combustible
-                        </div>
-                        <div class="dropdown-divider"></div>
-
-                        <!-- Equipo -->
-                        <div class="form-group row">
-                            <label for="{{ form.equipo.id_for_label }}" class="col-sm-3 col-form-label">Equipo:</label>
-                            <div class="col-sm-9">
-                                {{ form.equipo }}
-                                {% for error in form.equipo.errors %}
-                                    <p class="text-danger">{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Fecha de Carga -->
-                        <div class="form-group row">
-                            <label for="{{ form.fecha_carga.id_for_label }}" class="col-sm-3 col-form-label">Fecha de Carga:</label>
-                            <div class="col-sm-9">
-                                {{ form.fecha_carga }}
-                                {% for error in form.fecha_carga.errors %}
-                                    <p class="text-danger">{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Tipo de Combustible -->
-                        <div class="form-group row">
-                            <label for="{{ form.tipo_combustible.id_for_label }}" class="col-sm-3 col-form-label">Tipo de Combustible:</label>
-                            <div class="col-sm-9">
-                                {{ form.tipo_combustible }}
-                                {% for error in form.tipo_combustible.errors %}
-                                    <p class="text-danger">{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Cantidad en litros -->
-                        <div class="form-group row">
-                            <label for="{{ form.cantidad_litros.id_for_label }}" class="col-sm-3 col-form-label">Cantidad (litros):</label>
-                            <div class="col-sm-9">
-                                {{ form.cantidad_litros }}
-                                {% for error in form.cantidad_litros.errors %}
-                                    <p class="text-danger">{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Costo total -->
-                        <div class="form-group row">
-                            <label for="{{ form.costo_total.id_for_label }}" class="col-sm-3 col-form-label">Costo Total:</label>
-                            <div class="col-sm-9">
-                                {{ form.costo_total }}
-                                {% for error in form.costo_total.errors %}
-                                    <p class="text-danger">{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Odómetro -->
-                        <div class="form-group row">
-                            <label for="{{ form.odometro.id_for_label }}" class="col-sm-3 col-form-label">Odómetro:</label>
-                            <div class="col-sm-9">
-                                {{ form.odometro }}
-                                {% for error in form.odometro.errors %}
-                                    <p class="text-danger">{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Operador -->
-                        <div class="form-group row">
-                            <label for="{{ form.operador.id_for_label }}" class="col-sm-3 col-form-label">Operador:</label>
-                            <div class="col-sm-9">
-                                {{ form.operador }}
-                                {% for error in form.operador.errors %}
-                                    <p class="text-danger">{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Hora -->
-                        <div class="form-group row">
-                            <label for="{{ form.hora.id_for_label }}" class="col-sm-3 col-form-label">Hora:</label>
-                            <div class="col-sm-9">
-                                {{ form.hora }}
-                                {% for error in form.hora.errors %}
-                                    <p class="text-danger">{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Observaciones -->
-                        <div class="form-group row">
-                            <label for="{{ form.observaciones.id_for_label }}" class="col-sm-3 col-form-label">Observaciones:</label>
-                            <div class="col-sm-9">
-                                {{ form.observaciones }}
-                                {% for error in form.observaciones.errors %}
-                                    <p class="text-danger">{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <div class="dropdown-divider"></div>
-                        <div class="row">
-                            <div class="col">
-                                <button type="submit" class="btn btn-success"><span class="fa fa-save"></span> Guardar</button>
-                                <a href="{% url 'adm:cargacombustible_list' %}" class="btn btn-danger"><span class="fa fa-undo"></span> Cancelar</a>
-                            </div>
-                        </div>
-                    </div>
+    <div class="card mb-4 border-left-primary shadow">
+        <div class="card-header font-weight-bold">
+            {% if carga %}Editar{% else %}Nueva{% endif %} Carga de Combustible
+        </div>
+        <div class="card-body">
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                <ul>
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <li>{{ field }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                </div>
+                {% endfor %}
+            {% endif %}
+            <div class="form-row">
+                <div class="form-group col-md-3">
+                    <label for="{{ form.equipo.id_for_label }}">Equipo</label>
+                    {{ form.equipo }}
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="{{ form.fecha_carga.id_for_label }}">Fecha de Carga</label>
+                    {{ form.fecha_carga }}
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="{{ form.tipo_combustible.id_for_label }}">Tipo de Combustible</label>
+                    {{ form.tipo_combustible }}
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="{{ form.cantidad_litros.id_for_label }}">Cantidad (litros)</label>
+                    {{ form.cantidad_litros }}
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="{{ form.costo_total.id_for_label }}">Costo Total</label>
+                    {{ form.costo_total }}
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="{{ form.odometro.id_for_label }}">Odómetro</label>
+                    {{ form.odometro }}
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="{{ form.operador.id_for_label }}">Operador</label>
+                    {{ form.operador }}
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="{{ form.hora.id_for_label }}">Hora</label>
+                    {{ form.hora }}
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="{{ form.folio.id_for_label }}">Folio</label>
+                    {{ form.folio }}
+                </div>
+                <div class="form-group col-md-12">
+                    <label for="{{ form.observaciones.id_for_label }}">Observaciones</label>
+                    {{ form.observaciones }}
                 </div>
             </div>
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <a href="{% url 'adm:cargacombustible_list' %}" class="btn btn-secondary">Cancelar</a>
         </div>
     </div>
 </form>
-{% endblock page_content %}
+{% endblock %}
 
 {% block js_page %}
-{% endblock js_page %}
+<script>
+$(document).ready(function() {
+    $('.select2').select2({
+        placeholder: 'Seleccione una opción',
+        allowClear: true,
+        width: '100%'
+    });
+    $("#sidebarToggle").click();
+});
+</script>
+{% endblock %}

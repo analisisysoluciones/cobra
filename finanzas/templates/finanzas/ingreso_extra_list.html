@@ -1,0 +1,87 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="card shadow mb-4">
+  <<div class="card-header py-3 d-flex justify-content-between align-items-center">
+    <h6 class="m-0 font-weight-bold text-primary">Ingresos Extraordinarios</h6>
+
+    <div class="btn-group" role="group">
+
+        <!-- Botón para abrir la pantalla de reportes con filtros -->
+        <a href="{% url 'finanzas:ingreso_reporte' %}" class="btn btn-info btn-sm">
+            <i class="fas fa-filter"></i> Reporte
+        </a>
+
+        <!-- Botón PDF directo -->
+        <a href="{% url 'finanzas:ingreso_reporte_pdf' %}?{{ request.GET.urlencode }}" 
+           class="btn btn-danger btn-sm" target="_blank">
+            <i class="fas fa-file-pdf"></i> PDF
+        </a>
+
+        <!-- Botón Excel directo -->
+        <a href="{% url 'finanzas:ingreso_reporte_excel' %}?{{ request.GET.urlencode }}" 
+           class="btn btn-success btn-sm">
+            <i class="fas fa-file-excel"></i> Excel
+        </a>
+
+        <!-- Botón para crear nuevo ingreso -->
+        <a href="{% url 'finanzas:ingreso_nuevo' %}" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus"></i> Nuevo Ingreso
+        </a>
+    </div>
+</div>
+
+
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered table-sm">
+        <thead class="thead-dark">
+          <tr>
+            <th>Folio</th>
+            <th>Fecha</th>
+            <th>Cuenta</th>
+            <th>Proyecto</th>
+            <th>Tipo</th>
+            <th>Monto</th>
+            <th>Estatus</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ingreso in ingresos %}
+          <tr>
+            <td>{{ ingreso.folio }}</td>
+            <td>{{ ingreso.fecha|date:"d/m/Y" }}</td>
+            <td>{{ ingreso.cuenta.nombre }}</td>
+            <td>{{ ingreso.proyecto.nombre|default:"—" }}</td>
+            <td>{{ ingreso.get_tipo_display }}</td>
+            <td>${{ ingreso.monto|floatformat:2 }}</td>
+            <td>
+              {% if ingreso.estatus == 'PENDIENTE' %}
+                <span class="badge badge-warning">Pendiente</span>
+              {% else %}
+                <span class="badge badge-success">Afectado</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{% url 'finanzas:ingreso_detalle' ingreso.id %}" class="btn btn-info btn-sm">
+                <i class="fas fa-eye"></i>
+              </a>
+              {% if ingreso.estatus == 'PENDIENTE' %}
+              <a href="{% url 'finanzas:ingreso_eliminar' ingreso.id %}" class="btn btn-danger btn-sm">
+                <i class="fas fa-trash"></i>
+              </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="text-center">No hay ingresos registrados.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock page_content %}

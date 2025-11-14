@@ -1,0 +1,27 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<div class="card shadow mb-4">
+  <div class="card-header">
+    <h6 class="m-0 font-weight-bold text-danger">Eliminar Ingreso</h6>
+  </div>
+
+  <div class="card-body">
+
+    <p>¿Está seguro de eliminar este ingreso?</p>
+
+    <table class="table table-bordered table-sm">
+      <tr><th>Folio</th><td>{{ object.folio }}</td></tr>
+      <tr><th>Monto</th><td>${{ object.monto|floatformat:2 }}</td></tr>
+      <tr><th>Concepto</th><td>{{ object.concepto }}</td></tr>
+    </table>
+
+    <form method="post">
+      {% csrf_token %}
+      <button class="btn btn-danger"><i class="fas fa-trash"></i> Eliminar</button>
+      <a href="{% url 'finanzas:ingreso_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+
+  </div>
+</div>
+{% endblock page_content %}

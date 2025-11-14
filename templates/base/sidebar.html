@@ -1,0 +1,20 @@
+{% load static %}
+<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'bases:home' %}">
+        <img src="{% static 'base/inemo.png' %}" width="70" height="70">
+        <div class="sidebar-brand-text mx-3">Cobra Sistemas</div>
+    </a>
+    <hr class="sidebar-divider my-0">
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'ven:tablero' %}"><i class="fas fa-fw fa-tachometer-alt"></i><span>Tablero</span></a>
+    </li>
+    <hr class="sidebar-divider">
+    <div class="sidebar-heading">Módulos del Sistema</div>
+    {% include 'base/sidebar/_banco.html' %}
+    {% include 'base/sidebar/_empleados.html' %}
+    {% include 'base/sidebar/_ventas.html' %}
+    {% include 'base/sidebar/_catalogos.html' %}
+    {% include 'base/sidebar/_compras.html' %}
+    {% include 'base/sidebar/_admin.html' %}
+    {% include 'base/sidebar/_footer_toggle.html' %}
+</ul>

@@ -1,0 +1,15 @@
+{% if perms.cxp.view_compras %}
+<li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#menuCompras">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="font-weight-bold text-white">Compras</span>
+    </a>
+    <div id="menuCompras" class="collapse" data-parent="#accordionSidebar">
+        <div class="bg-gradient-light py-2 collapse-inner rounded">
+            <a class="collapse-item" href="{% url 'cxp:compras_list' %}"><i class="fas fa-clipboard-list mr-2 text-info"></i> Lista de Compras</a>
+            <a class="collapse-item" href="{% url 'adm:listado_pagos' %}"><i class="fas fa-money-check-alt mr-2 text-success"></i> Listado de Pagos</a>
+            <a class="collapse-item bg-primary text-white rounded" href="{% url 'adm:compras_pagadas' %}"><i class="fas fa-receipt"></i> Compras Pagadas</a>
+        </div>
+    </div>
+</li>
+{% endif %}

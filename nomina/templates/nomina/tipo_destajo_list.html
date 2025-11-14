@@ -1,0 +1,34 @@
+{% extends "base/base.html" %}
+{% block page_content %}
+<div class="container-fluid">
+  <h1 class="h3 mb-4 text-gray-800">Catálogo de Tipos de Destajo</h1>
+  <a href="{% url 'nom:tipo_destajo_create' %}" class="btn btn-primary mb-3">+ Nuevo Tipo</a>
+  <div class="card shadow">
+    <div class="card-body">
+      <table class="table table-striped table-bordered">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Unidad</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in destajos %}
+          <tr>
+            <td>{{ d.nombre }}</td>
+            <td>{{ d.unidad }}</td>
+            <td>
+              <a href="{% url 'nom:tipo_destajo_update' d.pk %}" class="btn btn-sm btn-warning">Editar</a>
+              <a href="{% url 'nom:tipo_destajo_delete' d.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-center">Sin registros</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

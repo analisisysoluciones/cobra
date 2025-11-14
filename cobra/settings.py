@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'nomina',
     'cxp',
+    'asistencia',
+    'finanzas',
 
 ]
 

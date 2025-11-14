@@ -364,6 +364,7 @@ class CargaCombustible(ClaseModelo):
 
     operador = models.CharField('Operador:',max_length=80, blank=True,null=True)
     hora = models.CharField('Hora:',max_length=5, blank=True, null=True)
+    folio = models.IntegerField('Folio:',blank=True,null=True)
 
     def __str__(self):
         return f"{self.get_tipo_combustible_display()} - {self.equipo} - {self.fecha_carga}"
@@ -377,7 +378,7 @@ class ReporteEquipo(ClaseModelo):
     equipo = models.ForeignKey(Equipo,on_delete=models.SET_NULL, null=True, blank=True)
     operador = models.CharField('Operador',max_length=80,blank=True,null=True)
     actividad = models.CharField('Actividad',max_length=220,null=True,blank=True)
-    horas = models.CharField('Horas',max_length=8,null=True,blank=True)
+    horas = models.CharField('Horas',max_length=10,null=True,blank=True)
     diesel_carga = models.CharField('Diesel Cargado',max_length=15,null=True,blank=True)
     diesel_resta = models.CharField('Diesel Restante',max_length=15,null=True,blank=True)
     fallas = models.CharField('Fallas',max_length=120,blank=True,null=True)

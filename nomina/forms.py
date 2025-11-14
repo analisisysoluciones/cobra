@@ -3,7 +3,8 @@ from django import forms
 import datetime
 from django.core.exceptions import ValidationError
 from .models import (
-    Cuenta, Empleado, Asistencia, Nomina, PeriodosNomina, EmpleadoArchivo, NominaDetalle, AsignacionDiaria, RegistraAsistencia
+    Cuenta, Empleado, Asistencia, Nomina, PeriodosNomina, EmpleadoArchivo, NominaDetalle, AsignacionDiaria, RegistraAsistencia,
+    TarifaDestajoObra, TipoDestajo, HorasExtras, NominaEmpleado, CompensacionVariable
 )
 from django_select2.forms import Select2Widget
 from django.shortcuts import render, redirect
@@ -74,31 +75,55 @@ class PeriodosNominaForm(forms.ModelForm):
 
 class AsignarProyectoForm(forms.ModelForm):
     class Meta:
-        model = NominaDetalle
-        fields = ['proyecto'] # Solo necesitamos el campo 'proyecto'
-
+        model = NominaEmpleado
+        fields = ['proyecto']
         widgets = {
-            'proyecto': forms.Select(attrs={'class': 'form-control'}),
+            'proyecto': forms.Select(attrs={'class': 'form-control select2'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         from adm.models import Proyecto
-        # Asegura que el queryset sea de todos los proyectos o filtra si es necesario
         self.fields['proyecto'].queryset = Proyecto.objects.all()
-        self.fields['proyecto'].empty_label = "--- Seleccione un Proyecto ---" # Opcional
+        self.fields['proyecto'].empty_label = "--- Seleccione un Proyecto ---"
+
 
 
 class SeleccionarPeriodoForm(forms.Form):
     periodo = forms.ModelChoiceField(
-        queryset=PeriodosNomina.objects.all().order_by('periodo_inicio'),
-        widget=forms.Select(attrs={'class': 'form-control select2', 'style': 'width: 50%;'}),
-        empty_label="--- Seleccione un Período de Nómina ---",
+        queryset=PeriodosNomina.objects.filter(
+            estatus__in=['ABIERTO', 'EN PROCESO']
+        ).order_by('-periodo_inicio'),
         label="Período de Nómina",
+        widget=forms.Select(attrs={
+            'class': 'form-control select2',
+            'style': 'width:100%;',
+        })
     )
 
     def __init__(self, *args, **kwargs):
+        # Recibimos la request para validar sesión
+        self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+
+    def clean_periodo(self):
+        periodo = self.cleaned_data.get('periodo')
+
+        # Si tenemos acceso al request (vista la pasa como argumento)
+        if self.request:
+            periodo_actual = self.request.session.get('periodo_id')
+            if periodo_actual and str(periodo.id) == str(periodo_actual):
+                raise forms.ValidationError(
+                    f"⚠️ El período '{periodo}' ya está seleccionado actualmente."
+                )
+
+        # Validación adicional: no permitir seleccionar períodos cerrados o cancelados
+        if periodo.estatus in ['CERRADO', 'CANCELADO']:
+            raise forms.ValidationError(
+                f"⚠️ El período '{periodo}' ya está {periodo.estatus.lower()}."
+            )
+
+        return periodo
 
 class ProcesarNominaForm(forms.Form):
     periodo = forms.ModelChoiceField(
@@ -112,16 +137,19 @@ class ProcesarNominaForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-control select2'})
     )
 
-class NominaDetalleProyectoForm(forms.ModelForm):
+class NominaEmpleadoProyectoForm(forms.ModelForm):
     class Meta:
-        model = NominaDetalle
+        model = NominaEmpleado
         fields = ['proyecto']
         widgets = {
-            'proyecto': forms.Select(attrs={'class': 'form-control'}),
+            'proyecto': forms.Select(attrs={'class': 'form-control select2'}),
+        }
 
-
-
-        }    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from adm.models import Proyecto
+        self.fields['proyecto'].queryset = Proyecto.objects.all()
+        self.fields['proyecto'].empty_label = "--- Seleccione un Proyecto ---"
 
 
 # ... (imports existentes)
@@ -202,7 +230,7 @@ class AsignacionDiariaForm(forms.ModelForm):
         fields = ['empleado', 'fecha', 'proyecto', 'horas_trabajadas']
         widgets = {
             'empleado': forms.Select(attrs={'class': 'form-control select2', 'id': 'id_empleado', 'style': 'width: 100%;'}),
-            'fecha': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'fecha': forms.DateInput(format='%Y-%m-%d',attrs={'type': 'date', 'class': 'form-control'}),
             'proyecto': forms.Select(attrs={'class': 'form-control select2', 'id': 'id_proyecto', 'style': 'width: 100%;'}),
             'horas_trabajadas': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.5', 'min': '0', 'max': '12'}),
         }
@@ -219,7 +247,9 @@ class AsignacionDiariaForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             self.fields['empleado'].initial = self.instance.empleado.pk
             self.fields['proyecto'].initial = self.instance.proyecto.pk if self.instance.proyecto else None
-            self.fields['fecha'].initial = self.instance.fecha  # YYYY-MM-DD
+            # Convertir la fecha a formato ISO (cadena)
+            if self.instance.fecha:
+                self.fields['fecha'].initial = self.instance.fecha.strftime('%Y-%m-%d')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -277,4 +307,56 @@ class RegistraAsistenciaForm(forms.ModelForm):
             'latitud': forms.NumberInput(attrs={'class': 'form-control'}),
             'longitud': forms.NumberInput(attrs={'class': 'form-control'}),
             
+        }
+
+
+
+class TipoDestajoForm(forms.ModelForm):
+    class Meta:
+        model = TipoDestajo
+        fields = ["nombre", "unidad"]
+        widgets = {
+            "nombre": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre del destajo"}),
+            "unidad": forms.TextInput(attrs={"class": "form-control", "placeholder": "Unidad (m3, pza, viaje, etc.)"}),
+        }
+
+class TarifaDestajoObraForm(forms.ModelForm):
+    class Meta:
+        model = TarifaDestajoObra
+        fields = ["obra", "tipo", "tarifa"]
+        widgets = {
+            "obra": forms.Select(attrs={"class": "form-control"}),
+            "tipo": forms.Select(attrs={"class": "form-control"}),
+            "tarifa": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
+        }
+
+
+
+
+
+class HorasExtrasForm(forms.ModelForm):
+    class Meta:
+        model = HorasExtras
+        fields = ['empleado', 'periodo', 'proyecto', 'fecha', 'horas', 'pago_por_hora']
+        widgets = {
+            'empleado': forms.Select(attrs={'class': 'form-control select2'}),
+            'periodo': forms.Select(attrs={'class': 'form-control select2'}),
+            'proyecto': forms.Select(attrs={'class': 'form-control select2'}),
+            'fecha': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'horas': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.25'}),
+            'pago_por_hora': forms.NumberInput(attrs={'class': 'form-control', 'readonly': True}),
+        }
+
+
+class CompensacionVariableForm(forms.ModelForm):
+    class Meta:
+        model = CompensacionVariable
+        fields = ['empleado', 'periodo', 'proyecto', 'fecha', 'monto', 'concepto']
+        widgets = {
+            'empleado': forms.Select(attrs={'class': 'form-control select2'}),
+            'periodo': forms.Select(attrs={'class': 'form-control select2'}),
+            'proyecto': forms.Select(attrs={'class': 'form-control select2'}),
+            'fecha': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'monto': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'concepto': forms.TextInput(attrs={'class': 'form-control'}),
         }

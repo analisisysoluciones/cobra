@@ -1,20 +1,29 @@
 {% extends 'base/base.html' %}
+{% load form_extras %}
 
 {% block page_content %}
 <div class="card shadow mb-4">
   <div class="card-header">
     <h4>Seleccionar Período de Nómina</h4>
+    <a href="{% url 'nom:reiniciar_nomina' %}" class="btn btn-light btn-sm shadow-sm">
+      <i class="fas fa-sync-alt"></i> Recalcular
+    </a>
   </div>
   <div class="card-body">
     <form method="post" action="{% url 'nom:seleccionar_fecha' %}">
       {% csrf_token %}
       <div class="form-group col-md-8">
-        {{ form.periodo.label_tag }}
+        <label for="id_periodo" class="form-label fw-bold">Período de nómina:</label>
         {{ form.periodo }}
+
         {% if form.periodo.errors %}
-            <div class="text-danger">{{ form.periodo.errors }}</div>
+            <div class="text-danger small mt-1">{{ form.periodo.errors }}</div>
         {% endif %}
+        <small class="form-text text-muted">
+            Solo se muestran períodos <strong>Abiertos</strong> o <strong>En proceso</strong>.
+        </small>
       </div>
+
       <button type="submit" class="btn btn-primary">Seleccionar</button>
     </form>
   </div>

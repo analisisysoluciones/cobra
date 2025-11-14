@@ -1,0 +1,25 @@
+{% load static %}
+{% if perms.nom.view_empleados %}
+<li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#menuNomina">
+        <i class="fas fa-users"></i>
+        <span class="font-weight-bold text-white">Empleados y Nómina</span>
+    </a>
+    <div id="menuNomina" class="collapse" data-parent="#accordionSidebar">
+        <div class="bg-gradient-light py-2 collapse-inner rounded">
+            <h6 class="collapse-header text-primary">👷 Personal:</h6>
+            <a class="collapse-item" href="{% url 'nom:empleado_list' %}"><i class="fas fa-user-tie text-info"></i> Empleados</a>
+            <a class="collapse-item" href="{% url 'nom:periodos_list' %}"><i class="fa fa-calendar-check text-danger"></i> Periodos</a>
+            <a class="collapse-item" href="{% url 'nom:asistencia_list' %}"><i class="fas fa-calendar-check text-success"></i> Asistencias</a>
+            <a class="collapse-item" href="{% url 'nom:asignaciones_masivas' %}"><i class="fas fa-hard-hat text-primary"></i> Asignaciones</a>
+
+            <div class="dropdown-divider"></div>
+            <h6 class="collapse-header text-primary">💰 Nómina:</h6>
+            <a class="collapse-item" href="{% url 'nom:seleccionar_fecha' %}"><i class="fas fa-file-invoice-dollar text-danger"></i> Cálculo</a>
+            <a class="collapse-item" href="{% url 'nom:nominas_cerradas_list' %}"><i class="fas fa-lock text-success"></i> Cerradas</a>
+            <a class="collapse-item" href="{% url 'nom:tipo_destajo_list' %}"><i class="fas fa-hand-holding-usd text-dark"></i> Destajos</a>
+            <a class="collapse-item" href="{% url 'nom:tarifa_destajo_obra_list' %}"><i class="fas fa-hand-holding-usd text-dark"></i> Tarifa Destajo</a>
+        </div>
+    </div>
+</li>
+{% endif %}

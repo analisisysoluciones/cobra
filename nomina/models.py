@@ -5,6 +5,7 @@ from adm.models import Cuenta
 from inv.models import Material
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from decimal import Decimal, ROUND_HALF_UP
 from decimal import Decimal
 from django.db.models import Sum
 import re
@@ -55,12 +56,15 @@ class Empleado(ClaseModelo):
             return 32
         return 0  # Si el empleado tiene menos de un año, no le corresponden vacaciones aún
 
-    def save(self):
+    def save(self, *args, **kwargs):
         self.curp    = self.curp.upper()
         self.nombre  = self.nombre.upper()
         self.puesto  = self.puesto.upper()
         self.rfc     = self.rfc.upper()
-        super(Empleado, self).save()
+        super(Empleado, self).save(*args, **kwargs)
+   
+    
+
         
     def __str__(self):
         return self.nombre+" "+self.puesto
@@ -184,11 +188,12 @@ class NominaHistorial(models.Model):
     periodo_inicio = models.DateField(unique=True)
     periodo_fin = models.DateField()
     total_pago = models.DecimalField(max_digits=12, decimal_places=2)
-    cuenta = models.ForeignKey(Cuenta, on_delete=models.CASCADE)
+    cuenta = models.ForeignKey(Cuenta, on_delete=models.CASCADE,null=True,blank=True)
 
     ESTATUS_CHOICES = [
         ('Pendiente', 'Pendiente'),
         ('Procesada', 'Procesada'),
+        ('CERRADO', 'Cerrado'),
         ('Cancelada', 'Cancelada'),
     ]
 
@@ -241,36 +246,48 @@ class NominaHistorial(models.Model):
 
 
 class NominaDetalle(models.Model):
-     nomina_historica = models.ForeignKey(NominaHistorial, on_delete=models.CASCADE, related_name="detalles")
-     empleado = models.ForeignKey('Empleado', on_delete=models.CASCADE)  # Asumiendo que tienes un modelo Empleado
-     sueldo_diario = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-     dias_trabajados = models.IntegerField(default=0)
-     total_pago = models.DecimalField(max_digits=10, decimal_places=2,default=0.00)
-     proyecto = models.ForeignKey('adm.Proyecto', on_delete=models.SET_NULL, null=True, blank=True)
-     dias_trabajados = models.IntegerField(default=0)   # 👈 nuevo
-     horas_trabajadas = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)  # opcional
+    nomina_empleado = models.ForeignKey('NominaEmpleado', on_delete=models.CASCADE, related_name="detalles")
+    concepto = models.CharField(max_length=120, null=True,blank=True)
+    tipo = models.CharField(max_length=15, choices=[('PERCEPCION', 'Percepción'), ('DEDUCCION', 'Deducción')])
+    cantidad = models.DecimalField(max_digits=10, decimal_places=2, default=1)
+    monto_unitario = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
-     
-     def __str__(self):
-         return f"{self.empleado} - {self.total_pago}"
+    class Meta:
+        verbose_name = "Detalle de Nómina"
+        verbose_name_plural = "Detalles de Nómina"
 
-     def calcular_pago_proporcional(self, horas_jornada=8):
-         """Calcula pago basado en días/horas, considerando solo días trabajados."""
-         if self.horas_trabajadas:
-             return (self.sueldo_diario / Decimal(horas_jornada)) * self.horas_trabajadas
-         else:
-             return self.sueldo_diario * self.dias_trabajados
+    def save(self, *args, **kwargs):
+        self.subtotal = self.cantidad * self.monto_unitario
+        super().save(*args, **kwargs)
 
 
 class PeriodosNomina(models.Model):
+    anio = models.PositiveIntegerField(null=True,blank=True)
     semana = models.IntegerField(null=False,blank=False,default=0)
     periodo_inicio = models.DateField()
     periodo_final  = models.DateField()
     fecha_corte = models.DateField()
     dia_pago = models.DateField()
+    ESTATUS_CHOICES = [
+        ('ABIERTO', 'Abierto'),
+        ('EN PROCESO', 'En Proceso'),
+        ('CERRADO', 'Cerrado'),
+        ('CANCELADO', 'Cancelado'),
+    ]
+    estatus = models.CharField(max_length=15, choices=ESTATUS_CHOICES, default='ABIERTO')
+
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['anio', 'semana'], name='unique_anio_semana')
+        ]
+        ordering = ['-anio', '-semana']
 
     def __str__(self):
-        return f"{self.semana} - {self.periodo_inicio} - {self.periodo_final}"
+        return f"Semana {self.semana} | {self.periodo_inicio} al {self.periodo_final} | {self.estatus}"
+
+
     
 
 class AsignacionDiaria(models.Model):
@@ -303,8 +320,8 @@ class AsignacionDiaria(models.Model):
 
 class MovimientoCuentaProyecto(models.Model):
     proyecto = models.ForeignKey('adm.Proyecto', on_delete=models.CASCADE, related_name='movimientos')
-    empleado = models.ForeignKey('Empleado', on_delete=models.CASCADE)
-    periodo = models.ForeignKey('NominaHistorial', on_delete=models.CASCADE)  # Nómina cerrada
+    empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
+    periodo = models.ForeignKey(NominaHistorial, on_delete=models.CASCADE)  # Nómina cerrada
     importe = models.DecimalField(max_digits=10, decimal_places=2)
     fecha = models.DateField(auto_now_add=True)
 
@@ -319,8 +336,202 @@ class RegistraAsistencia(models.Model):
     fecha_hora_salida = models.DateTimeField(blank=True, null=True)
     latitud = models.FloatField()
     longitud = models.FloatField()
+    origen = models.CharField(max_length=20, default="whatsapp",null=True,blank=True)
 
     def __str__(self):
         return f"Asistencia de {self.usuario} - {self.fecha_hora_entrada}"
+    
 
 
+
+class TarifaDiariaObra(models.Model):
+    """
+    $/día por obra y (opcional) empleado o rol.
+    Si ya tienes tueldos fijos por empleado, puedes convertir esto en override por obra.
+    """
+    obra = models.ForeignKey("adm.Proyecto", on_delete=models.CASCADE)
+    empleado = models.ForeignKey(Empleado, null=True, blank=True, on_delete=models.CASCADE)
+    monto_dia = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        unique_together = ("obra", "empleado")
+
+    def __str__(self):
+        who = self.empleado.nombre if self.empleado else "General"
+        return f"{self.obra} - {who}: ${self.monto_dia}/día"
+
+
+class AsistenciaDia(models.Model):
+    """
+    Marca 1/0 o fracción por día y horas extra.
+    """
+    semana = models.ForeignKey(PeriodosNomina, on_delete=models.CASCADE)
+    empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
+    obra = models.ForeignKey("adm.Proyecto", on_delete=models.CASCADE)
+    fecha = models.DateField()
+    laboro = models.DecimalField(max_digits=4, decimal_places=2, default=1)  # permite 0.5, etc.
+    horas_extra = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+
+    class Meta:
+        unique_together = ("empleado", "fecha")
+
+
+class TipoDestajo(models.Model):
+    """
+    Catálogo de destajos: p.ej. 'm3 excavación', 'caja ciega', 'registro 50%', 'viaje tepetate', etc.
+    """
+    nombre = models.CharField(max_length=120, unique=True)
+    unidad = models.CharField(max_length=30, default="pieza")  # m3, pza, viaje, etc.
+
+    def __str__(self):
+        return self.nombre
+
+
+class TarifaDestajoObra(models.Model):
+    """
+    Tarifa variable por obra y por tipo de destajo.
+    """
+    obra = models.ForeignKey("adm.Proyecto", on_delete=models.CASCADE)
+    tipo = models.ForeignKey(TipoDestajo, on_delete=models.CASCADE)
+    tarifa = models.DecimalField(max_digits=12, decimal_places=4)
+
+    class Meta:
+        unique_together = ("obra", "tipo")
+
+
+class RegistroDestajo(models.Model):
+    """
+    Movimiento de destajo: quién lo hizo, dónde, cuánto, y precio aplicable.
+    Permite factor (p.ej. 0.5 cuando dice 50%) y override puntual de tarifa.
+    """
+    semana = models.ForeignKey(PeriodosNomina, on_delete=models.CASCADE)
+    obra = models.ForeignKey("adm.Proyecto", on_delete=models.CASCADE)
+    empleado = models.ForeignKey(Empleado, null=True, blank=True, on_delete=models.SET_NULL)
+    tipo = models.ForeignKey(TipoDestajo, on_delete=models.CASCADE)
+    cantidad = models.DecimalField(max_digits=12, decimal_places=4, default=1)
+    factor = models.DecimalField(max_digits=8, decimal_places=4, default=1)  # ej. 0.5
+    tarifa_aplicada = models.DecimalField(max_digits=12, decimal_places=4, null=True, blank=True)
+    total = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+
+    descripcion = models.TextField(blank=True, default="")
+
+    def save(self, *args, **kwargs):
+        self.total = self.calcular_total()
+        super().save(*args, **kwargs)
+
+
+    def calcular_total(self):
+        base = self.tarifa_aplicada
+        if base is None:
+            # Buscar tarifa por obra+tipo
+            try:
+                base = TarifaDestajoObra.objects.get(obra=self.obra, tipo=self.tipo).tarifa
+            except TarifaDestajoObra.DoesNotExist:
+                base = 0
+        return round(base * self.cantidad * self.factor, 2)
+
+
+class GastoObra(models.Model):
+    """
+    Otros gastos imputados a obra durante la semana (viáticos, arena, piedra, llantera, etc.)
+    """
+    semana = models.ForeignKey(PeriodosNomina, on_delete=models.CASCADE)
+    obra = models.ForeignKey("adm.Proyecto", on_delete=models.CASCADE)
+    concepto = models.CharField(max_length=160)
+    monto = models.DecimalField(max_digits=12, decimal_places=2)
+    proveedor = models.CharField(max_length=160, blank=True, default="")
+    observaciones = models.TextField(blank=True, default="")
+
+class HorasExtras(models.Model):
+    empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
+    periodo = models.ForeignKey(PeriodosNomina, on_delete=models.CASCADE)
+    proyecto = models.ForeignKey("adm.Proyecto", on_delete=models.CASCADE, null=True, blank=True)
+    fecha = models.DateField()
+    horas = models.DecimalField(max_digits=6, decimal_places=2)
+    pago_por_hora = models.DecimalField(max_digits=10, decimal_places=2)
+    total_pago = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def save(self, *args, **kwargs):
+        # ✅ Calcula automáticamente el pago por hora según el sueldo diario del empleado
+        if self.empleado and self.empleado.sueldo_diario:
+            sueldo_diario = Decimal(self.empleado.sueldo_diario or 0)
+            self.pago_por_hora = (sueldo_diario / Decimal(8)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        else:
+            self.pago_por_hora = Decimal("0.00")
+
+        # ✅ Calcula total pago automáticamente
+        self.total_pago = (self.horas * self.pago_por_hora).quantize(Decimal("0.01"))
+
+        super().save(*args, **kwargs)
+
+
+    def __str__(self):
+        return f"{self.empleado.nombre} - {self.horas} hrs (${self.total_pago})"
+
+    class Meta:
+        verbose_name = "Hora extra"
+        verbose_name_plural = "Horas extras"
+        ordering = ["-fecha"]
+        
+        
+
+
+class NominaEmpleado(models.Model):
+    historial = models.ForeignKey(NominaHistorial, on_delete=models.CASCADE, related_name='empleados')
+    empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
+    proyecto = models.ForeignKey('adm.Proyecto', on_delete=models.SET_NULL, null=True, blank=True)
+    total_percepciones = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_deducciones = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_neto = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    dias_trabajados = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    horas_trabajadas = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+
+    class Meta:
+        unique_together = ('historial', 'empleado', 'proyecto')
+        verbose_name = "Nómina por empleado"
+        verbose_name_plural = "Nóminas por empleado"
+
+    def __str__(self):
+        return f"{self.empleado.nombre} ({self.proyecto or 'Sin proyecto'}) - {self.total_neto}"
+
+
+
+class NominaAcumulado(models.Model):
+    empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
+    proyecto = models.ForeignKey('adm.Proyecto', on_delete=models.SET_NULL, null=True, blank=True)
+    periodo = models.ForeignKey(PeriodosNomina, on_delete=models.SET_NULL, null=True, blank=True)
+    mes = models.IntegerField()
+    anio = models.PositiveIntegerField()
+    dias_trabajados = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    sueldo_diario = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    horas_extras = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    compensacion = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    destajo = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    importe = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    fecha_actualizado = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('empleado', 'mes', 'anio', 'proyecto', 'periodo')
+        verbose_name = "Acumulado mensual"
+        verbose_name_plural = "Acumulados mensuales"
+
+    def __str__(self):
+        return f"{self.empleado.nombre} - {self.anio}/{self.mes}"
+
+
+
+class CompensacionVariable(models.Model):
+    empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
+    periodo = models.ForeignKey(PeriodosNomina, on_delete=models.CASCADE)
+    proyecto = models.ForeignKey("adm.Proyecto", on_delete=models.CASCADE, null=True, blank=True)
+    fecha = models.DateField()
+    concepto = models.CharField(max_length=100, default="Compensación variable")
+    monto = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+    def __str__(self):
+        return f"{self.empleado.nombre} - {self.concepto} (${self.monto})"
+
+    class Meta:
+        verbose_name = "Compensación variable"
+        verbose_name_plural = "Compensaciones variables"
+        ordering = ["-fecha"]

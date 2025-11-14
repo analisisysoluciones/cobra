@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from bases.models import ClaseModelo
+from bases.models import ClaseModelo, Folios
 from inv.models import Material
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -63,6 +63,8 @@ class CompraEnc(ClaseModelo):
     evidencia_uso=models.FileField('archivo pdf:', upload_to='documentos/pdfs/', blank=True, null=True)
     autoriza=models.CharField('Autoriza:',max_length=25, blank=True, null=True,choices=QUIEN_AUTORIZA,default='Jesus Quiñones')
 
+    
+
     def saldo_pendiente(self):
         pagos_realizados = self.pagos.aggregate(models.Sum('monto'))['monto__sum'] or Decimal('0.00')
         return self.total - pagos_realizados
@@ -94,10 +96,6 @@ class CompraEnc(ClaseModelo):
 
         return 'pendiente'
 
-    def save(self, *args, **kwargs):
-        self.fecha_pago = self.calcular_fecha_pago()
-        self.estatus_pago = self.calcular_estatus_pago()
-        super().save(*args, **kwargs)
 
     def calcular_total(self):
         self.total = sum(detalle.importe for detalle in self.documentos_d.all())
@@ -112,6 +110,32 @@ class CompraEnc(ClaseModelo):
             self.estado = "Pendiente"
             self.estatus_pago = self.calcular_estatus_pago()
         self.save()
+
+    def save(self, *args, **kwargs):
+        self.fecha_pago = self.calcular_fecha_pago()
+        self.estatus_pago = self.calcular_estatus_pago()
+
+        with transaction.atomic():
+            # Generar folio solo si es un nuevo registro
+            if not self.pk and (not self.folio_documento or self.folio_documento.lower() in ['s/n', 'sn']) and self.tipo:
+                folio_registro, created = Folios.objects.get_or_create(
+                    tipo_documento=self.tipo.tipo,
+                    anio=timezone.now().year,
+                    defaults={'consecutivo': 0}
+                )
+                self.folio_documento = folio_registro.next_consecutivo()
+
+            # Validar folio único, ignorando 'S/N'
+            if self.folio_documento and self.folio_documento.lower() not in ['s/n', 'sn'] and CompraEnc.objects.filter(folio_documento=self.folio_documento).exclude(pk=self.pk).exists():
+                raise ValueError(f"El folio {self.folio_documento} ya existe.")
+
+            super().save(*args, **kwargs)
+
+
+            
+    def __str__(self):
+        return f"{self.tipo.tipo if self.tipo else 'Sin tipo'} - {self.descripcion} - ${self.monto_total} (Folio: {self.folio_documento or 'Sin folio'})"
+
 
     class Meta:
         verbose_name = "Documento"

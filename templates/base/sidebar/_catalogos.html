@@ -1,0 +1,18 @@
+{% if perms.inv.view_unidad %}
+<li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#menuCatalogos">
+        <i class="fas fa-th-list"></i>
+        <span class="font-weight-bold text-white">Catálogos</span>
+    </a>
+    <div id="menuCatalogos" class="collapse" data-parent="#accordionSidebar">
+        <div class="bg-gradient-light py-2 collapse-inner rounded">
+            <h6 class="collapse-header text-primary"><i class="fas fa-folder-open mr-2"></i> Inventario</h6>
+            <a class="collapse-item" href="{% url 'inv:unidad_list' %}"><i class="fas fa-ruler-combined mr-2 text-info"></i> Unidades</a>
+            <a class="collapse-item" href="{% url 'inv:material_list' %}"><i class="fas fa-cubes mr-2 text-success"></i> Materiales</a>
+            <a class="collapse-item" href="{% url 'cxp:proveedor_list' %}"><i class="fas fa-truck mr-2 text-warning"></i> Proveedores</a>
+            <a class="collapse-item" href="{% url 'adm:equipo_list' %}"><i class="fas fa-tools mr-2 text-danger"></i> Equipos y Herramientas</a>
+            <a class="collapse-item" href="{% url 'inv:requisicion_list' %}"><i class="fas fa-file-alt"></i> Requisiciones</a>
+        </div>
+    </div>
+</li>
+{% endif %}

@@ -1,0 +1,43 @@
+{% extends 'base/base.html' %}
+{% block page_content %}
+<div class="col-xl-10 mx-auto">
+  <div class="card shadow mb-4">
+    <div class="card-header bg-info text-white">
+      <h6 class="m-0 font-weight-bold">Registrar Compensación Variable</h6>
+    </div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group row">
+          <label class="col-sm-2 col-form-label">Empleado</label>
+          <div class="col-sm-4">{{ form.empleado }}</div>
+          <label class="col-sm-2 col-form-label">Periodo</label>
+          <div class="col-sm-4">{{ form.periodo }}</div>
+        </div>
+
+        <div class="form-group row">
+          <label class="col-sm-2 col-form-label">Proyecto</label>
+          <div class="col-sm-4">{{ form.proyecto }}</div>
+          <label class="col-sm-2 col-form-label">Fecha</label>
+          <div class="col-sm-4">{{ form.fecha }}</div>
+        </div>
+
+        <div class="form-group row">
+          <label class="col-sm-2 col-form-label">Monto</label>
+          <div class="col-sm-4">{{ form.monto }}</div>
+          <label class="col-sm-2 col-form-label">Descripción</label>
+          <div class="col-sm-4">{{ form.descripcion }}</div>
+        </div>
+
+        <div class="dropdown-divider"></div>
+        <button type="submit" class="btn btn-success">
+          <i class="fa fa-save"></i> Guardar
+        </button>
+        <a href="{% url 'nom:empleado_list' %}" class="btn btn-secondary">
+          <i class="fa fa-undo"></i> Cancelar
+        </a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

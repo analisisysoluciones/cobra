@@ -83,6 +83,12 @@ class CompraEncForm(forms.ModelForm):
         # El campo 'total' ya se estableció como readonly en los widgets, pero si quieres asegurarte:
         self.fields['total'].widget.attrs['readonly'] = True
 
+    def clean_folio_documento(self):
+        folio = self.cleaned_data['folio_documento']
+        if folio and folio.lower() not in ['s/n', 'sn'] and CompraEnc.objects.filter(folio_documento=folio).exists():
+            raise forms.ValidationError("El folio ya existe.")
+        return folio
+
 
 class CompraDetForm(forms.ModelForm):
     # material_id y descripcion_material no son campos directos del modelo CompraDet

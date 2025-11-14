@@ -1,0 +1,126 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page {
+    size: A4 landscape;
+    margin: 1.3cm 1.5cm 1.3cm 1.5cm;
+  }
+
+  body {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 9.5pt;
+    color: #000;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    border: 0.5px solid #999;
+    padding: 4px;
+    text-align: center;
+  }
+
+  thead {
+    display: table-header-group; /* ✅ Garantiza encabezado repetido */
+  }
+
+  th {
+    background-color: #003366;
+    color: white;
+    font-size: 9pt;
+  }
+
+  .titulo {
+    text-align: center;
+    font-weight: bold;
+    font-size: 13pt;
+  }
+
+  .sub {
+    text-align: center;
+    font-size: 9pt;
+    color: #333;
+  }
+
+  .pie {
+    text-align: right;
+    font-size: 8pt;
+    color: #555;
+    margin-top: 10px;
+  }
+
+  img.logo {
+    height: 45px;
+    vertical-align: middle;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid #999;
+    margin: 3px 0 6px 0;
+  }
+</style>
+</head>
+
+<body>
+  <!-- 🔹 Tabla principal que contiene encabezado y cuerpo -->
+  <table width="100%">
+    <thead>
+      <tr>
+        <th colspan="7" style="background: white; border: none;">
+          <table width="100%" style="border: none;">
+            <tr>
+              <td width="15%" align="left">
+                <img src="{% static 'base/img/inemo.png' %}" class="logo">
+              </td>
+              <td width="70%" class="titulo">
+                REPORTE DE PERÍODOS DE NÓMINA<br>
+                <span class="sub">Generado: {{ fecha|date:"d/m/Y H:i" }}</span>
+              </td>
+              <td width="15%" align="right" style="font-size:9pt;">
+                Página <pdf:pagenumber> / <pdf:pagecount>
+              </td>
+            </tr>
+          </table>
+          <hr>
+        </th>
+      </tr>
+
+      <!-- ✅ Estos encabezados se repiten automáticamente -->
+      <tr>
+        <th>Semana</th>
+        <th>Inicio</th>
+        <th>Fin</th>
+        <th>Fecha de Corte</th>
+        <th>Día de Pago</th>
+        <th>Estatus</th>
+        <th>Año</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for p in periodos %}
+      <tr>
+        <td>{{ p.semana }}</td>
+        <td>{{ p.periodo_inicio|date:"d/m/Y" }}</td>
+        <td>{{ p.periodo_final|date:"d/m/Y" }}</td>
+        <td>{{ p.fecha_corte|date:"d/m/Y" }}</td>
+        <td>{{ p.fecha_pago|date:"d/m/Y" }}</td>
+        <td>{{ p.estatus }}</td>
+        <td>{{ p.anio }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p class="pie">
+    INEMO Constructora  •  RFC: IEM060621IE3  •  Puerto Altata 590, Culiacán, Sinaloa
+  </p>
+</body>
+</html>

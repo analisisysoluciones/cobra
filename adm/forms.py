@@ -283,6 +283,7 @@ class CargaCombustibleForm(forms.ModelForm):
             'operador',
             'hora',
             'observaciones',
+            'folio',
         ]
         widgets = {
             'equipo': forms.Select(attrs={'class': 'form-control'}),
@@ -297,6 +298,7 @@ class CargaCombustibleForm(forms.ModelForm):
             'operador': forms.TextInput(attrs={'class': 'form-control'}),
             'hora': forms.TextInput(attrs={'class': 'form-control'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows':3}),
+            'folio': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):

@@ -20,14 +20,19 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 
+
+
 urlpatterns = [
     path('',include(('bases.urls','bases'), namespace='bases')),
     path('inv/',include(('inv.urls','inv'), namespace='inv')),
     path('adm/',include(('adm.urls','adm'), namespace='adm')),
-    path('nom/',include(('nomina.urls','nom'), namespace='nom')),
+    path('nom/', include(('nomina.urls','nom'),namespace='nom')),
     path('ven/',include(('ventas.urls','ventas'), namespace='ven')),
     path('cxp/',include(('cxp.urls','cxp'), namespace='cxp')),
+    path('finanzas/',include(('finanzas.urls','cxp'), namespace='finanzas')),
     path('admin/', admin.site.urls),
+    
+    
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

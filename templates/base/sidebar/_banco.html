@@ -1,0 +1,33 @@
+<li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#menuBanco">
+        <i class="fas fa-wallet"></i>
+        <span class="font-weight-bold text-white">Movimientos Bancarios</span>
+    </a>
+    <div id="menuBanco" class="collapse" data-parent="#accordionSidebar">
+        <div class="bg-gradient-light py-2 collapse-inner rounded">
+            <h6 class="collapse-header text-primary"><i class="fas fa-piggy-bank mr-2"></i> Bancos y Cuentas</h6>
+
+            {% if perms.adm.view_banco %}
+            <a class="collapse-item" href="{% url 'adm:banco_list' %}">
+                <i class="fas fa-university mr-2 text-dark"></i> Bancos
+            </a>
+            {% endif %}
+
+            {% if perms.adm.view_cuenta %}
+            <a class="collapse-item" href="{% url 'adm:cuenta_list' %}">
+                <i class="fas fa-piggy-bank mr-2 text-success"></i> Cuentas Bancarias
+            </a>
+            {% endif %}
+
+            {% if perms.adm.view_registrocuenta %}
+            <a class="collapse-item" href="{% url 'adm:registrocuenta_list' %}">
+                <i class="fas fa-exchange-alt mr-2 text-info"></i> Movimientos a Cuentas
+            </a>
+            {% endif %}
+
+            <a class="collapse-item" href="{% url 'adm:pagoindirecto_list' %}">
+                💸 Pagos Indirectos
+            </a>
+        </div>
+    </div>
+</li>

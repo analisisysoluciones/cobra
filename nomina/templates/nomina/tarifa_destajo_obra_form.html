@@ -1,0 +1,69 @@
+{% extends 'base/base.html' %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+
+{% block page_content %}
+<form method="POST">
+    {% csrf_token %}
+    <div class="col-xl-12 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Registro de Tarifa por Obra
+                        </div>
+                        <div class="dropdown-divider"></div>
+
+                        <!-- Campo: Obra -->
+                        <div class="form-group row">
+                            <label for="{{ form.obra.id_for_label }}" class="col-sm-3 col-form-label">Obra:</label>
+                            <div class="col-sm-9">
+                                {{ form.obra|add_class:"form-control" }}
+                                {% if form.obra.errors %}
+                                    <div class="text-danger small">{{ form.obra.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Campo: Tipo de Destajo -->
+                        <div class="form-group row">
+                            <label for="{{ form.tipo.id_for_label }}" class="col-sm-3 col-form-label">Tipo de Destajo:</label>
+                            <div class="col-sm-9">
+                                {{ form.tipo|add_class:"form-control" }}
+                                {% if form.tipo.errors %}
+                                    <div class="text-danger small">{{ form.tipo.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Campo: Tarifa -->
+                        <div class="form-group row">
+                            <label for="{{ form.tarifa.id_for_label }}" class="col-sm-3 col-form-label">Tarifa:</label>
+                            <div class="col-sm-9">
+                                {{ form.tarifa|add_class:"form-control" }}
+                                {% if form.tarifa.errors %}
+                                    <div class="text-danger small">{{ form.tarifa.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fa fa-save"></i> Guardar
+                                </button>
+                                <a href="{% url 'nom:tarifa_destajo_obra_list' %}" class="btn btn-danger">
+                                    <i class="fa fa-times"></i> Cancelar
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock page_content %}

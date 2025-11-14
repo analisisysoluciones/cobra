@@ -1,0 +1,61 @@
+<form id="formFalta" method="post" action="">
+  {% csrf_token %}
+
+  <!-- Encabezado -->
+  <div class="modal-header bg-danger text-white">
+    <h5 class="modal-title">
+      <i class="fas fa-user-times"></i> Registrar Falta — {{ empleado.nombre }}
+    </h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+  </div>
+
+  <!-- Cuerpo -->
+  <div class="modal-body">
+    <!-- Empleado (solo lectura visual) + hidden real -->
+    <div class="form-group mb-3">
+      <label class="form-label fw-bold">
+        <i class="fas fa-user"></i> Empleado
+      </label>
+      <input type="text" class="form-control bg-light" value="{{ empleado.nombre }}" readonly>
+      {{ form.empleado.as_hidden }}
+    </div>
+
+    <!-- Fecha -->
+    <div class="form-group mb-3">
+      <label for="{{ form.fecha.id_for_label }}" class="form-label fw-bold">
+        <i class="fas fa-calendar-alt"></i> Fecha de falta
+      </label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+        {{ form.fecha }}
+      </div>
+      {% if form.fecha.errors %}
+        <div class="text-danger small mt-1">{{ form.fecha.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Tipo -->
+    <div class="form-group mb-3">
+      <label for="{{ form.tipo.id_for_label }}" class="form-label fw-bold">
+        <i class="fas fa-exclamation-triangle"></i> Tipo de falta
+      </label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="fa fa-flag"></i></span>
+        {{ form.tipo }}
+      </div>
+      {% if form.tipo.errors %}
+        <div class="text-danger small mt-1">{{ form.tipo.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="modal-footer">
+    <button type="submit" class="btn btn-danger">
+      <i class="fa fa-save"></i> Guardar
+    </button>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+      <i class="fa fa-times"></i> Cancelar
+    </button>
+  </div>
+</form>

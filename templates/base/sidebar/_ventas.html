@@ -1,0 +1,13 @@
+<li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#menuVentas">
+        <i class="fas fa-store text-warning"></i>
+        <span class="font-weight-bold text-white">Ventas</span>
+    </a>
+    <div id="menuVentas" class="collapse" data-parent="#accordionSidebar">
+        <div class="bg-gradient-light py-2 collapse-inner rounded">
+            <h6 class="collapse-header text-primary">📊 Gestión de Ventas:</h6>
+            <a class="collapse-item" href="{% url 'ven:productoinmobiliario_list' %}"><i class="fas fa-box text-info"></i> Productos Inmobiliarios</a>
+            <a class="collapse-item" href="{% url 'ven:cliente_list' %}"><i class="fas fa-users text-success"></i> Clientes</a>
+        </div>
+    </div>
+</li>

@@ -55,6 +55,12 @@
                                 {% endif %}
                                 - {{ nomina.get_estatus_display }}
                             </td>
+                            <td>
+                            <a href="{% url 'nom:nomina_detalle' nomina.id %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-eye"></i> Ver detalle
+                            </a>
+                            </td>
+
                         </tr>
                         {% endfor %}
                     </tbody>

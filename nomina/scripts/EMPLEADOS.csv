@@ -1,0 +1,39 @@
+Nombre,sueldo_diario,Codigo,CURP
+Jardinero ,416.66666666,100,AAAA123456HXXXXX01
+Edgar Ruelas,500,101,AAAA123456HXXXXX02
+Crisanto,333.3333333333,102,AAAA123456HXXXXX03
+Brayan Alcal� ,400,103,AAAA123456HXXXXX04
+Jose Nieto,417,104,AAAA123456HXXXXX05
+Mario Romero,166.666666666,105,AAAA123456HXXXXX06
+Spiry,916.66666,106,AAAA123456HXXXXX07
+Luis Miguel Ibarra,450,107,AAAA123456HXXXXX01
+Mariano Carmona,584.287,108,AAAA123456HXXXXX01
+Jos� Ruelas,500,109,AAAA123456HXXXXX01
+Jeldrich Martinez,450,110,AAAA123456HXXXXX01
+Emmanuel R,600,111,AAAA123456HXXXXX01
+Ram�n Ram�rez ,450,112,AAAA123456HXXXXX01
+Faustino Barajas,550,113,AAAA123456HXXXXX01
+Alan,500,114,AAAA123456HXXXXX01
+Miguel Meza (Capturista),900,115,AAAA123456HXXXXX01
+Edgar Adri�n,375,116,AAAA123456HXXXXX01
+Claudia (Ventas),400,117,AAAA123456HXXXXX01
+Jesus Antonio Qui�ones ,200,118,AAAA123456HXXXXX01
+Giselle,250,119,AAAA123456HXXXXX01
+Fidel C�rdova,166.666,120,AAAA123456HXXXXX01
+Valeria,1000,121,AAAA123456HXXXXX01
+Jaime L�pez  (Mentor�a),250,122,AAAA123456HXXXXX01
+Edgar Ricardo (Sistema),333.3333333,123,AAAA123456HXXXXX01
+Samuel Linares (Cont. Int),250,124,AAAA123456HXXXXX01
+
+
+
+
+https://1fichier.com/?m977p11iyh
+https://1fichier.com/?svcslcg3xr
+https://1fichier.com/?x7ccmbhrsm
+
+
+from django.contrib.sessions.models import Session
+Session.objects.all().delete()
+
+<a class="collapse-item" href="{% url 'nom:horas_extras_list' %}">🕒 Horas Extras</a>

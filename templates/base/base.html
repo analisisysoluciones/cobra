@@ -124,6 +124,15 @@
                         </a>
 
                         
+
+                            <a class="nav-link" href="{% url 'finanzas:ingreso_list' %}">
+                                <i class="fas fa-wallet"></i>
+                                <span>Ingresos Extraordinarios</span>
+                            </a>
+                        
+
+
+                        
                     </div>
                 </div>
             </li>
@@ -149,9 +158,9 @@
                         <a class="collapse-item" href="{% url 'nom:empleado_list' %}">
                             <i class="fas fa-user-tie text-info"></i> Lista de Empleados
                         </a>
-                        <a class="collapse-item" href="{% url 'nom:asistencia_list' %}">
+                        {% comment %} <a class="collapse-item" href="{% url 'nom:asistencia_list' %}">
                             <i class="fas fa-calendar-check text-success"></i>1.- Asistencia
-                        </a>
+                        </a> {% endcomment %}
                         <a class="collapse-item" href="{% url 'nom:asignaciones_masivas' %}">
                             <i class="fas fa-hard-hat text-primary"></i>2.- Asignación Masivas
                         </a>
@@ -166,8 +175,7 @@
                         <a class="collapse-item" href="{% url 'nom:asignacion_list' %}">
                             <i class="fas fa-hard-hat text-primary"></i>Lista Asignación
                         </a>
-                        
-                        
+                                                
 
                         <a class="collapse-item" href="{% url 'nom:seleccionar_fecha' %}">
                             <i class="fas fa-file-invoice-dollar text-danger"></i> Cálculo de Nómina
@@ -183,6 +191,12 @@
                         </a>
                         <a class="collapse-item" href="">
                             <i class="fas fa-hand-holding-usd text-dark"></i> Finiquitos
+                        </a>
+                        <a class="collapse-item" href="{% url 'nom:tipo_destajo_list' %}">
+                            <i class="fas fa-hand-holding-usd text-dark"></i> Lista de destajos
+                        </a>
+                        <a class="collapse-item" href="{% url 'nom:tarifa_destajo_obra_list' %}">
+                            <i class="fas fa-hand-holding-usd text-dark"></i> Costo destajo
                         </a>
                     </div>
                 </div>

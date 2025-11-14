@@ -1,0 +1,19 @@
+{% if perms.adm.view_proyecto %}
+<li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#menuAdmin">
+        <i class="fas fa-fw fa-wrench"></i>
+        <span>Administración</span>
+    </a>
+    <div id="menuAdmin" class="collapse" data-parent="#accordionSidebar">
+        <div class="bg-gradient-light py-2 collapse-inner rounded">
+            <h6 class="collapse-header text-primary"><i class="fas fa-cog mr-2"></i> Administración</h6>
+            <a class="collapse-item" href="{% url 'adm:residente_list' %}"><i class="fas fa-user-friends mr-2 text-info"></i> Residentes</a>
+            <a class="collapse-item" href="{% url 'adm:proyecto_list' %}"><i class="fas fa-project-diagram mr-2 text-success"></i> Proyectos</a>
+            <a class="collapse-item" href="{% url 'adm:simbologia_list' %}"><i class="fas fa-map-signs mr-2 text-warning"></i> Simbología</a>
+            <a class="collapse-item" href="{% url 'adm:bitacora_list' %}"><i class="fas fa-file-alt mr-2 text-danger"></i> Bitácora</a>
+            <a class="collapse-item" href="{% url 'adm:documentos_list' %}"><i class="fas fa-folder text-secondary"></i> Expedientes</a>
+            <a class="collapse-item" href="{% url 'adm:cargacombustible_list' %}"><i class="fas fa-gas-pump text-warning"></i> Combustible</a>
+        </div>
+    </div>
+</li>
+{% endif %}

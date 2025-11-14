@@ -1,81 +1,83 @@
 {% extends 'base/base.html' %}
+{% load custom_tags %}
 
 {% block page_content %}
-<div class="container-fluid">
-    <!-- Encabezado -->
-    <h1 class="h3 mb-4 text-gray-800">Detalle de Nómina: {{ nomina.id }} - {{ nomina.periodo }}</h1>
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex justify-content-between align-items-center">
+    <h6 class="m-0 font-weight-bold text-primary">{{ titulo }}</h6>
 
-    <!-- Botón para cerrar nómina -->
-    <div class="mb-3">
-        <a href="{% url 'nom:cerrar_nomina' nomina.id %}" 
-           class="btn btn-danger btn-sm"
-           onclick="return confirm('¿Está seguro de cerrar esta nómina? Una vez cerrada no podrá editarse.')">
-            <i class="fas fa-lock mr-1"></i> Cerrar Nómina
+    <div>
+        <!-- Este botón SIEMPRE debe aparecer -->
+        <a href="{% url 'nom:auditoria_nomina_pdf' nomina.id %}" class="btn btn-info btn-sm mr-2">
+            <i class="fas fa-file-pdf"></i> Auditoría PDF
         </a>
-    </div>
 
-    <!-- Tarjeta de detalles -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-primary">Detalles de Empleados</h6>
-            
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-sm" width="100%" cellspacing="0">
-                    <thead class="thead-light">
-                        <tr>
-                            <th>#</th>
-                            <th>Empleado</th>
-                            <th>Sueldo Diario</th>
-                            <th>Días Trabajados</th>
-                            <th>Horas Trabajadas</th>
-                            <th>Total Pago</th>
-                            <th>Proyecto</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for detalle in detalles %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{ detalle.empleado }}</td>
-                            <td>${{ detalle.sueldo_diario|floatformat:2 }}</td>
-                            <td>{{ detalle.dias_trabajados }}</td>
-                            <td>
-                                {% if detalle.horas_trabajadas %}
-                                    {{ detalle.horas_trabajadas }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td>${{ detalle.total_pago|floatformat:2 }}</td>
-                            <td>
-                                {% if detalle.proyecto %}
-                                    {{ detalle.proyecto.nombre }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td>
-                                                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="8" class="text-center text-muted">No hay detalles registrados.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Resumen -->
-    <div class="card shadow mt-4">
-        <div class="card-body text-right">
-            <h5 class="font-weight-bold">Total Nómina: ${{ nomina.total|floatformat:2 }}</h5>
-        </div>
+        {% if nomina.estatus|upper == "CERRADA" %}
+            <!-- Solo si está cerrada, mostrar regresar -->
+            <a href="{% url 'nom:nominas_cerradas_list' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left"></i> Regresar
+            </a>
+        {% else %}
+            <!-- Si NO está cerrada, permitir cerrar -->
+            <a href="{% url 'nom:cerrar_nomina' nomina.id %}" class="btn btn-danger btn-sm">
+                <i class="fas fa-lock"></i> Cerrar Nómina
+            </a>
+        {% endif %}
     </div>
 </div>
-{% endblock %}
+
+  <div class="card-body">
+    <p><strong>Período:</strong> {{ nomina.periodo_inicio|date:"d/m/Y" }} - {{ nomina.periodo_fin|date:"d/m/Y" }}</p>
+    <p><strong>Estatus:</strong> {{ nomina.estatus }}</p>
+
+    {% if detalles %}
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover table-sm">
+          <thead class="thead-dark">
+            <tr>
+              <th>Empleado</th>
+              <th>Proyecto</th>
+              <th>Sueldo Diario</th>
+              <th>Días</th>
+              <th>Horas</th>
+              <th>Destajo</th>
+              <th>Total Pago</th>
+            </tr>
+          </thead>
+          <tbody>
+{% for detalle in detalles %}
+<tr>
+  <td>{{ detalle.nomina_empleado.empleado.nombre }}</td>
+  <td>{{ detalle.nomina_empleado.proyecto.nombre|default:"—" }}</td>
+  <td class="text-end">${{ detalle.nomina_empleado.empleado.sueldo_diario|floatformat:2 }}</td>
+  <td class="text-center">{{ detalle.nomina_empleado.dias_trabajados|default:"-" }}</td>
+  <td class="text-center">{{ detalle.nomina_empleado.horas_trabajadas|default:"-" }}</td>
+  {% with destajo=destajos_por_empleado|get_item:detalle.nomina_empleado.empleado.id %}
+    <td class="text-end">
+      {% if destajo %}
+        ${{ destajo|floatformat:2 }}
+      {% else %}
+        $0.00
+      {% endif %}
+    </td>
+  {% endwith %}
+  <td class="text-end">${{ detalle.subtotal|floatformat:2 }}</td>
+</tr>
+{% endfor %}
+</tbody>
+
+          <tfoot class="font-weight-bold">
+            <tr>
+              <td colspan="5" class="text-right">Totales:</td>
+              <td class="text-right">${{ total_destajos|floatformat:2 }}</td>
+              <td class="text-right">${{ total_general|floatformat:2 }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    {% else %}
+      <div class="alert alert-warning">No hay movimientos registrados para esta nómina.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock page_content %}

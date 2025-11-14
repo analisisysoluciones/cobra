@@ -1,0 +1,13 @@
+{% extends 'base/base.html' %}
+{% block page_content %}
+<div class="card shadow mt-4">
+  <div class="card-body text-center">
+    <h5>¿Deseas eliminar esta compensación?</h5>
+    <p><strong>{{ object.empleado.nombre }}</strong> — {{ object.concepto }} por ${{ object.monto }}</p>
+    <form method="post">{% csrf_token %}
+      <button type="submit" class="btn btn-danger">Eliminar</button>
+      <a href="{% url 'nom:compensacion_variable_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

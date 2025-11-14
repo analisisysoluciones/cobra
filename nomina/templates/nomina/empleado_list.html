@@ -2,73 +2,154 @@
 
 {% block page_content %}
 <div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-        <h6 class="m-0 font-weight-bold text-primary">Lista de Empleados</h6>
-        <div>
-            <a href="{% url 'nom:empleado_create' %}" class="btn btn-primary">Nuevo Empleado</a>
-        </div>
+  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary">
+      <i class="fas fa-users"></i> Lista de Empleados
+    </h6>
+    <a href="{% url 'nom:reiniciar_nomina' %}" class="btn btn-light btn-sm shadow-sm">
+      <i class="fas fa-sync-alt"></i> Recalcular
+    </a>
+    <a href="{% url 'nom:empleado_create' %}" class="btn btn-primary btn-sm shadow-sm">
+      <i class="fas fa-user-plus"></i> Nuevo Empleado
+    </a>
+  </div>
+
+  <div class="card-body">
+    <!-- 🔍 Buscador -->
+    <div class="input-group mb-3">
+      <span class="input-group-text bg-primary text-white"><i class="fas fa-search"></i></span>
+      <input type="text" id="searchInput" class="form-control" placeholder="Buscar empleado...">
     </div>
-    <div class="card-body">
-        <input type="text" id="searchInput" class="form-control mb-3" placeholder="Buscar empleado...">
-        
-        {% if not empleados %}
-            <div class="alert alert-info">No hay empleados registrados.</div>
-        {% else %}
-            <table class="table table-striped table-hover" id="empleadoTable">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Código</th>
-                        <th>CURP</th>
-                        <th>Nombre</th>
-                        <th>Ingreso</th>
-                        <th>Sueldo Diario</th>
-                        <th>Puesto</th>
-                        <th>Estatus</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for empleado in empleados %}
-                    <tr>
-                        <td>{{ empleado.id }}</td>
-                        <td>{{ empleado.codigo }}</td>
-                        <td>{{ empleado.curp }}</td>
-                        <td>{{ empleado.nombre }}</td>
-                        <td>{{ empleado.ingreso|date:"d/m/Y" }}</td>
-                        <td>{{ empleado.sueldo_diario }}</td>
-                        <td>{{ empleado.puesto }}</td>
-                        <td>{{ empleado.estado|yesno:"Activo,Baja" }}</td>
-                        <td>
-                            <a href="{% url 'nom:empleado_edit' empleado.id %}" class="btn btn-warning btn-circle">
-                                <i class="far fa-edit"></i>
-                            </a>
-                            <a href="{% url 'nom:empleado_del' empleado.id %}" class="btn btn-danger btn-circle">
-                                <i class="far fa-trash-alt"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="9">No hay empleados registrados.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>    
-        {% endif %}        
-    </div>
+
+    {% if not empleados %}
+      <div class="alert alert-info text-center">
+        <i class="fas fa-info-circle"></i> No hay empleados registrados.
+      </div>
+    {% else %}
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle" id="empleadoTable">
+          <thead class="bg-dark text-white text-center">
+            <tr>
+              <th>ID</th>
+              <th>Código</th>
+              <th>Nombre</th>
+              <th>Ingreso</th>
+              <th>Sueldo Diario</th>
+              <th>Puesto</th>
+              <th>Estatus</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for empleado in empleados %}
+            <tr {% if empleado.sueldo_diario < 278.80 %} class="table-danger" {% endif %}>
+              <td class="text-center">{{ empleado.id }}</td>
+              <td>{{ empleado.codigo }}</td>
+              <td>{{ empleado.nombre }}</td>
+              <td class="text-center">{{ empleado.ingreso|date:"d/m/Y" }}</td>
+              <td class="text-end">${{ empleado.sueldo_diario }}</td>
+              <td>{{ empleado.puesto }}</td>
+              <td class="text-center">
+                {% if empleado.estado %}
+                  <span class="badge bg-success">Activo</span>
+                {% else %}
+                  <span class="badge bg-danger">Baja</span>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                <!-- ✏️ Editar -->
+                <a href="{% url 'nom:empleado_edit' empleado.id %}"
+                   class="btn btn-warning btn-sm" title="Editar empleado">
+                   <i class="fas fa-edit"></i>
+                </a>
+
+                <!-- 🗑️ Eliminar -->
+                <a href="{% url 'nom:empleado_del' empleado.id %}"
+                   class="btn btn-danger btn-sm" title="Eliminar empleado"
+                   onclick="return confirm('¿Deseas eliminar este empleado?');">
+                   <i class="fas fa-trash-alt"></i>
+                </a>
+
+                <!-- ⏱️ Horas Extras -->
+                <a href="{% url 'nom:horas_extras_create_emp' empleado.id %}"
+                   class="btn btn-outline-success btn-sm" title="Registrar horas extras">
+                   <i class="fas fa-clock"></i>
+                </a>
+
+                <!-- 💰 Compensación Variable -->
+                <a href="{% url 'nom:compensacion_variable_create_emp' empleado.id %}"
+                   class="btn btn-outline-info btn-sm" title="Registrar compensación variable">
+                   <i class="fas fa-gift"></i>
+                </a>
+
+                <!-- 🚫 Registrar Falta (Modal AJAX) -->
+                <button type="button"
+                        class="btn btn-outline-secondary btn-sm btn-falta"
+                        data-empleado="{{ empleado.id }}"
+                        title="Registrar falta">
+                  <i class="fas fa-user-times"></i>
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
 </div>
 
-<script>
-document.getElementById('searchInput').addEventListener('keyup', function() {
-    let filter = this.value.toLowerCase();
-    let rows = document.querySelectorAll("#empleadoTable tbody tr");
-    
-    rows.forEach(row => {
-        let text = row.textContent.toLowerCase();
-        row.style.display = text.includes(filter) ? "" : "none";
-    });
-});
-</script>
+<!-- Modal vacío (se llena por AJAX) -->
+<div class="modal fade" id="modalFalta" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-3"></div>
+  </div>
+</div>
 
 {% endblock page_content %}
+
+{% block js_page %}
+<script>
+// 🔎 Filtro de búsqueda
+document.getElementById('searchInput').addEventListener('keyup', function() {
+  let filter = this.value.toLowerCase();
+  document.querySelectorAll("#empleadoTable tbody tr").forEach(row => {
+    let text = row.textContent.toLowerCase();
+    row.style.display = text.includes(filter) ? "" : "none";
+  });
+});
+
+// 🚫 Abrir modal para registrar falta
+$(document).on('click', '.btn-falta', function() {
+  const empleadoId = $(this).data('empleado');
+  const url = "{% url 'nom:capturar_falta_modal' 0 %}".replace('0', empleadoId);
+
+  $.get(url, function(response) {
+    $("#modalFalta .modal-content").html(response.html_form);
+    $("#modalFalta").modal("show");
+  });
+});
+
+// 💾 Guardar falta (envío AJAX)
+$(document).on('submit', '#formFalta', function(e) {
+  e.preventDefault();
+  const $form = $(this);
+  const action = $form.attr('action') || window.location.href;
+
+  $.post(action, $form.serialize(), function(response) {
+    if (response.success) {
+      $("#modalFalta").modal("hide");
+      Swal.fire({
+        icon: 'success',
+        title: 'Falta registrada',
+        text: 'Se ha guardado correctamente.',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    } else {
+      $("#modalFalta .modal-content").html(response.html_form);
+    }
+  });
+});
+</script>
+{% endblock js_page %}
