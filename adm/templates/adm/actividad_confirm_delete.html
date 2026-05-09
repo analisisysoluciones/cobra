@@ -1,0 +1,38 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+
+<div class="container-fluid">
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-danger text-white">
+            <h6 class="m-0 font-weight-bold">Eliminar actividad</h6>
+        </div>
+
+        <div class="card-body">
+
+            <h5 class="mb-4">
+                ¿Deseas eliminar esta actividad?
+            </h5>
+
+            <p><strong>{{ object.nombre }}</strong></p>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <button type="submit" class="btn btn-danger">
+                    Sí, eliminar
+                </button>
+
+                <a href="{% url 'adm:actividad_list' %}" class="btn btn-secondary">
+                    Cancelar
+                </a>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

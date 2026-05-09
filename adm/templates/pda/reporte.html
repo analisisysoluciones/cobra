@@ -1,0 +1,94 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+
+<div class="container-fluid">
+
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        {% if reporte_abierto %}
+
+            <!-- 🔴 JORNADA ACTIVA -->
+            <div class="card shadow mb-4">
+                <div class="card-body text-center">
+
+                    <h4 class="mb-3">Jornada activa</h4>
+
+                    <p><b>Equipo:</b> {{ reporte_abierto.equipo }}</p>
+                    <p><b>Inicio:</b> {{ reporte_abierto.inicio }}</p>
+
+                    <div class="form-group">
+                        <label>Horómetro fin</label>
+                        <input type="number" step="0.1" name="horometro_fin"
+                               class="form-control form-control-lg">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Foto fin</label>
+                        <input type="file" name="foto_fin" accept="image/*" capture="camera"
+                               class="form-control">
+                    </div>
+
+                    <button type="submit" name="accion" value="fin"
+                        class="btn btn-danger btn-lg btn-block">
+                        FINALIZAR JORNADA
+                    </button>
+
+                </div>
+            </div>
+
+        {% else %}
+
+            <!-- 🟢 INICIAR -->
+            <div class="card shadow mb-4">
+                <div class="card-body">
+
+                    <h4 class="mb-3 text-center">Nueva jornada</h4>
+
+                    <div class="form-group">
+                        <label>Equipo</label>
+                        <select name="equipo" class="form-control form-control-lg">
+                            {% for e in equipos %}
+                                <option value="{{ e.id }}">{{ e.descripcion }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    
+                    <div class="form-group">
+                        <label>Foto inicio</label>
+                        <input type="file" name="foto_inicio" accept="image/*" capture="camera"
+                               class="form-control">
+                    </div>
+
+                    <button type="submit" name="accion" value="inicio"
+                        class="btn btn-success btn-lg btn-block">
+                        INICIAR JORNADA
+                    </button>
+
+                </div>
+            </div>
+
+        {% endif %}
+
+        <!-- GPS -->
+        <input type="hidden" name="latitud" id="latitud">
+        <input type="hidden" name="longitud" id="longitud">
+
+    </form>
+
+</div>
+
+<script>
+navigator.geolocation.getCurrentPosition(function(position) {
+    document.getElementById('latitud').value = position.coords.latitude;
+    document.getElementById('longitud').value = position.coords.longitude;
+});
+</script>
+
+{% endblock %}

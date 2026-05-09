@@ -3,13 +3,18 @@ import datetime
 from django.core.exceptions import ValidationError
 from .models import( Cuenta, Banco, Residente, TipoDocumento, Proyecto, Simbologia, 
                      RegistroCuenta, Equipo, Bitacora, TipoPago, Pago, DocumentoGeneral, 
-                     CargaCombustible, ReporteEquipo, PagoIndirecto) #CostoProyecto)
+                     CargaCombustible, ReporteEquipo, PagoIndirecto, OrdenServicio, ReporteEquipoPDA, MantenimientoEquipo,
+                     TipoEquipo, ActividadEquipo, ReporteEquipoDetalle
+                   ) #CostoProyecto)
 from cxp.models import Proveedor
 from django_select2.forms import Select2Widget
 from django.shortcuts import render, redirect
 import re
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from datetime import timedelta
+
 
 
 class TipoPagoForm(forms.ModelForm):
@@ -163,18 +168,58 @@ class ReporteMovimientoForm(forms.Form):
     )    
 
 
+# forms.py
+
 class EquipoForm(forms.ModelForm):
     class Meta:
         model = Equipo
-        fields = ['identificador', 'descripcion', 'modelo', 'placas']
-        widgets = {
-            'identificador':forms.TextInput(attrs={'placeholder':'Identificador'}),
-            'descripcion': forms.TextInput(attrs={'placeholder': 'Descripción'}),
-            'modelo':forms.TextInput(attrs={'placeholder': 'Modelo'}),
-            'placas': forms.TextInput(attrs={'placeholder': 'Placas'}),
-        }
-    
+        fields = [
+            'identificador',
+            'descripcion',
+            'modelo',
+            'placas',
+            'tipo_equipo',
+            'tipo_control',
+            'tipo',
+        ]
 
+        widgets = {
+            'identificador': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Identificador'
+            }),
+
+            'descripcion': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Descripción'
+            }),
+
+            'modelo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Modelo'
+            }),
+
+            'placas': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Placas'
+            }),
+
+            'tipo_equipo': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+
+            'tipo_control': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+
+            'tipo': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+        }
+
+
+
+        
 class BitacoraForm(forms.ModelForm):
     class Meta:
         model = Bitacora
@@ -274,6 +319,7 @@ class CargaCombustibleForm(forms.ModelForm):
     class Meta:
         model = CargaCombustible
         fields = [
+            'proyecto',          # ← AGREGADO
             'equipo',
             'fecha_carga',
             'tipo_combustible',
@@ -286,10 +332,11 @@ class CargaCombustibleForm(forms.ModelForm):
             'folio',
         ]
         widgets = {
+            'proyecto': forms.Select(attrs={'class': 'form-control'}),  # ← WIDGET
             'equipo': forms.Select(attrs={'class': 'form-control'}),
             'fecha_carga': forms.DateInput(
                 attrs={'type': 'date', 'class': 'form-control'},
-                format='%Y-%m-%d'   # <-- AQUÍ el formato que el input espera
+                format='%Y-%m-%d'
             ),
             'tipo_combustible': forms.Select(attrs={'class': 'form-control'}),
             'cantidad_litros': forms.NumberInput(attrs={'class': 'form-control'}),
@@ -297,16 +344,71 @@ class CargaCombustibleForm(forms.ModelForm):
             'odometro': forms.NumberInput(attrs={'class': 'form-control'}),
             'operador': forms.TextInput(attrs={'class': 'form-control'}),
             'hora': forms.TextInput(attrs={'class': 'form-control'}),
-            'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows':3}),
-            'folio': forms.NumberInput(attrs={'class': 'form-control'}),
+            'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'folio': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Opcional: filtrar o ajustar queryset si es necesario
-        self.fields['equipo'].queryset = Equipo.objects.all()  #
+
+        # Filtramos/ordenamos si se requiere (puedes ajustarlo)
+        self.fields['equipo'].queryset = Equipo.objects.all()
+        self.fields['proyecto'].queryset = Proyecto.objects.all().order_by('nombre')
+
+        # Formato de fecha
         self.fields['fecha_carga'].input_formats = ['%Y-%m-%d']
 
+    def clean(self):
+        cleaned = super().clean()
+
+        equipo = cleaned.get("equipo")
+        fecha = cleaned.get("fecha_carga")
+        folio = cleaned.get("folio")
+
+
+
+        litros = cleaned.get("cantidad_litros") or 0
+        precio = cleaned.get("precio_litro") or 0
+
+        total = litros * precio
+
+        cleaned["costo_total"] = round(total, 2)
+
+
+        if equipo and fecha and folio:
+            qs = CargaCombustible.objects.filter(
+                equipo=equipo,
+                fecha_carga=fecha,
+                folio=folio
+            )
+
+            if self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+
+            if qs.exists():
+                raise forms.ValidationError(
+                    "Ya existe una carga registrada con ese folio para ese equipo."
+                )
+        return cleaned
+
+    def clean_fecha_carga(self):
+        fecha = self.cleaned_data.get("fecha_carga")
+        hoy = timezone.now().date()
+
+        if fecha > hoy:
+            raise forms.ValidationError(
+                "La fecha de carga no puede ser mayor a la fecha actual."
+            )
+
+        return fecha
+    
+    def clean_folio(self):
+        folio = (self.cleaned_data.get("folio") or "").strip().upper()
+
+        if not folio:
+            raise forms.ValidationError("El folio es obligatorio")
+
+        return folio
 
 class FiltroCombustibleForm(forms.Form):
     fecha_inicio = forms.DateField(
@@ -376,7 +478,13 @@ class ReporteEquipoForm(forms.ModelForm):
             'equipo': forms.Select(attrs={'class': 'form-control'}),
             'operador': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre del operador'}),
             'actividad': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Descripción de la actividad'}),
-            'horas': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 8.5'}),
+            'horas': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: 8.5',
+                'step': '0.01',   # ← CLAVE
+                'min': '0'
+            }),
+
             'diesel_carga': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 150.00'}),
             'diesel_resta': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 20.00'}),
             'fallas': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Si hubo fallas, descríbelas aquí'}),
@@ -422,3 +530,250 @@ class PagoIndirectoForm(forms.ModelForm):
         if comprobante and not comprobante.name.endswith('.pdf'):
             raise forms.ValidationError("El archivo debe ser un PDF.")
         return comprobante
+    
+
+class FiltroReporteEquipoForm(forms.Form):
+    fecha_inicio = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+    fecha_fin = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+
+    proyecto = forms.ModelChoiceField(queryset=Proyecto.objects.all(), required=False)
+    equipo = forms.ModelChoiceField(queryset=Equipo.objects.all(), required=False)
+
+
+# operacion/forms/orden_servicio_form.py
+
+
+class OrdenServicioForm(forms.ModelForm):
+
+    class Meta:
+        model = OrdenServicio
+        fields = [
+            'fecha',
+            'equipo',
+            'proveedor',
+            'tipo_servicio',
+            'descripcion_falla',
+            'observaciones',
+        ]
+
+        widgets = {
+            'fecha': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'equipo': forms.Select(attrs={'class': 'form-control'}),
+            'proveedor': forms.Select(attrs={'class': 'form-control'}),
+            'tipo_servicio': forms.Select(attrs={'class': 'form-control'}),
+            'descripcion_falla': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+        
+        def clean(self):
+            cleaned = super().clean()
+
+            equipo = cleaned.get("equipo")
+            proveedor = cleaned.get("proveedor")
+            descripcion = cleaned.get("descripcion_falla")
+
+            if not equipo or not proveedor or not descripcion:
+                return cleaned
+
+            hace_10s = timezone.now() - timedelta(seconds=10)
+
+            existe = OrdenServicio.objects.filter(
+                equipo=equipo,
+                proveedor=proveedor,
+                descripcion_falla__iexact=descripcion.strip(),
+                creado__gte=hace_10s
+            ).exists()
+
+            if existe:
+                raise ValidationError(
+                    "Posible duplicado detectado. Espere unos segundos."
+                )
+
+            return cleaned
+
+
+
+
+# forms.py
+
+
+class ReporteEquipoForm(forms.ModelForm):
+    class Meta:
+        model = ReporteEquipoPDA
+        fields = ['equipo']
+
+
+
+class MantenimientoEquipoForm(forms.ModelForm):
+    class Meta:
+        model = MantenimientoEquipo
+        fields = ['equipo', 'fecha', 'tipo', 'descripcion', 'costo']
+        widgets = {
+            'fecha': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'equipo': forms.Select(attrs={'class': 'form-control'}),
+            'tipo': forms.Select(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'costo': forms.NumberInput(attrs={'class': 'form-control'}),
+        }        
+
+
+# nomina/forms.py o adm/forms.py (según dónde lo tengas)
+
+
+
+class TipoEquipoForm(forms.ModelForm):
+    class Meta:
+        model = TipoEquipo
+        fields = ['nombre']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'})
+        }
+
+
+class ActividadEquipoForm(forms.ModelForm):
+    class Meta:
+        model = ActividadEquipo
+        fields = ['nombre', 'tipo', 'tipos_equipo', 'activo']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'tipo': forms.Select(attrs={'class': 'form-control'}),
+            'tipos_equipo': forms.SelectMultiple(attrs={'class': 'form-control'}),
+            'activo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }        
+
+
+# forms.py
+
+
+
+class AbrirJornadaForm(forms.Form):
+    equipo = forms.ModelChoiceField(
+        queryset=Equipo.objects.all().order_by("descripcion"),
+        widget=forms.Select(attrs={
+            "class": "form-control select2"
+        })
+    )
+
+
+
+from django import forms
+from django.core.exceptions import ValidationError
+from datetime import datetime
+from .models import ReporteEquipoDetalle
+
+
+class ActividadDetalleForm(forms.ModelForm):
+
+    class Meta:
+        model = ReporteEquipoDetalle
+        fields = [
+            "actividad",
+            "inicio",
+            "fin",
+            "proyecto",
+            "observaciones",
+        ]
+
+        widgets = {
+            "actividad": forms.Select(attrs={
+                "class": "form-control"
+            }),
+
+            "inicio": forms.DateTimeInput(
+                attrs={
+                    "type": "datetime-local",
+                    "class": "form-control"
+                }
+            ),
+
+            "fin": forms.DateTimeInput(
+                attrs={
+                    "type": "datetime-local",
+                    "class": "form-control"
+                }
+            ),
+
+            "proyecto": forms.Select(attrs={
+                "class": "form-control"
+            }),
+
+            "observaciones": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 2
+            }),
+        }
+
+    # 🔥 FORMATO CORRECTO PARA HTML5 datetime-local
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Ajustar formato de entrada/salida
+        self.fields["inicio"].input_formats = ["%Y-%m-%dT%H:%M"]
+        self.fields["fin"].input_formats = ["%Y-%m-%dT%H:%M"]
+
+        # Para que al editar se vea correctamente
+        if self.instance and self.instance.pk:
+            if self.instance.inicio:
+                self.initial["inicio"] = self.instance.inicio.strftime("%Y-%m-%dT%H:%M")
+            if self.instance.fin:
+                self.initial["fin"] = self.instance.fin.strftime("%Y-%m-%dT%H:%M")
+
+    # 🔥 VALIDACIONES + CÁLCULO
+    def clean(self):
+        cleaned = super().clean()
+
+        inicio = cleaned.get("inicio")
+        fin = cleaned.get("fin")
+        proyecto = cleaned.get("proyecto")
+
+        # ❌ Proyecto obligatorio
+        if not proyecto:
+            raise ValidationError("Debe seleccionar un proyecto.")
+
+        # ❌ Validación de tiempos
+        if inicio and fin:
+            if fin <= inicio:
+                raise ValidationError(
+                    "La hora final debe ser mayor a la inicial."
+                )
+
+            # 🔥 CÁLCULO AUTOMÁTICO DE HORAS
+            delta = fin - inicio
+            horas = round(delta.total_seconds() / 3600, 2)
+
+            # Guardamos en cleaned_data (no en instancia aún)
+            cleaned["horas"] = horas
+
+        return cleaned
+
+    # 🔥 FORZAR GUARDADO DE HORAS
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        inicio = self.cleaned_data.get("inicio")
+        fin = self.cleaned_data.get("fin")
+
+        if inicio and fin:
+            delta = fin - inicio
+            instance.horas = round(delta.total_seconds() / 3600, 2)
+
+        if commit:
+            instance.save()
+
+        return instance
+
+class EscritorioActividadForm(forms.Form):
+
+    actividad = forms.ModelChoiceField(
+        queryset=ActividadEquipo.objects.filter(
+            activo=True
+        ).order_by("nombre"),
+        empty_label="Seleccione actividad",
+        widget=forms.Select(attrs={
+            "class": "form-control",
+            "id": "id_actividad"
+        })
+    )        
+
+

@@ -6,6 +6,7 @@ from .models import (
     Cuenta, Empleado, Asistencia, Nomina, PeriodosNomina, EmpleadoArchivo, NominaDetalle, AsignacionDiaria, RegistraAsistencia,
     TarifaDestajoObra, TipoDestajo, HorasExtras, NominaEmpleado, CompensacionVariable
 )
+from adm.models import Proyecto
 from django_select2.forms import Select2Widget
 from django.shortcuts import render, redirect
 import re
@@ -18,22 +19,57 @@ from django.db.models import Sum
 class EmpleadoForm(forms.ModelForm):
     class Meta:
         model = Empleado
-        fields = ['codigo', 'curp', 'rfc', 'nombre', 'ingreso', 'sueldo_diario', 'compensacion', 'puesto', 'estado']
+        fields = [
+            'curp',
+            'rfc',
+            'nombre',
+            'ingreso',
+            'sueldo_diario',
+            'compensacion',
+            'perfil',
+            'estado'
+        ]
         widgets = {
-            'codigo': forms.NumberInput(attrs={'class': 'form-control'}),
             'curp': forms.TextInput(attrs={
                 'class': 'form-control',
                 'style': 'text-transform:uppercase;',
-                'data-url': reverse_lazy('nom:validar_curp')  # Ruta para AJAX
+                'data-url': reverse_lazy('nom:validar_curp')
             }),
             'rfc': forms.TextInput(attrs={'class': 'form-control', 'style': 'text-transform:uppercase;'}),
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'ingreso': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
             'sueldo_diario': forms.NumberInput(attrs={'class': 'form-control'}),
             'compensacion': forms.NumberInput(attrs={'class': 'form-control'}),
-            'puesto': forms.TextInput(attrs={'class': 'form-control'}),
-            'estado': forms.TextInput(attrs={'class': 'form-control'}),
+            'perfil': forms.Select(attrs={'class': 'form-control'}),
+            'estado': forms.Select(attrs={'class': 'form-control'}),  # ← ERROR CORREGIDO
         }
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+
+            self.fields['perfil'].queryset = PerfilPuesto.objects.filter(activo=True).order_by('nombre')
+
+        def clean(self):
+            cleaned_data = super().clean()
+
+            perfil = cleaned_data.get('perfil')
+
+            if perfil:
+                # sueldo lo impone el perfil
+                cleaned_data['sueldo_diario'] = perfil.sueldo_base
+            return cleaned_data
+
+        def form_valid(self, form):
+            empleado = form.save(commit=False)
+
+            empleado.tipo_pago = empleado.perfil.tipo_pago
+            empleado.sueldo_diario = empleado.perfil.sueldo_base
+
+            empleado.save()
+            return super().form_valid(form)
+
+
+
 
 class EmpleadoArchivoForm(forms.ModelForm):
     class Meta:
@@ -360,3 +396,56 @@ class CompensacionVariableForm(forms.ModelForm):
             'monto': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'concepto': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+
+
+class NominaComparativoFiltroForm(forms.Form):
+    TIPO_REPORTE = [
+        ("SEMANAL", "Semanas"),
+        ("MENSUAL", "Meses"),
+        ("PROYECTOS", "Proyectos"),
+    ]
+
+    tipo = forms.ChoiceField(choices=TIPO_REPORTE, required=True, label="Comparar por")
+    anio = forms.IntegerField(required=False, label="Año")
+    proyecto = forms.ModelChoiceField(
+        queryset=Proyecto.objects.all(),
+        required=False,
+        label="Proyecto"
+    )
+    periodo = forms.ModelChoiceField(
+        queryset=PeriodosNomina.objects.all().order_by("-periodo_inicio"),
+        required=False,
+        label="Semana"
+    )
+
+
+from django import forms
+from nomina.models import PerfilPuesto
+
+
+class PerfilPuestoForm(forms.ModelForm):
+
+    class Meta:
+        model = PerfilPuesto
+        fields = ['nombre', 'categoria', 'sueldo_min', 'sueldo_max', 'activo']
+
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'categoria': forms.Select(attrs={'class': 'form-control'}),
+            'sueldo_min': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'sueldo_max': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'activo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def clean(self):
+        cleaned = super().clean()
+
+        min_sueldo = cleaned.get("sueldo_min")
+        max_sueldo = cleaned.get("sueldo_max")
+
+        if min_sueldo and max_sueldo:
+            if min_sueldo > max_sueldo:
+                raise forms.ValidationError("El sueldo mínimo no puede ser mayor al máximo.")
+
+        return cleaned

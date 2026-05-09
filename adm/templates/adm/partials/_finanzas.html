@@ -1,0 +1,56 @@
+{% load humanize %}
+<div class="card-body">
+
+    <div class="row text-center">
+
+        <div class="col-md-3">
+
+            <div class="text-xs font-weight-bold text-success text-uppercase mb-2">
+                Presupuesto
+            </div>
+
+            <div class="h3 font-weight-bold text-gray-800 text-nowrap">
+                $ {{ presupuesto|intcomma }}
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="text-xs font-weight-bold text-danger text-uppercase mb-2">
+                EGRESOS HISTÓRICOS
+            </div>
+
+            <div class="h3 font-weight-bold text-gray-800 text-nowrap">
+                $ {{ egresos|intcomma }}
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="text-xs font-weight-bold text-primary text-uppercase mb-2">
+                Disponible
+            </div>
+
+            <div class="h3 font-weight-bold text-gray-800 text-nowrap">
+                $ {{ disponible|intcomma }}
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="text-xs font-weight-bold text-warning text-uppercase mb-2">
+                Uso %
+            </div>
+
+            <div class="h3 font-weight-bold text-gray-800 text-nowrap">
+                {{ porcentaje|floatformat:0 }}%
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

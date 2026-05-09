@@ -1,0 +1,20 @@
+nombre,tipo,tipos_equipo
+Excavación,PRODUCTIVO,Retroexcavadora
+Carga de material,PRODUCTIVO,Retroexcavadora;Volteo
+Descarga de material,PRODUCTIVO,Volteo
+Nivelación,PRODUCTIVO,Niveladora
+Compactación,PRODUCTIVO,Compactador
+Traslado,SOPORTE,Retroexcavadora;Volteo;Niveladora
+Maniobra,SOPORTE,Retroexcavadora;Volteo
+Abastecimiento de combustible,SOPORTE,Retroexcavadora;Volteo;Niveladora
+Revisión,SOPORTE,Retroexcavadora;Volteo
+Espera por material,MUERTO,Retroexcavadora;Volteo
+Espera por operador,MUERTO,Retroexcavadora;Volteo
+Paro por falla,MUERTO,Retroexcavadora;Volteo;Niveladora
+Paro por clima,MUERTO,Retroexcavadora;Volteo;Niveladora
+Mantenimiento preventivo,MUERTO,Retroexcavadora;Volteo
+Mantenimiento correctivo,MUERTO,Retroexcavadora;Volteo
+Mezcla de concreto,PRODUCTIVO,Trompo
+Transporte de concreto,PRODUCTIVO,Trompo
+Perforación de suelo,PRODUCTIVO,Perforadora
+Perforación de roca,PRODUCTIVO,Perforadora

@@ -1,0 +1,203 @@
+<!-- templates/adm/pda/jornada_escritorio.html -->
+
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block page_content %}
+
+<div class="container-fluid">
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 text-gray-800">
+        Jornada Escritorio
+    </h1>
+
+    <span class="badge badge-success p-2">
+        {{ request.user.username }}
+    </span>
+</div>
+
+<div class="row">
+
+    <!-- PANEL IZQUIERDO -->
+    <div class="col-lg-4">
+
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                Jornada Activa
+            </div>
+
+            <div class="card-body">
+
+                <p>
+                    <strong>Equipo:</strong><br>
+                    {{ jornada.equipo }}
+                </p>
+
+                <p>
+                    <strong>Inicio:</strong><br>
+                    {{ jornada.inicio|date:"d/m/Y H:i" }}
+                </p>
+
+                <p>
+                    <strong>Estatus:</strong><br>
+                    {{ jornada.estatus }}
+                </p>
+
+                <a href="{% url 'adm:cerrar_jornada_escritorio' %}"
+                   class="btn btn-danger btn-block">
+                    Cerrar Jornada
+                </a>
+
+            </div>
+        </div>
+
+
+        <div class="card shadow">
+
+            <div class="card-header">
+                Nueva Actividad
+            </div>
+
+            <div class="card-body">
+
+                <div class="form-group">
+                    <label>Actividad</label>
+                    {{ form.actividad }}
+                </div>
+
+                <button class="btn btn-success btn-block"
+                        onclick="iniciarActividad()">
+                    Iniciar Actividad
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- PANEL DERECHO -->
+    <div class="col-lg-8">
+
+        <div class="card shadow">
+
+            <div class="card-header">
+                Historial del Día
+            </div>
+
+            <div class="card-body table-responsive">
+
+                <table class="table table-bordered table-sm">
+
+                    <thead>
+                        <tr>
+                            <th>Inicio</th>
+                            <th>Fin</th>
+                            <th>Horas</th>
+                            <th>Actividad</th>
+                            <th>Proyecto</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                    {% for d in detalles %}
+
+                        <tr>
+                            <td>{{ d.inicio|date:"H:i" }}</td>
+
+                            <td>
+                                {% if d.fin %}
+                                    {{ d.fin|date:"H:i" }}
+                                {% else %}
+                                    <span class="badge badge-warning">
+                                        ACTIVA
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td>{{ d.horas }}</td>
+
+                            <td>{{ d.actividad }}</td>
+
+                            <td>{{ d.proyecto }}</td>
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="5">
+                                Sin registros
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                    <tfoot>
+                        <tr>
+                            <th colspan="2">Total</th>
+                            <th>{{ jornada.horas }}</th>
+                            <th colspan="2"></th>
+                        </tr>
+                    </tfoot>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+
+
+<script>
+
+function iniciarActividad(){
+
+    let actividad = document.getElementById(
+        "id_actividad"
+    ).value;
+
+    if(!actividad){
+        alert("Seleccione actividad");
+        return;
+    }
+
+    fetch(
+        "{% url 'adm:iniciar_actividad' %}",
+        {
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json",
+                "X-CSRFToken":"{{ csrf_token }}"
+            },
+
+            body:JSON.stringify({
+                actividad_id:actividad
+            })
+        }
+    )
+    .then(r=>r.json())
+    .then(data=>{
+
+        if(data.ok){
+            location.reload();
+        }else{
+            alert(data.msg);
+        }
+
+    });
+
+}
+
+</script>
+
+{% endblock %}

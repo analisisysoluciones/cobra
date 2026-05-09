@@ -1,127 +1,345 @@
 {% extends 'base/base.html' %}
-
 {% block page_content %}
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    <div class="col-xl-12 mb-4">
-        <div class="card shadow h-100 py-2">
-            <div class="card-body">
-                <ul class="nav nav-tabs" id="empleadoTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="datos-tab" data-bs-toggle="tab" data-bs-target="#datos" type="button" role="tab">Datos del Empleado</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="archivos-tab" data-bs-toggle="tab" data-bs-target="#archivos" type="button" role="tab">Archivos</button>
-                    </li>
-                </ul>
 
-                <div class="tab-content" id="empleadoTabsContent">
-                    <!-- Pestaña de Datos del Empleado -->
-                    <div class="tab-pane fade show active p-3" id="datos" role="tabpanel">
-                        <div class="form-group row">
-                            <label class="col-sm-2 col-form-label">Código</label>
-                            <div class="col-sm-4">{{ form.codigo }}</div>
-                            <label class="col-sm-2 col-form-label">CURP</label>
-                            <div class="col-sm-4">{{ form.curp }}</div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-sm-2 col-form-label">RFC</label>
-                            <div class="col-sm-4">{{ form.rfc }}</div>
-                            <label class="col-sm-2 col-form-label">Nombre</label>
-                            <div class="col-sm-4">{{ form.nombre }}</div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-sm-2 col-form-label">Ingreso</label>
-                            <div class="col-sm-4">{{ form.ingreso }}</div>
-                            <label class="col-sm-2 col-form-label">Sueldo Diario</label>
-                            <div class="col-sm-4">{{ form.sueldo_diario }}</div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-sm-2 col-form-label">Compensación</label>
-                            <div class="col-sm-4">{{ form.compensacion }}</div>
-                            <label class="col-sm-2 col-form-label">Puesto</label>
-                            <div class="col-sm-4">{{ form.puesto }}</div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-sm-2 col-form-label">Estado</label>
-                            <div class="col-sm-4">
-                                <select name="estado" class="form-control">
-                                    <option value="True" {% if form.estado.value %}selected{% endif %}>Activo</option>
-                                    <option value="False" {% if not form.estado.value %}selected{% endif %}>Baja</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-2">
+  <ol class="breadcrumb" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">
+    <li class="breadcrumb-item"><a href="#">Nómina</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'nom:empleado_list' %}">Empleados</a></li>
+    <li class="breadcrumb-item active">
+      {% if form.instance.pk %}Editar Empleado{% else %}Nuevo Empleado{% endif %}
+    </li>
+  </ol>
+</nav>
 
-                    <!-- Pestaña de Archivos -->
-                    <div class="tab-pane fade p-3" id="archivos" role="tabpanel">
-                        <h4>Subir Archivo</h4>
-                        <div class="form-group">
-                            <label for="nombre_archivo">Nombre del Documento</label>
-                            <input type="text" name="nombre_archivo" class="form-control" placeholder="Ej. Identificación, Contrato, etc.">
-                        </div>
-                        <div class="form-group">
-                            <label for="archivo">Seleccionar archivo</label>
-                            <input type="file" name="archivo" class="form-control" multiple>
-                        </div>
+<!-- Topbar -->
+<div class="d-flex align-items-flex-end justify-content-between mb-4">
+  <div>
+    <h1 class="h4 mb-1 font-weight-bold text-gray-800">
+      {% if form.instance.pk %}Editar Empleado{% else %}Nuevo Empleado{% endif %}
+    </h1>
+    <p class="mb-0 text-muted small">Registro y documentación del colaborador</p>
+  </div>
+</div>
 
-                        <h4 class="mt-4">Archivos Subidos</h4>
+<form method="POST" enctype="multipart/form-data" novalidate>
+{% csrf_token %}
 
-                        <ul class="list-group">
-                            {% for archivo in archivos %}
-                                <li class="list-group-item">
-                                    ✅ {{ archivo.nombre }} 
-                                    <a href="{{ archivo.archivo.url }}" download>[🔗 Descargar]</a>
-                                </li>
-                            {% empty %}
-                                <li class="list-group-item">No hay archivos subidos.</li>
-                            {% endfor %}
-                        </ul>
+<div class="card shadow-sm border-0 rounded-lg">
 
-                    </div>
-                </div>
-
-                <div class="dropdown-divider"></div>
-                <button type="submit" class="btn btn-danger"><span class="fa fa-save"></span> Guardar</button>
-                <a href="{% url 'nom:empleado_list' %}" class="btn btn-success"><span class="fa fa-undo"></span> Cancelar</a>
-            </div>
-        </div>
+  <!-- Header -->
+  <div class="card-header d-flex align-items-center justify-content-between py-3"
+       style="background:linear-gradient(135deg,#4e73df 0%,#224abe 100%);border:none;">
+    <div class="d-flex align-items-center">
+      <div class="d-flex align-items-center justify-content-center rounded mr-3"
+           style="width:38px;height:38px;background:rgba(255,255,255,.18);">
+        <i class="fas fa-user-tie text-white"></i>
+      </div>
+      <h6 class="m-0 font-weight-bold text-white">Expediente del empleado</h6>
     </div>
+    <span class="badge rounded-pill px-3"
+          style="background:rgba(255,255,255,.2);color:#fff;font-size:.65rem;font-weight:700;letter-spacing:.06em;">
+      {% if form.instance.pk %}EDICIÓN{% else %}CREACIÓN{% endif %}
+    </span>
+  </div>
+
+  <!-- Tabs nav -->
+  <div class="d-flex px-4" style="border-bottom:2px solid #eaecf4;background:#fff;">
+    <button class="font-weight-bold py-3 px-4 border-0 bg-transparent"
+            id="tab-btn-datos" type="button" onclick="switchTab('datos')"
+            style="font-size:.82rem;color:#4e73df;border-bottom:2.5px solid #4e73df !important;
+                   margin-bottom:-2px;font-family:inherit;transition:all .2s;">
+      <i class="fas fa-id-card mr-2" style="font-size:.78rem;"></i>Datos del Empleado
+    </button>
+    <button class="font-weight-bold py-3 px-4 border-0 bg-transparent"
+            id="tab-btn-archivos" type="button" onclick="switchTab('archivos')"
+            style="font-size:.82rem;color:#a0a5b8;border-bottom:2.5px solid transparent;
+                   margin-bottom:-2px;font-family:inherit;transition:all .2s;">
+      <i class="fas fa-paperclip mr-2" style="font-size:.78rem;"></i>Archivos
+      <span id="counter-archivos"
+            class="ml-1 badge rounded-pill"
+            style="background:#eef0ff;color:#4e73df;font-size:.65rem;font-weight:800;">
+        {{ archivos|length }}
+      </span>
+    </button>
+  </div>
+
+  <!-- ── TAB: DATOS ── -->
+  <div id="tab-datos" class="px-4 py-4">
+
+    <!-- Sección: Identificación -->
+    <p class="text-uppercase font-weight-bold mb-3"
+       style="font-size:.68rem;letter-spacing:.1em;color:#c5c7d4;">
+      <i class="fas fa-circle mr-1" style="font-size:5px;color:#4e73df;vertical-align:middle;"></i>
+      Identificación
+    </p>
+    <div class="row mb-4">
+      <div class="col-md-6 mb-3">
+        <label class="small font-weight-bold text-gray-700 mb-1">
+          <i class="fas fa-hashtag text-primary mr-1" style="font-size:.7rem;"></i>
+          Código <span class="text-danger">*</span>
+        </label>
+        {{ form.codigo }}
+        {% for e in form.codigo.errors %}<div class="invalid-feedback d-block small">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="small font-weight-bold text-gray-700 mb-1">
+          <i class="fas fa-id-badge text-primary mr-1" style="font-size:.7rem;"></i>
+          CURP <span class="text-danger">*</span>
+        </label>
+        {{ form.curp }}
+        {% for e in form.curp.errors %}<div class="invalid-feedback d-block small">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="small font-weight-bold text-gray-700 mb-1">
+          <i class="fas fa-file-invoice text-primary mr-1" style="font-size:.7rem;"></i>
+          RFC
+        </label>
+        {{ form.rfc }}
+        {% for e in form.rfc.errors %}<div class="invalid-feedback d-block small">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="small font-weight-bold text-gray-700 mb-1">
+          <i class="fas fa-user text-primary mr-1" style="font-size:.7rem;"></i>
+          Nombre completo <span class="text-danger">*</span>
+        </label>
+        {{ form.nombre }}
+        {% for e in form.nombre.errors %}<div class="invalid-feedback d-block small">{{ e }}</div>{% endfor %}
+      </div>
+    </div>
+
+    <!-- Sección: Contratación -->
+    <p class="text-uppercase font-weight-bold mb-3"
+       style="font-size:.68rem;letter-spacing:.1em;color:#c5c7d4;">
+      <i class="fas fa-circle mr-1" style="font-size:5px;color:#4e73df;vertical-align:middle;"></i>
+      Contratación y compensación
+    </p>
+    <div class="row mb-4">
+      <div class="col-md-6 mb-3">
+        <label class="small font-weight-bold text-gray-700 mb-1">
+          <i class="fas fa-calendar-plus text-primary mr-1" style="font-size:.7rem;"></i>
+          Fecha de ingreso <span class="text-danger">*</span>
+        </label>
+        {{ form.ingreso }}
+        {% for e in form.ingreso.errors %}<div class="invalid-feedback d-block small">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="small font-weight-bold text-gray-700 mb-1">
+          <i class="fas fa-briefcase text-primary mr-1" style="font-size:.7rem;"></i>
+          Puesto / Perfil
+        </label>
+        {{ form.perfil }}
+        <small class="text-muted">Al cambiar perfil se prellenan campos salariales</small>
+        {% for e in form.perfil.errors %}<div class="invalid-feedback d-block small">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="small font-weight-bold text-gray-700 mb-1">
+          <i class="fas fa-dollar-sign text-primary mr-1" style="font-size:.7rem;"></i>
+          Sueldo diario
+        </label>
+        <div class="input-group">
+          <div class="input-group-prepend">
+            <span class="input-group-text font-weight-bold text-primary border-right-0"
+                  style="background:#f8f9fc;border:1.5px solid #d1d3e2;border-radius:8px 0 0 8px;">$</span>
+          </div>
+          {{ form.sueldo_diario }}
+        </div>
+        {% for e in form.sueldo_diario.errors %}<div class="invalid-feedback d-block small">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="small font-weight-bold text-gray-700 mb-1">
+          <i class="fas fa-hand-holding-usd text-primary mr-1" style="font-size:.7rem;"></i>
+          Compensación
+        </label>
+        <div class="input-group">
+          <div class="input-group-prepend">
+            <span class="input-group-text font-weight-bold text-primary border-right-0"
+                  style="background:#f8f9fc;border:1.5px solid #d1d3e2;border-radius:8px 0 0 8px;">$</span>
+          </div>
+          {{ form.compensacion }}
+        </div>
+        {% for e in form.compensacion.errors %}<div class="invalid-feedback d-block small">{{ e }}</div>{% endfor %}
+      </div>
+    </div>
+
+    <!-- Sección: Estado -->
+    <p class="text-uppercase font-weight-bold mb-3"
+       style="font-size:.68rem;letter-spacing:.1em;color:#c5c7d4;">
+      <i class="fas fa-circle mr-1" style="font-size:5px;color:#4e73df;vertical-align:middle;"></i>
+      Estado del empleado
+    </p>
+    <div class="row">
+      <div class="col-md-4">
+        <label class="small font-weight-bold text-gray-700 mb-1">
+          <i class="fas fa-toggle-on text-primary mr-1" style="font-size:.7rem;"></i>
+          Estado <span class="text-danger">*</span>
+        </label>
+        <select name="estado" id="estado_select" class="form-control" onchange="updateEstado(this)">
+          <option value="True" {% if form.estado.value %}selected{% endif %}>Activo</option>
+          <option value="False" {% if not form.estado.value %}selected{% endif %}>Baja</option>
+        </select>
+        <small class="text-muted">Define si aparece en nómina activa</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB: ARCHIVOS ── -->
+  <div id="tab-archivos" class="px-4 py-4" style="display:none;">
+
+    <p class="text-uppercase font-weight-bold mb-3"
+       style="font-size:.68rem;letter-spacing:.1em;color:#c5c7d4;">
+      <i class="fas fa-circle mr-1" style="font-size:5px;color:#4e73df;vertical-align:middle;"></i>
+      Subir nuevo documento
+    </p>
+    <div class="row mb-3">
+      <div class="col-md-6 mb-3">
+        <label class="small font-weight-bold text-gray-700 mb-1">
+          <i class="fas fa-tag text-primary mr-1" style="font-size:.7rem;"></i>
+          Nombre del documento
+        </label>
+        <input type="text" name="nombre_archivo" class="form-control"
+               placeholder="Ej. Identificación, Contrato...">
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="small font-weight-bold text-gray-700 mb-1">
+          <i class="fas fa-file-upload text-primary mr-1" style="font-size:.7rem;"></i>
+          Archivo
+        </label>
+        <input type="file" name="archivo" id="fileInput" class="form-control" multiple>
+        <small class="text-muted">PDF, JPG, PNG — Máx. 10 MB</small>
+      </div>
+    </div>
+
+    <!-- Zona drag & drop visual -->
+    <div onclick="document.getElementById('fileInput').click()" class="rounded mb-4 text-center"
+         style="border:2px dashed #d1d3e2;padding:1.5rem;background:#f8f9fc;cursor:pointer;
+                transition:all .2s;" onmouseover="this.style.borderColor='#4e73df';this.style.background='#f0f3ff'"
+         onmouseout="this.style.borderColor='#d1d3e2';this.style.background='#f8f9fc'">
+      <i class="fas fa-cloud-upload-alt d-block mb-2" style="font-size:1.8rem;color:#c5c7d4;"></i>
+      <p class="mb-0 text-muted font-weight-600 small">
+        Arrastra archivos aquí o <strong class="text-primary">haz clic para seleccionar</strong>
+      </p>
+    </div>
+
+    <!-- Lista de archivos -->
+    <p class="text-uppercase font-weight-bold mb-3"
+       style="font-size:.68rem;letter-spacing:.1em;color:#c5c7d4;">
+      <i class="fas fa-circle mr-1" style="font-size:5px;color:#4e73df;vertical-align:middle;"></i>
+      Archivos subidos
+    </p>
+    <div id="lista-archivos">
+      {% for archivo in archivos %}
+      <div class="d-flex align-items-center justify-content-between rounded mb-2 px-3 py-2"
+           style="background:#f8f9fc;border:1.5px solid #eaecf4;">
+        <div class="d-flex align-items-center" style="gap:.65rem;">
+          <div class="d-flex align-items-center justify-content-center rounded flex-shrink-0"
+               style="width:32px;height:32px;background:#eef0ff;color:#4e73df;font-size:.78rem;">
+            <i class="fas fa-file-pdf"></i>
+          </div>
+          <div>
+            <div class="font-weight-bold" style="font-size:.82rem;color:#3d3d5c;">{{ archivo.nombre }}</div>
+            <div class="text-muted" style="font-size:.7rem;font-weight:600;">Adjunto</div>
+          </div>
+        </div>
+        <div class="d-flex" style="gap:.4rem;">
+          <a href="{{ archivo.archivo.url }}" download
+             class="d-inline-flex align-items-center px-2 py-1 rounded font-weight-bold"
+             style="background:#eef0ff;color:#4e73df;border:1.5px solid #d1d9ff;font-size:.72rem;text-decoration:none;">
+            <i class="fas fa-download mr-1"></i> Descargar
+          </a>
+          <button type="button" class="eliminar-archivo d-inline-flex align-items-center px-2 py-1 rounded font-weight-bold"
+                  data-id="{{ archivo.id }}"
+                  style="background:#fdf0f0;color:#e74a3b;border:1.5px solid #f8c8c5;font-size:.72rem;font-family:inherit;cursor:pointer;">
+            <i class="fas fa-trash mr-1"></i> Eliminar
+          </button>
+        </div>
+      </div>
+      {% empty %}
+      <div class="text-center rounded py-4" style="border:1.5px dashed #eaecf4;">
+        <i class="fas fa-inbox d-block mb-2" style="font-size:1.8rem;color:#dde0f0;"></i>
+        <p class="text-muted font-weight-600 mb-0" style="font-size:.82rem;">No hay archivos subidos</p>
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="card-footer d-flex justify-content-end align-items-center px-4 py-3"
+       style="background:#f8f9fc;border-top:1px solid #eaecf4;">
+    <a href="{% url 'nom:empleado_list' %}" class="btn btn-white border font-weight-bold text-gray-600 mr-2">
+      <i class="fas fa-arrow-left mr-1"></i> Cancelar
+    </a>
+    <button type="submit" class="btn btn-primary font-weight-bold shadow-sm">
+      <i class="fas fa-save mr-1"></i> Guardar Empleado
+    </button>
+  </div>
+
+</div>
 </form>
 
-<!-- Script para eliminar archivos con AJAX -->
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".eliminar-archivo").forEach(button => {
-        button.addEventListener("click", async function () {
-            let archivoId = this.getAttribute("data-id");
-            let csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-
-            if (confirm("¿Seguro que deseas eliminar este archivo?")) {
-                try {
-                    let response = await fetch(`/eliminar-archivo/${archivoId}/`, {
-                        method: "DELETE",
-                        headers: {
-                            "X-CSRFToken": csrftoken,
-                            "Content-Type": "application/json"
-                        }
-                    });
-
-                    let data = await response.json();
-
-                    if (data.success) {
-                        this.closest("li").remove();
-                    } else {
-                        alert("Error al eliminar el archivo: " + data.error);
-                    }
-                } catch (error) {
-                    alert("Hubo un problema con la conexión.");
-                    console.error(error);
-                }
-            }
-        });
-    });
-});
-</script>
-
 {% endblock page_content %}
+
+{% block js_page %}
+<script>
+// ── Tab switcher ──
+function switchTab(id) {
+  ['datos','archivos'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === id ? 'block' : 'none';
+    const btn = document.getElementById('tab-btn-' + t);
+    btn.style.color = t === id ? '#4e73df' : '#a0a5b8';
+    btn.style.borderBottom = t === id ? '2.5px solid #4e73df' : '2.5px solid transparent';
+  });
+}
+
+// ── Estado color dinámico ──
+function updateEstado(sel) {
+  if (sel.value === 'True') {
+    sel.style.cssText = 'background:#eafaf4;color:#1cc88a;border-color:#c3f0df;';
+  } else {
+    sel.style.cssText = 'background:#fdf0f0;color:#e74a3b;border-color:#f8c8c5;';
+  }
+}
+const estadoSel = document.getElementById('estado_select');
+if (estadoSel) updateEstado(estadoSel);
+
+// ── Eliminar archivo con AJAX ──
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll(".eliminar-archivo").forEach(btn => {
+    btn.addEventListener("click", async function () {
+      const archivoId = this.getAttribute("data-id");
+      const csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+      if (!confirm("¿Eliminar este archivo?")) return;
+      try {
+        const resp = await fetch(`/eliminar-archivo/${archivoId}/`, {
+          method: "DELETE",
+          headers: { "X-CSRFToken": csrftoken, "Content-Type": "application/json" }
+        });
+        const data = await resp.json();
+        if (data.success) {
+          this.closest('.d-flex.align-items-center.justify-content-between').remove();
+          const count = document.querySelectorAll('#lista-archivos > div').length;
+          document.getElementById('counter-archivos').textContent = count;
+        } else {
+          alert("Error: " + data.error);
+        }
+      } catch (e) { alert("Error de conexión."); }
+    });
+  });
+});
+
+// ── Perfil → prellenar sueldo ──
+const perfilSel = document.getElementById('id_perfil');
+if (perfilSel) {
+  perfilSel.addEventListener('change', function () {
+    if (!this.value) return;
+    fetch(`/perfil-info/${this.value}/`)
+      .then(r => r.json())
+      .then(data => {
+        const s = document.getElementById('id_sueldo_diario');
+        if (s) s.value = data.sueldo;
+      });
+  });
+}
+</script>
+{% endblock %}

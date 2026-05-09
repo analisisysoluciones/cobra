@@ -156,22 +156,27 @@ class FiltroCompraForm(forms.Form):
         required=False, label='Fecha fin',
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
     )
+
     proveedor = forms.ModelChoiceField(
-        queryset=Proveedor.objects.all(),
+        queryset=Proveedor.objects.all().order_by("razon_social"),
         required=False,
         label='Proveedor',
+        empty_label="--- Todos ---",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
+
     estatus_pago = forms.ChoiceField(
         required=False,
         choices=[('', '--- Todos ---')] + CompraEnc.ESTATUS_PAGO_CHOICES,
         label='Estatus de pago',
         widget=forms.Select(attrs={'class': 'form-control'})
     )
+
     proyecto = forms.ModelChoiceField(
-        queryset=Proyecto.objects.all(),
+        queryset=Proyecto.objects.all().order_by("nombre"),
         required=False,
         label='Proyecto',
+        empty_label="--- Todos ---",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
 

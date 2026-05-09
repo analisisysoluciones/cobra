@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from bases.models import ClaseModelo
+from bases.models import ClaseModelo, Folios
 from adm.models import Cuenta
 from inv.models import Material
 from django.core.exceptions import ValidationError
@@ -13,17 +13,48 @@ from django.utils import timezone
 from datetime import date, timedelta
 
 
+
+class PerfilPuesto(models.Model):
+    CATEGORIAS_PUESTO = [
+        ("BASICO", "Mano de obra básica"),
+        ("OFICIAL", "Oficial"),
+        ("TECNICO", "Técnico especializado"),
+        ("SUPERVISION", "Supervisión"),
+        ("ADMIN", "Administración"),
+    ]
+    nombre = models.CharField(max_length=100)
+    sueldo_min = models.DecimalField(max_digits=10, decimal_places=2)
+    sueldo_max = models.DecimalField(max_digits=10, decimal_places=2)
+    TIPO_PAGO = (
+        ('FIJO', 'Fijo'),
+        ('DESTAJO', 'Destajo')
+    )
+    tipo_pago = models.CharField(max_length=10, choices=TIPO_PAGO, null=True, blank=True)
+    categoria = models.CharField(max_length=20, choices=CATEGORIAS_PUESTO)
+    activo = models.BooleanField(default=True)
+    slug = models.SlugField(max_length=120, unique=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.nombre)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.nombre} (${self.sueldo_min} - ${self.sueldo_max})"
+
+
+
 # Create your models here.
 class Empleado(ClaseModelo):
-    codigo = models.IntegerField('Codigo',default=0,blank=False,null=False,unique=True)
+    codigo = models.IntegerField('Codigo',default=0,blank=False,null=False,unique=True,editable=False)
     curp = models.CharField('Curp',max_length=18,blank=False,null=False,unique=True)
     rfc  = models.CharField('Rfc',max_length=13,null=False,blank=False,default='')
     nombre = models.CharField('Nombre',max_length=120,blank=False,null=False,default='')
     ingreso = models.DateField('Ingreso',blank=False,null=False)
     sueldo_diario = models.DecimalField('Sueldo diario',max_digits=10,decimal_places=2,default=0.00)
     compensacion = models.DecimalField('Compensación',decimal_places=2,max_digits=10,default=0.00,blank=True,null=True)
-    puesto = models.CharField('Puesto',max_length=80,blank=True,null=True,default='AUXILIAR GENERAL')
-
+    perfil = models.ForeignKey(PerfilPuesto, on_delete=models.PROTECT, null=True, blank=True)
+    tipo_pago = models.CharField(max_length=10, editable=False, null=True, blank=True)
     def años_servicio(self):
         """Calcula los años de servicio del empleado"""
         today = date.today()
@@ -56,19 +87,41 @@ class Empleado(ClaseModelo):
             return 32
         return 0  # Si el empleado tiene menos de un año, no le corresponden vacaciones aún
 
+    def asignar_folio_empleado(self):
+        """Obtiene el siguiente folio para empleado desde bases_folios"""
+        with transaction.atomic():
+            folio, creado = Folios.objects.select_for_update().get_or_create(
+                tipo_documento="EMPLEADO",
+                defaults={"ultimo": 0}
+            )
+            folio.consecutivo += 1
+            folio.save()
+            return folio.consecutivo
+
     def save(self, *args, **kwargs):
-        self.curp    = self.curp.upper()
-        self.nombre  = self.nombre.upper()
-        self.puesto  = self.puesto.upper()
-        self.rfc     = self.rfc.upper()
-        super(Empleado, self).save(*args, **kwargs)
-   
+
+    # Asignar folio automático
+        if not self.codigo or self.codigo == 0:
+            self.codigo = self.asignar_folio_empleado()
+
+        # Uppercase
+        self.curp = self.curp.upper()
+        self.rfc = self.rfc.upper()
+        self.nombre = self.nombre.upper()
+        if self.perfil:
+            self.sueldo_diario = self.perfil.sueldo_max
+            self.tipo_pago = self.perfil.tipo_pago
+        
+
+        super().save(*args, **kwargs)
+
     
 
         
     def __str__(self):
-        return self.nombre+" "+self.puesto
-    
+        perfil = self.perfil.nombre if self.perfil else "Sin perfil"
+        return f"{self.nombre} ({perfil})"
+        
     class Meta:
         verbose_name = 'Empleado'
         verbose_name_plural = 'Empleados'
@@ -535,3 +588,75 @@ class CompensacionVariable(models.Model):
         verbose_name = "Compensación variable"
         verbose_name_plural = "Compensaciones variables"
         ordering = ["-fecha"]
+
+
+class ActividadObra(models.Model):
+    nombre = models.CharField(max_length=150)
+    unidad = models.CharField(max_length=20)  # m2, m3, ml, pieza
+    descripcion = models.TextField(blank=True, null=True)
+    activo = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.nombre} ({self.unidad})"
+
+
+
+
+class RendimientoActividad(models.Model):
+    actividad = models.ForeignKey(ActividadObra, on_delete=models.CASCADE)
+    perfil = models.ForeignKey(PerfilPuesto, on_delete=models.CASCADE)
+
+    rendimiento = models.DecimalField(max_digits=10, decimal_places=2)
+    # Ejemplo: 12 m2 por día
+
+    def __str__(self):
+        return f"{self.perfil} - {self.actividad} ({self.rendimiento}/día)"
+
+
+class CostoActividad(models.Model):
+    actividad = models.ForeignKey(ActividadObra, on_delete=models.CASCADE)
+    perfil = models.ForeignKey(PerfilPuesto, on_delete=models.CASCADE)
+
+    costo_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def calcular_costo(self):
+        rendimiento = RendimientoActividad.objects.get(
+            actividad=self.actividad,
+            perfil=self.perfil
+        ).rendimiento
+
+        sueldo = (self.perfil.sueldo_min + self.perfil.sueldo_max) / 2
+
+        # costo por unidad (ej: por m2)
+
+        self.costo_unitario = sueldo / rendimiento
+
+
+class EjecucionActividad(models.Model):
+    fecha = models.DateField()
+    proyecto = models.ForeignKey("adm.Proyecto", on_delete=models.CASCADE)
+
+    actividad = models.ForeignKey(ActividadObra, on_delete=models.CASCADE)
+    perfil = models.ForeignKey(PerfilPuesto, on_delete=models.CASCADE)
+
+    cantidad = models.DecimalField(max_digits=10, decimal_places=2)
+
+    costo_real = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        costo = CostoActividad.objects.get(
+            actividad=self.actividad,
+            perfil=self.perfil
+        ).costo_unitario
+
+        self.costo_real = self.cantidad * costo
+        super().save(*args, **kwargs)
+
+
+class PresupuestoActividad(models.Model):
+    proyecto = models.ForeignKey("adm.Proyecto", on_delete=models.CASCADE)
+    actividad = models.ForeignKey(ActividadObra, on_delete=models.CASCADE)
+
+    cantidad_estimado = models.DecimalField(max_digits=10, decimal_places=2)
+    costo_estimado = models.DecimalField(max_digits=10, decimal_places=2)
+

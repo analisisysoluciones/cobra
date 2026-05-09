@@ -1,0 +1,51 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Perfil de Puesto</h5>
+    </div>
+
+    <div class="card-body">
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>Nombre</label>
+                {{ form.nombre }}
+            </div>
+
+            <div class="form-group">
+                <label>Categoría</label>
+                {{ form.categoria }}
+            </div>
+
+            <div class="form-row">
+                <div class="col-md-6">
+                    <label>Sueldo mínimo</label>
+                    {{ form.sueldo_min }}
+                </div>
+                <div class="col-md-6">
+                    <label>Sueldo máximo</label>
+                    {{ form.sueldo_max }}
+                </div>
+            </div>
+
+            <div class="form-group mt-3">
+                <label>Activo</label><br>
+                {{ form.activo }}
+            </div>
+
+            <div class="mt-4">
+                <button class="btn btn-success">Guardar</button>
+                <a href="{% url 'nom:perfil_list' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}

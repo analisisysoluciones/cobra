@@ -5,6 +5,9 @@ from decimal import Decimal
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
+from django.conf import settings
+from django.utils import timezone
+
 # Create your models here.
 
 class Categoria(ClaseModelo):
@@ -17,9 +20,9 @@ class Categoria(ClaseModelo):
     def __str__(self):
         return "{}".format(self.descripcion)
     
-    def save(self):
+    def save(self, *args, **kwargs):
         self.descripcion = self.descripcion.upper()
-        super(Categoria, self).save()
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name_plural = 'Categorias'
@@ -48,6 +51,20 @@ class Material(ClaseModelo):
     minimo = models.DecimalField('Minimo:', max_digits=12,decimal_places=3,default=0.000)
     maximo = models.DecimalField('Maximo:', max_digits=12,decimal_places=3,default=0.000)
     unidad_medida = models.ForeignKey(Unidad, on_delete=models.CASCADE,null=True)
+    TIPO_INSUMO = (
+        ('MATERIAL','Material'),
+        ('MANO_OBRA','Mano de Obra'),
+        ('EQUIPO','Equipo'),
+        ('HERRAMIENTA','Herramienta'),
+    )
+
+    tipo_insumo = models.CharField(
+        'Tipo insumo',
+        max_length=20,
+        choices=TIPO_INSUMO,
+        default='MATERIAL'
+    )
+
 
     def __str__(self):
         return str(self.id)
@@ -132,3 +149,103 @@ class Firma(models.Model):
 
     def __str__(self):
         return f"Firma de {self.empleado.nombre} para {self.requisicion}"
+    
+
+    # operacion/models/salida_almacen.py  (sugiero app operacion)
+
+
+class SalidaAlmacen(ClaseModelo):
+    fecha = models.DateField(default=timezone.now)
+
+    proyecto = models.ForeignKey(
+        'adm.Proyecto',
+        on_delete=models.PROTECT,
+        related_name='salidas_almacen'
+    )
+
+    equipo = models.ForeignKey(
+        'adm.Equipo',          # ← TU MODELO EXISTENTE
+        on_delete=models.PROTECT,
+        related_name='salidas_almacen'
+    )
+
+    responsable = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name='salidas_equipo'
+    )
+
+    requisicion = models.ForeignKey(
+        Requisicion,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='salidas_almacen'
+    )
+
+    compra = models.ForeignKey(
+        'cxp.CompraEnc',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='salidas_almacen'
+    )
+
+    observaciones = models.TextField(blank=True, default='')
+
+    class Meta:
+        verbose_name = 'Salida de almacén'
+        verbose_name_plural = 'Salidas de almacén'
+        db_table = 'op_salida_almacen'
+
+    def __str__(self):
+        return f"Salida #{self.id} - {self.equipo.descripcion}"
+
+
+# operacion/models/salida_almacen_detalle.py
+from django.db import models
+from django.utils import timezone
+
+
+class SalidaAlmacenD(ClaseModelo):
+    salida = models.ForeignKey(
+        SalidaAlmacen,
+        on_delete=models.CASCADE,
+        related_name='detalles'
+    )
+
+    material = models.ForeignKey(
+        Material,
+        on_delete=models.PROTECT,
+        related_name='salidas_almacen'
+    )
+
+    cantidad = models.DecimalField(
+        'Cantidad',
+        max_digits=12,
+        decimal_places=3
+    )
+
+    unidad = models.CharField(
+        'Unidad',
+        max_length=20,
+        default='PZA'
+    )
+
+    costo_unitario = models.DecimalField(
+        'Costo unitario',
+        max_digits=14,
+        decimal_places=4,
+        default=0
+    )
+
+    class Meta:
+        verbose_name = 'Detalle salida de almacén'
+        verbose_name_plural = 'Detalles salida de almacén'
+        db_table = 'op_salida_almacen_d'
+        indexes = [
+            models.Index(fields=['material']),
+        ]
+
+    def __str__(self):
+        return f"{self.material} x {self.cantidad}"

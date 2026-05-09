@@ -1,0 +1,62 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+
+<div class="card shadow mb-4">
+
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            {% if form.instance.pk %}
+                Editar Tarifa
+            {% else %}
+                Nueva Tarifa
+            {% endif %}
+        </h6>
+    </div>
+
+    <div class="card-body">
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+                    <label>Equipo</label>
+                    {{ form.equipo }}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>Tipo Cobro</label>
+                    {{ form.tipo_cobro }}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>Precio</label>
+                    {{ form.precio }}
+                </div>
+
+            </div>
+
+            <!-- BOTONES PRO -->
+            <div class="d-flex justify-content-start border-top pt-3 mt-4">
+
+                <a href="{% url 'renta:tarifa_list' %}" class="btn btn-outline-secondary mr-2">
+                    <i class="fas fa-times mr-1"></i>
+                    Cancelar
+                </a>
+
+                <button type="submit" class="btn btn-primary shadow-sm">
+                    <i class="fas fa-save mr-1"></i>
+                    Guardar
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

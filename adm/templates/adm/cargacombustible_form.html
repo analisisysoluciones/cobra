@@ -1,5 +1,5 @@
 {% extends 'base/base.html' %}
-
+{% load widget_tweaks %}
 {% block page_content %}
 <form method="post" id="frmCargaCombustible">
     {% csrf_token %}
@@ -7,7 +7,9 @@
         <div class="card-header font-weight-bold">
             {% if carga %}Editar{% else %}Nueva{% endif %} Carga de Combustible
         </div>
+
         <div class="card-body">
+
             {% if form.errors %}
             <div class="alert alert-danger">
                 <ul>
@@ -19,58 +21,112 @@
                 </ul>
             </div>
             {% endif %}
+
             {% if messages %}
                 {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                    {{ message }}
-                    <button type="button" class="close" data-dismiss="alert">&times;</button>
-                </div>
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    </div>
                 {% endfor %}
             {% endif %}
+
+            <!-- ===================================================== -->
+            <!-- Fila 1: Proyecto, Equipo, Fecha -->
+            <!-- ===================================================== -->
             <div class="form-row">
-                <div class="form-group col-md-3">
+
+                <div class="form-group col-md-4">
+                    <label for="{{ form.proyecto.id_for_label }}">Proyecto</label>
+                    {{ form.proyecto }}
+                </div>
+
+                <div class="form-group col-md-4">
                     <label for="{{ form.equipo.id_for_label }}">Equipo</label>
                     {{ form.equipo }}
                 </div>
-                <div class="form-group col-md-3">
+
+                <div class="form-group col-md-4">
                     <label for="{{ form.fecha_carga.id_for_label }}">Fecha de Carga</label>
                     {{ form.fecha_carga }}
                 </div>
+
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- Fila 2: Tipo, Litros, Costo -->
+            <!-- ===================================================== -->
+            <div class="form-row">
+
                 <div class="form-group col-md-3">
-                    <label for="{{ form.tipo_combustible.id_for_label }}">Tipo de Combustible</label>
+                    <label>Tipo de Combustible</label>
                     {{ form.tipo_combustible }}
                 </div>
+
                 <div class="form-group col-md-3">
-                    <label for="{{ form.cantidad_litros.id_for_label }}">Cantidad (litros)</label>
+                    <label>Cantidad (litros)</label>
                     {{ form.cantidad_litros }}
                 </div>
+
                 <div class="form-group col-md-3">
-                    <label for="{{ form.costo_total.id_for_label }}">Costo Total</label>
+                    <label>Precio por litro</label>
+                    {{ form.precio_litro }}
+                </div>
+
+                <div class="form-group col-md-3">
+                    <label>Costo Total</label>
                     {{ form.costo_total }}
                 </div>
-                <div class="form-group col-md-3">
+
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- Fila 3: Odómetro, Operador, Hora -->
+            <!-- ===================================================== -->
+            <div class="form-row">
+
+                <div class="form-group col-md-4">
                     <label for="{{ form.odometro.id_for_label }}">Odómetro</label>
                     {{ form.odometro }}
                 </div>
-                <div class="form-group col-md-3">
+
+                <div class="form-group col-md-4">
                     <label for="{{ form.operador.id_for_label }}">Operador</label>
                     {{ form.operador }}
                 </div>
-                <div class="form-group col-md-3">
+
+                <div class="form-group col-md-4">
                     <label for="{{ form.hora.id_for_label }}">Hora</label>
                     {{ form.hora }}
                 </div>
-                <div class="form-group col-md-3">
-                    <label for="{{ form.folio.id_for_label }}">Folio</label>
-                    {{ form.folio }}
-                </div>
-                <div class="form-group col-md-12">
-                    <label for="{{ form.observaciones.id_for_label }}">Observaciones</label>
-                    {{ form.observaciones }}
-                </div>
+
             </div>
+
+            <!-- ===================================================== -->
+            <!-- Fila 4: Folio -->
+            <!-- ===================================================== -->
+            <div class="form-row">
+
+                <div class="form-group col-md-4">
+    <label for="{{ form.folio.id_for_label }}">
+        Folio <span class="text-danger">*</span>
+    </label>
+    {{ form.folio|add_class:"form-control" }}
+</div>
+
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- Fila 5: Observaciones -->
+            <!-- ===================================================== -->
+            <div class="form-group">
+                <label for="{{ form.observaciones.id_for_label }}">Observaciones</label>
+                {{ form.observaciones }}
+            </div>
+
             <button type="submit" class="btn btn-primary">Guardar</button>
             <a href="{% url 'adm:cargacombustible_list' %}" class="btn btn-secondary">Cancelar</a>
+
         </div>
     </div>
 </form>
@@ -79,12 +135,56 @@
 {% block js_page %}
 <script>
 $(document).ready(function() {
-    $('.select2').select2({
+
+    // Activar select2 en estos campos
+    $('#id_proyecto, #id_equipo, #id_tipo_combustible').addClass('select2').select2({
         placeholder: 'Seleccione una opción',
         allowClear: true,
         width: '100%'
     });
+
     $("#sidebarToggle").click();
+});
+
+$("#frmCargaCombustible").on("submit", function(e) {
+    let folioInput = $("#id_folio");
+    let folio = folioInput.val().trim();
+
+    if (!folio) {
+        folioInput.addClass("is-invalid");
+
+        if ($("#error-folio").length === 0) {
+            folioInput.after('<div id="error-folio" class="invalid-feedback">El folio es obligatorio</div>');
+        }
+
+        folioInput.focus();
+        e.preventDefault();
+        return false;
+    } else {
+        folioInput.removeClass("is-invalid");
+        $("#error-folio").remove();
+    }
+});</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const litros = document.getElementById("id_cantidad_litros");
+    const precio = document.getElementById("id_precio_litro");
+    const total = document.getElementById("id_costo_total");
+
+    function calcularTotal() {
+        let l = parseFloat(litros.value) || 0;
+        let p = parseFloat(precio.value) || 0;
+
+        total.value = (l * p).toFixed(2);
+    }
+
+   // 🔥 AQUÍ VA (reemplaza lo que tenías)
+    if (litros && precio && total) {
+        litros.addEventListener("input", calcularTotal);
+        precio.addEventListener("input", calcularTotal);
+    }
+    calcularTotal();
 });
 </script>
 {% endblock %}

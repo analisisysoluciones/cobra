@@ -1,0 +1,47 @@
+{% extends "base/base.html" %}
+{% block page_content %}
+
+<h4>Salida de almacén #{{ salida.id }}</h4>
+<p><strong>Equipo:</strong> {{ salida.equipo }}</p>
+
+<hr>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-md-8">
+            {{ form_detalle.material }}
+        </div>
+        <div class="col-md-2">
+            {{ form_detalle.cantidad }}
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-success">Agregar</button>
+        </div>
+    </div>
+</form>
+
+<hr>
+
+<table class="table table-sm table-bordered">
+    <thead>
+        <tr>
+            <th>Material</th>
+            <th>Cantidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for d in salida.detalles.all %}
+        <tr>
+            <td>{{ d.material }}</td>
+            <td>{{ d.cantidad }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="2">Sin materiales</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb" style="font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em;">
+    <li class="breadcrumb-item"><a href="#">Renta</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'renta:cliente_list' %}">Clientes</a></li>
+    <li class="breadcrumb-item active">
+      {% if form.instance.pk %}Editar Cliente{% else %}Nuevo Cliente{% endif %}
+    </li>
+  </ol>
+</nav>
+
+<div class="card shadow-sm border-0 rounded-lg">
+
+  <!-- HEADER -->
+  <div class="card-header d-flex align-items-center justify-content-between py-3"
+       style="background:linear-gradient(135deg,#4e73df 0%,#224abe 100%); border:none;">
+    <div class="d-flex align-items-center">
+      <div class="d-flex align-items-center justify-content-center rounded mr-3"
+           style="width:38px;height:38px;background:rgba(255,255,255,.18);">
+        <i class="fas fa-user text-white"></i>
+      </div>
+      <h6 class="m-0 font-weight-bold text-white">
+        {% if form.instance.pk %}Editar Cliente{% else %}Nuevo Cliente{% endif %}
+      </h6>
+    </div>
+    <span class="badge rounded-pill px-3 py-1"
+          style="background:rgba(255,255,255,.22);color:#fff;font-size:.68rem;letter-spacing:.06em;">
+      {% if form.instance.pk %}EDICIÓN{% else %}CREACIÓN{% endif %}
+    </span>
+  </div>
+
+  <div class="card-body px-4 py-4">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <!-- Código (solo en edición) -->
+      {% if form.instance.pk %}
+      <div class="d-flex align-items-center rounded mb-4 px-3 py-2"
+           style="background:#f0f3ff;border:1.5px solid #d1d9ff;">
+        <i class="fas fa-barcode text-primary mr-2"></i>
+        <span class="small font-weight-bold text-primary text-uppercase mr-3"
+              style="letter-spacing:.08em;white-space:nowrap;">Código</span>
+        <span class="font-weight-bold" style="color:#3d3d5c;">{{ form.instance.codigo }}</span>
+      </div>
+      {% endif %}
+
+      <!-- Section label -->
+      <p class="text-uppercase font-weight-bold mb-3"
+         style="font-size:.7rem;letter-spacing:.1em;color:#b7b9cc;">
+        <i class="fas fa-circle mr-1" style="font-size:5px;color:#4e73df;vertical-align:middle;"></i>
+        Datos del cliente
+      </p>
+
+      <div class="row">
+
+        <!-- Nombre (ancho completo) -->
+        <div class="col-12 mb-3">
+          <label class="small font-weight-bold text-gray-700 mb-1">
+            <i class="fas fa-id-card text-primary mr-1" style="font-size:.72rem;"></i>
+            Nombre <span class="text-danger">*</span>
+          </label>
+          {{ form.nombre }}
+          {% for error in form.nombre.errors %}
+            <div class="invalid-feedback d-block small">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Teléfono -->
+        <div class="col-md-6 mb-3">
+          <label class="small font-weight-bold text-gray-700 mb-1">
+            <i class="fas fa-phone text-primary mr-1" style="font-size:.72rem;"></i>
+            Teléfono
+          </label>
+          {{ form.telefono }}
+          {% for error in form.telefono.errors %}
+            <div class="invalid-feedback d-block small">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Email -->
+        <div class="col-md-6 mb-3">
+          <label class="small font-weight-bold text-gray-700 mb-1">
+            <i class="fas fa-envelope text-primary mr-1" style="font-size:.72rem;"></i>
+            Correo Electrónico
+          </label>
+          {{ form.email }}
+          {% for error in form.email.errors %}
+            <div class="invalid-feedback d-block small">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- RFC -->
+        <div class="col-md-6 mb-3">
+          <label class="small font-weight-bold text-gray-700 mb-1">
+            <i class="fas fa-file-invoice text-primary mr-1" style="font-size:.72rem;"></i>
+            RFC
+          </label>
+          {{ form.rfc }}
+          <small class="text-muted">13 caracteres para persona física, 12 para moral</small>
+          {% for error in form.rfc.errors %}
+            <div class="invalid-feedback d-block small">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Dirección (ancho completo) -->
+        <div class="col-12 mb-3">
+          <label class="small font-weight-bold text-gray-700 mb-1">
+            <i class="fas fa-map-marker-alt text-primary mr-1" style="font-size:.72rem;"></i>
+            Dirección
+          </label>
+          {{ form.direccion }}
+          {% for error in form.direccion.errors %}
+            <div class="invalid-feedback d-block small">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Activo (toggle) -->
+        <div class="col-12">
+          <div class="d-flex align-items-center justify-content-between rounded px-3 py-2"
+               style="background:#f8f9fc;border:1.5px solid #e3e6f0;">
+            <div class="d-flex align-items-center">
+              <i class="fas fa-toggle-on text-primary mr-2"></i>
+              <div>
+                <div class="small font-weight-bold text-gray-700">Cliente activo</div>
+                <div class="text-muted" style="font-size:.72rem;">Desactiva para ocultar sin eliminar</div>
+              </div>
+            </div>
+            {{ form.activo }}
+          </div>
+        </div>
+
+      </div>
+    </form>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="card-footer d-flex justify-content-end align-items-center px-4 py-3"
+       style="background:#f8f9fc;border-top:1px solid #e3e6f0;">
+    <a href="{% url 'renta:cliente_list' %}" class="btn btn-white border font-weight-bold text-gray-600 mr-2">
+      <i class="fas fa-arrow-left mr-1"></i> Cancelar
+    </a>
+    <button type="submit" class="btn btn-primary font-weight-bold shadow-sm">
+      <i class="fas fa-save mr-1"></i> Guardar Cliente
+    </button>
+  </div>
+
+</div>
+
+{% endblock %}

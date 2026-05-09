@@ -44,3 +44,6 @@ class IngresoExtraFiltroForm(forms.Form):
         required=False,
         widget=forms.Select(attrs={"class": "form-control"})
     )
+
+
+

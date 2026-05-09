@@ -1,0 +1,292 @@
+{% extends "base/mobile.html" %}
+{% load static %}
+
+{% block content %}
+
+<!-- MENSAJES -->
+{% if messages %}
+<div class="container mt-3 mb-4">
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show d-flex align-items-center" role="alert">
+            {% if message.tags == 'success' %}
+                <i class="fas fa-check-circle me-2"></i>
+            {% elif message.tags == 'error' %}
+                <i class="fas fa-exclamation-triangle me-2"></i>
+            {% endif %}
+            {{ message }}
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="fuel-header mb-4">
+    <div class="fuel-icon">
+        <i class="fas fa-gas-pump"></i>
+    </div>
+    <h4 class="mb-0">Registrar Carga de Combustible</h4>
+</div>
+
+<form method="post" enctype="multipart/form-data" id="formCarga">
+{% csrf_token %}
+
+<div class="row g-4">
+
+    <!-- VEHICULO -->
+    <div class="col-12 col-lg-6">
+        <label class="form-label">Vehículo *</label>
+        <select id="equipo" name="equipo_id" class="form-control premium-input" required>
+            <option value="">Cargando vehículos...</option>
+        </select>
+    </div>
+
+    <!-- FECHA -->
+    <div class="col-12 col-lg-6">
+        <label class="form-label">Fecha *</label>
+        <input type="date"
+               name="fecha_carga"
+               id="fecha_carga"
+               class="form-control premium-input"
+               required>
+    </div>
+
+    <!-- LITROS -->
+    <div class="col-12 col-lg-6">
+        <label class="form-label">Litros *</label>
+        <input type="number"
+               step="0.01"
+               id="litros"
+               name="cantidad_litros"
+               class="form-control premium-input"
+               required>
+    </div>
+
+    <!-- PRECIO -->
+    <div class="col-12 col-lg-6">
+        <label class="form-label">Precio por Litro</label>
+        <input type="number"
+               step="0.01"
+               id="precio"
+               name="precio_litro"
+               class="form-control premium-input">
+    </div>
+
+    <!-- COSTO -->
+    <div class="col-12 col-lg-6">
+        <label class="form-label">Costo Total *</label>
+        <input type="number"
+               step="0.01"
+               id="total"
+               name="costo_total"
+               class="form-control premium-input"
+               required>
+    </div>
+
+    <!-- FOLIO (CORREGIDO) -->
+    <div class="col-12 col-lg-6">
+        <label class="form-label">Folio del Ticket *</label>
+        <input type="text"
+               name="folio"
+               class="form-control premium-input"
+               required>
+    </div>
+
+    <!-- ODOMETRO -->
+    <div class="col-12 col-lg-6">
+        <label class="form-label">Kilometraje</label>
+        <input type="number"
+               name="odometro"
+               class="form-control premium-input">
+    </div>
+
+    <!-- COMBUSTIBLE -->
+    <div class="col-12 col-lg-6">
+        <label class="form-label">Tipo de Combustible</label>
+        <select name="tipo_combustible" class="form-control premium-input">
+            <option value="gasolina">Gasolina</option>
+            <option value="diesel">Diésel</option>
+        </select>
+    </div>
+
+    <!-- GASOLINERA -->
+    <div class="col-12 col-lg-6">
+        <label class="form-label">Gasolinera</label>
+        <input type="text"
+               name="gasolinera"
+               class="form-control premium-input">
+    </div>
+
+    <!-- CHECK -->
+    <div class="col-12">
+        <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" name="tanque_lleno">
+            <label class="form-check-label">Tanque lleno</label>
+        </div>
+    </div>
+
+    <!-- FOTO -->
+    <div class="col-12">
+        <label class="form-label">Foto del Recibo</label>
+
+        <label class="upload-premium">
+            <div class="camera-circle">
+                <i class="fas fa-camera"></i>
+            </div>
+            <div class="upload-text">
+                Toca para subir una foto del ticket
+            </div>
+
+            <img id="previewImg" class="img-fluid mt-3 rounded" style="display:none; max-height:200px;">
+
+            <input type="file"
+                   name="foto"
+                   id="foto"
+                   accept="image/*"
+                   capture="environment"
+                   hidden>
+        </label>
+    </div>
+
+    <!-- NOTAS -->
+    <div class="col-12">
+        <label class="form-label">Notas</label>
+        <textarea name="observaciones"
+                  rows="2"
+                  class="form-control premium-input"></textarea>
+    </div>
+
+</div>
+
+<div class="row mt-5">
+
+    <div class="col-6 pr-2">
+        <a href="{% url 'adm:pda_menu' %}"
+           class="btn btn-outline-secondary btn-lg btn-block rounded-pill shadow-sm py-3 font-weight-bold">
+            <i class="fas fa-times mr-2"></i>
+            Cancelar
+        </a>
+    </div>
+
+    <div class="col-6 pl-2">
+        <button type="submit"
+                id="btnGuardar"
+                class="btn btn-success btn-lg btn-block rounded-pill shadow py-3 font-weight-bold">
+            <i class="fas fa-save mr-2"></i>
+            Guardar
+        </button>
+    </div>
+
+</div>
+</form>
+
+<!-- ========================= -->
+<!-- JS -->
+<!-- ========================= -->
+<script>
+
+// 🔥 FECHA MAXIMA = HOY
+const hoy = new Date().toISOString().split('T')[0];
+document.getElementById("fecha_carga").setAttribute("max", hoy);
+
+// 🔥 BLOQUEAR DOBLE ENVIO REAL
+document.getElementById("formCarga").addEventListener("submit", function() {
+    const btn = document.getElementById("btnGuardar");
+    btn.disabled = true;
+    btn.innerText = "Guardando...";
+});
+
+// 🔥 PREVIEW IMAGEN
+document.getElementById("foto").addEventListener("change", function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+        const img = document.getElementById("previewImg");
+        img.src = ev.target.result;
+        img.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+});
+
+// 🔥 CARGA EQUIPOS
+fetch("{% url 'adm:api_equipos_activos' %}")
+.then(r => r.json())
+.then(data => {
+    const select = document.getElementById("equipo");
+    select.innerHTML = '<option value="">Seleccionar vehículo</option>';
+    data.forEach(e => {
+        const option = document.createElement("option");
+        option.value = e.id;
+        option.text = e.descripcion + " (" + e.placas + ")";
+        select.appendChild(option);
+    });
+});
+
+
+
+function calcularTotal() {
+    const litros = parseFloat(document.getElementById("litros").value) || 0;
+    const precio = parseFloat(document.getElementById("precio").value) || 0;
+
+    const total = litros * precio;
+
+    document.getElementById("total").value = total.toFixed(2);
+}
+
+document.getElementById("litros").addEventListener("input", calcularTotal);
+document.getElementById("precio").addEventListener("input", calcularTotal);
+
+</script>
+
+<style>
+
+.fuel-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    border-radius: 16px;
+    background: linear-gradient(90deg,#eaf5f1,#f3f9f6);
+}
+
+.fuel-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: #dff5ec;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #20c997;
+}
+
+.premium-input {
+    height: 32px;
+    border-radius: 12px;
+    border: 1px solid #e3e6ea;
+    width: 100%;
+    padding: 6px 12px;
+}
+
+.upload-premium {
+    border: 2px dashed #e0e3e7;
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.camera-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 16px;
+    background: #eef4f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+</style>
+
+{% endblock %}

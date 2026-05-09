@@ -1,0 +1,293 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+<div class="container-fluid">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-2">
+    <ol class="breadcrumb" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">
+      <li class="breadcrumb-item"><a href="#">Renta</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'renta:renta_list' %}">Rentas</a></li>
+      <li class="breadcrumb-item active">
+        {% if form.instance.pk %}Editar Renta{% else %}Nueva Renta{% endif %}
+      </li>
+    </ol>
+  </nav>
+
+  <!-- Topbar -->
+  <div class="d-flex align-items-flex-end justify-content-between mb-4">
+    <div>
+      <h1 class="h4 mb-1 font-weight-bold text-gray-800">
+        {% if form.instance.pk %}Editar Renta{% else %}Nueva Renta de Equipo{% endif %}
+      </h1>
+      <p class="mb-0 text-muted small">Captura rápida de renta de maquinaria</p>
+    </div>
+    <a href="{% url 'renta:renta_list' %}" class="btn btn-light border shadow-sm font-weight-bold">
+      <i class="fas fa-list mr-1"></i> Ver rentas
+    </a>
+  </div>
+
+  <div class="row">
+
+    <!-- ── FORMULARIO PRINCIPAL ── -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0 rounded-lg mb-4">
+
+        <!-- Header -->
+        <div class="card-header d-flex align-items-center justify-content-between py-3"
+             style="background:linear-gradient(135deg,#4e73df 0%,#224abe 100%);border:none;">
+          <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center justify-content-center rounded mr-3"
+                 style="width:34px;height:34px;background:rgba(255,255,255,.18);">
+              <i class="fas fa-file-contract text-white"></i>
+            </div>
+            <h6 class="m-0 font-weight-bold text-white">Datos de la renta</h6>
+          </div>
+          <span class="badge rounded-pill px-3"
+                style="background:rgba(255,255,255,.2);color:#fff;font-size:.65rem;letter-spacing:.06em;">
+            {% if form.instance.pk %}EDICIÓN{% else %}CREACIÓN{% endif %}
+          </span>
+        </div>
+
+        <div class="card-body px-4 py-4">
+          <form method="post" autocomplete="off" novalidate>
+            {% csrf_token %}
+
+            <!-- Sección: Partes -->
+            <p class="text-uppercase font-weight-bold mb-3"
+               style="font-size:.68rem;letter-spacing:.1em;color:#c5c7d4;">
+              <i class="fas fa-circle mr-1" style="font-size:5px;color:#4e73df;vertical-align:middle;"></i>
+              Partes involucradas
+            </p>
+            <div class="row mb-3">
+              <div class="col-md-6 mb-3">
+                <label class="small font-weight-bold text-gray-700 mb-1">
+                  <i class="fas fa-user text-primary mr-1" style="font-size:.7rem;"></i>
+                  Cliente <span class="text-danger">*</span>
+                </label>
+                {{ form.cliente }}
+                {% for e in form.cliente.errors %}<div class="invalid-feedback d-block small">{{ e }}</div>{% endfor %}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="small font-weight-bold text-gray-700 mb-1">
+                  <i class="fas fa-truck-monster text-primary mr-1" style="font-size:.7rem;"></i>
+                  Equipo <span class="text-danger">*</span>
+                </label>
+                {{ form.equipo }}
+                {% for e in form.equipo.errors %}<div class="invalid-feedback d-block small">{{ e }}</div>{% endfor %}
+              </div>
+            </div>
+
+            <!-- Sección: Tarifa y periodo -->
+            <p class="text-uppercase font-weight-bold mb-3"
+               style="font-size:.68rem;letter-spacing:.1em;color:#c5c7d4;">
+              <i class="fas fa-circle mr-1" style="font-size:5px;color:#4e73df;vertical-align:middle;"></i>
+              Tarifa y periodo
+            </p>
+            <div class="row mb-3">
+              <div class="col-md-6 mb-3">
+                <label class="small font-weight-bold text-gray-700 mb-1">
+                  <i class="fas fa-tag text-primary mr-1" style="font-size:.7rem;"></i>
+                  Tarifa <span class="text-danger">*</span>
+                </label>
+                <select id="id_tarifa" name="tarifa" class="form-control">
+                  <option value="">— Seleccionar tarifa —</option>
+                  {% for t in form.fields.tarifa.queryset %}
+                    <option value="{{ t.id }}"
+                            data-precio="{{ t.precio }}"
+                            data-tipo="{{ t.tipo_cobro }}"
+                            {% if form.tarifa.value == t.id|stringformat:"s" %}selected{% endif %}>
+                      {{ t.equipo }} — {{ t.tipo_cobro }} (${{ t.precio }})
+                    </option>
+                  {% endfor %}
+                </select>
+                <small class="text-muted">El importe se recalcula automáticamente</small>
+                {% for e in form.tarifa.errors %}<div class="invalid-feedback d-block small">{{ e }}</div>{% endfor %}
+              </div>
+
+              <div class="col-md-3 mb-3">
+                <label class="small font-weight-bold text-gray-700 mb-1">
+                  <i class="fas fa-calendar-plus text-primary mr-1" style="font-size:.7rem;"></i>
+                  Fecha Inicio <span class="text-danger">*</span>
+                </label>
+                {{ form.fecha_inicio }}
+                {% for e in form.fecha_inicio.errors %}<div class="invalid-feedback d-block small">{{ e }}</div>{% endfor %}
+              </div>
+
+              <div class="col-md-3 mb-3">
+                <label class="small font-weight-bold text-gray-700 mb-1">
+                  <i class="fas fa-calendar-check text-primary mr-1" style="font-size:.7rem;"></i>
+                  Fecha Fin
+                </label>
+                {{ form.fecha_fin }}
+                <small class="text-muted">Opcional</small>
+                {% for e in form.fecha_fin.errors %}<div class="invalid-feedback d-block small">{{ e }}</div>{% endfor %}
+              </div>
+            </div>
+
+            <!-- Sección: Notas -->
+            <p class="text-uppercase font-weight-bold mb-3"
+               style="font-size:.68rem;letter-spacing:.1em;color:#c5c7d4;">
+              <i class="fas fa-circle mr-1" style="font-size:5px;color:#4e73df;vertical-align:middle;"></i>
+              Notas adicionales
+            </p>
+            <div class="mb-2">
+              <label class="small font-weight-bold text-gray-700 mb-1">
+                <i class="fas fa-comment-alt text-primary mr-1" style="font-size:.7rem;"></i>
+                Observaciones
+              </label>
+              {{ form.observaciones }}
+            </div>
+
+          </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="card-footer d-flex justify-content-end align-items-center px-4 py-3"
+             style="background:#f8f9fc;border-top:1px solid #eaecf4;">
+          <a href="{% url 'renta:renta_list' %}" class="btn btn-white border font-weight-bold text-gray-600 mr-2">
+            <i class="fas fa-arrow-left mr-1"></i> Cancelar
+          </a>
+          <button type="submit" class="btn btn-primary font-weight-bold shadow-sm">
+            <i class="fas fa-save mr-1"></i> Guardar Renta
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── PANEL LATERAL ── -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0 rounded-lg">
+
+        <div class="card-header py-3"
+             style="background:linear-gradient(135deg,#1cc88a 0%,#13855c 100%);border:none;">
+          <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center justify-content-center rounded mr-3"
+                 style="width:34px;height:34px;background:rgba(255,255,255,.18);">
+              <i class="fas fa-calculator text-white"></i>
+            </div>
+            <h6 class="m-0 font-weight-bold text-white">Resumen</h6>
+          </div>
+        </div>
+
+        <div class="card-body px-4 py-3">
+
+          <!-- Unidades -->
+          <div class="d-flex align-items-center py-3 border-bottom">
+            <div class="d-flex align-items-center justify-content-center rounded mr-3"
+                 style="width:34px;height:34px;background:#f4eeff;flex-shrink:0;">
+              <i class="fas fa-clock" style="color:#9b59b6;font-size:.82rem;"></i>
+            </div>
+            <div>
+              <div class="text-uppercase font-weight-bold text-muted"
+                   style="font-size:.68rem;letter-spacing:.06em;">Unidades calculadas</div>
+              <div class="font-weight-bold text-gray-800" id="horas_vista">—</div>
+            </div>
+          </div>
+
+          <!-- Tipo tarifa -->
+          <div class="d-flex align-items-center py-3 border-bottom">
+            <div class="d-flex align-items-center justify-content-center rounded mr-3"
+                 style="width:34px;height:34px;background:#fff5ec;flex-shrink:0;">
+              <i class="fas fa-tag" style="color:#f6a821;font-size:.82rem;"></i>
+            </div>
+            <div>
+              <div class="text-uppercase font-weight-bold text-muted"
+                   style="font-size:.68rem;letter-spacing:.06em;">Tipo de tarifa</div>
+              <div class="font-weight-bold text-gray-800" id="tipo_vista">—</div>
+            </div>
+          </div>
+
+          <!-- Estado -->
+          <div class="d-flex align-items-center py-3 border-bottom">
+            <div class="d-flex align-items-center justify-content-center rounded mr-3"
+                 style="width:34px;height:34px;background:#eef0ff;flex-shrink:0;">
+              <i class="fas fa-info-circle" style="color:#4e73df;font-size:.82rem;"></i>
+            </div>
+            <div>
+              <div class="text-uppercase font-weight-bold text-muted"
+                   style="font-size:.68rem;letter-spacing:.06em;">Estado</div>
+              <span class="badge badge-success px-2 py-1">
+                <i class="fas fa-circle mr-1" style="font-size:5px;vertical-align:middle;"></i>
+                Captura
+              </span>
+            </div>
+          </div>
+
+          <!-- Importe -->
+          <div class="d-flex align-items-center py-3">
+            <div class="d-flex align-items-center justify-content-center rounded mr-3"
+                 style="width:34px;height:34px;background:#eafaf4;flex-shrink:0;">
+              <i class="fas fa-dollar-sign" style="color:#1cc88a;font-size:.82rem;"></i>
+            </div>
+            <div>
+              <div class="text-uppercase font-weight-bold text-muted"
+                   style="font-size:.68rem;letter-spacing:.06em;">Importe estimado</div>
+              <div class="font-weight-bold" id="importe_vista"
+                   style="font-size:1.3rem;color:#224abe;">$ 0.00</div>
+            </div>
+          </div>
+
+          <!-- Nota -->
+          <div class="rounded p-3 d-flex" style="background:#f8f9fc;gap:.6rem;">
+            <i class="fas fa-info-circle text-primary mt-1" style="font-size:.8rem;flex-shrink:0;"></i>
+            <p class="small text-muted mb-0" style="line-height:1.5;">
+              El importe final se calcula al guardar según tarifa, tipo de cobro y periodo seleccionado.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block js_page %}
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+  const tarifa   = document.getElementById("id_tarifa");
+  const inicio   = document.getElementById("id_fecha_inicio");
+  const fin      = document.getElementById("id_fecha_fin");
+  const horasV   = document.getElementById("horas_vista");
+  const importeV = document.getElementById("importe_vista");
+  const tipoV    = document.getElementById("tipo_vista");
+
+  const tipoLabels = { HORA:"Por hora", JORNADA:"Por jornada", DIA:"Por día", EVENTO:"Por evento" };
+
+  function calcular(){
+    const opt    = tarifa.options[tarifa.selectedIndex];
+    const precio = parseFloat(opt?.dataset.precio || 0);
+    const tipo   = opt?.dataset.tipo || "";
+
+    tipoV.textContent = tipoLabels[tipo] || "—";
+
+    if(!inicio.value || !fin.value || !precio){
+      horasV.textContent = "—"; importeV.textContent = "$ 0.00"; return;
+    }
+
+    const f1 = new Date(inicio.value);
+    const f2 = new Date(fin.value);
+    let horas = (f2 - f1) / 3600000;
+    if(horas <= 0){ horasV.textContent = "—"; importeV.textContent = "$ 0.00"; return; }
+
+    let total = 0, cant = 0;
+    if(tipo === "HORA"){ cant = horas; total = horas * precio; }
+    else if(tipo === "JORNADA"){
+      if(horas <= 8){ cant = 1; total = precio; }
+      else { let e = horas - 8; total = precio + (e * (precio / 8)); cant = horas; }
+    }
+    else if(tipo === "DIA" || tipo === "EVENTO"){ cant = 1; total = precio; }
+
+    horasV.textContent  = cant.toFixed(2);
+    importeV.textContent = "$ " + total.toLocaleString("es-MX", {minimumFractionDigits: 2});
+  }
+
+  tarifa.addEventListener("change", calcular);
+  inicio.addEventListener("change", calcular);
+  fin.addEventListener("change", calcular);
+});
+</script>
+{% endblock %}

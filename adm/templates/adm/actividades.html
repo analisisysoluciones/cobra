@@ -1,0 +1,112 @@
+{% extends 'base/base.html' %}
+{% block page_content %}
+
+<div class="container-fluid">
+
+<div class="row">
+
+<div class="col-md-4">
+
+<div class="card shadow">
+<div class="card-header">
+Jornada Activa
+</div>
+
+<div class="card-body">
+
+<p><b>Equipo:</b> {{ jornada.equipo }}</p>
+<p><b>Inicio:</b> {{ jornada.inicio }}</p>
+<p><b>Estatus:</b> {{ jornada.estatus }}</p>
+
+<a href="{% url 'adm:terminar_jornada' %}"
+class="btn btn-danger btn-block">
+Cerrar Jornada
+</a>
+
+</div>
+</div>
+
+<hr>
+
+<div class="card shadow">
+<div class="card-header">
+Nueva Actividad
+</div>
+
+<div class="card-body">
+
+<select id="actividad" class="form-control mb-2">
+{% for a in actividades %}
+<option value="{{ a.id }}">{{ a.nombre }}</option>
+{% endfor %}
+</select>
+
+<button class="btn btn-success btn-block"
+onclick="iniciarActividad()">
+Iniciar Actividad
+</button>
+
+</div>
+</div>
+
+</div>
+
+<div class="col-md-8">
+
+<div class="card shadow">
+<div class="card-header">
+Historial
+</div>
+
+<div class="card-body table-responsive">
+
+<table class="table table-sm table-bordered">
+
+<tr>
+<th>Inicio</th>
+<th>Fin</th>
+<th>Horas</th>
+<th>Actividad</th>
+</tr>
+
+{% for d in detalles %}
+<tr>
+<td>{{ d.inicio }}</td>
+<td>{{ d.fin }}</td>
+<td>{{ d.horas }}</td>
+<td>{{ d.actividad }}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+<script>
+function iniciarActividad(){
+
+fetch("{% url 'adm:iniciar_actividad' %}",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"X-CSRFToken":"{{ csrf_token }}"
+},
+body:JSON.stringify({
+actividad_id:document.getElementById("actividad").value
+})
+})
+.then(r=>r.json())
+.then(data=>{
+location.reload()
+})
+
+}
+</script>
+
+{% endblock %}

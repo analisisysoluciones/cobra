@@ -1,0 +1,279 @@
+[
+{
+    "model": "adm.tipoequipo",
+    "pk": 1,
+    "fields": {
+        "nombre": "Retroexcavadora"
+    }
+},
+{
+    "model": "adm.tipoequipo",
+    "pk": 2,
+    "fields": {
+        "nombre": "Volteo"
+    }
+},
+{
+    "model": "adm.tipoequipo",
+    "pk": 3,
+    "fields": {
+        "nombre": "Niveladora"
+    }
+},
+{
+    "model": "adm.tipoequipo",
+    "pk": 4,
+    "fields": {
+        "nombre": "Trompo"
+    }
+},
+{
+    "model": "adm.tipoequipo",
+    "pk": 5,
+    "fields": {
+        "nombre": "Perforadora"
+    }
+},
+{
+    "model": "adm.actividadequipo",
+    "pk": 1,
+    "fields": {
+        "nombre": "Excavación",
+        "tipo": "PRODUCTIVO",
+        "activo": true,
+        "tipos_equipo": [
+            1
+        ]
+    }
+},
+{
+    "model": "adm.actividadequipo",
+    "pk": 2,
+    "fields": {
+        "nombre": "Carga de material",
+        "tipo": "PRODUCTIVO",
+        "activo": true,
+        "tipos_equipo": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "adm.actividadequipo",
+    "pk": 3,
+    "fields": {
+        "nombre": "Descarga de material",
+        "tipo": "PRODUCTIVO",
+        "activo": true,
+        "tipos_equipo": [
+            2
+        ]
+    }
+},
+{
+    "model": "adm.actividadequipo",
+    "pk": 4,
+    "fields": {
+        "nombre": "Nivelación",
+        "tipo": "PRODUCTIVO",
+        "activo": true,
+        "tipos_equipo": [
+            3
+        ]
+    }
+},
+{
+    "model": "adm.actividadequipo",
+    "pk": 5,
+    "fields": {
+        "nombre": "Compactación",
+        "tipo": "PRODUCTIVO",
+        "activo": true,
+        "tipos_equipo": [
+            1
+        ]
+    }
+},
+{
+    "model": "adm.actividadequipo",
+    "pk": 6,
+    "fields": {
+        "nombre": "Traslado",
+        "tipo": "SOPORTE",
+        "activo": true,
+        "tipos_equipo": [
+            1,
+            2,
+            3
+        ]
+    }
+},
+{
+    "model": "adm.actividadequipo",
+    "pk": 7,
+    "fields": {
+        "nombre": "Maniobra",
+        "tipo": "SOPORTE",
+        "activo": true,
+        "tipos_equipo": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "adm.actividadequipo",
+    "pk": 8,
+    "fields": {
+        "nombre": "Abastecimiento de combustible",
+        "tipo": "SOPORTE",
+        "activo": true,
+        "tipos_equipo": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "adm.actividadequipo",
+    "pk": 9,
+    "fields": {
+        "nombre": "Revisión",
+        "tipo": "SOPORTE",
+        "activo": true,
+        "tipos_equipo": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "adm.actividadequipo",
+    "pk": 10,
+    "fields": {
+        "nombre": "Espera por material",
+        "tipo": "MUERTO",
+        "activo": true,
+        "tipos_equipo": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "adm.actividadequipo",
+    "pk": 11,
+    "fields": {
+        "nombre": "Espera por operador",
+        "tipo": "MUERTO",
+        "activo": true,
+        "tipos_equipo": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "adm.actividadequipo",
+    "pk": 12,
+    "fields": {
+        "nombre": "Paro por falla",
+        "tipo": "MUERTO",
+        "activo": true,
+        "tipos_equipo": [
+            1,
+            2,
+            3
+        ]
+    }
+},
+{
+    "model": "adm.actividadequipo",
+    "pk": 13,
+    "fields": {
+        "nombre": "Paro por clima",
+        "tipo": "MUERTO",
+        "activo": true,
+        "tipos_equipo": [
+            1,
+            2,
+            3
+        ]
+    }
+},
+{
+    "model": "adm.actividadequipo",
+    "pk": 14,
+    "fields": {
+        "nombre": "Mantenimiento preventivo",
+        "tipo": "MUERTO",
+        "activo": true,
+        "tipos_equipo": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "adm.actividadequipo",
+    "pk": 15,
+    "fields": {
+        "nombre": "Mantenimiento correctivo",
+        "tipo": "MUERTO",
+        "activo": true,
+        "tipos_equipo": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "adm.actividadequipo",
+    "pk": 16,
+    "fields": {
+        "nombre": "Mezcla de concreto",
+        "tipo": "PRODUCTIVO",
+        "activo": true,
+        "tipos_equipo": [
+            4
+        ]
+    }
+},
+{
+    "model": "adm.actividadequipo",
+    "pk": 17,
+    "fields": {
+        "nombre": "Transporte de concreto",
+        "tipo": "PRODUCTIVO",
+        "activo": true,
+        "tipos_equipo": [
+            4
+        ]
+    }
+},
+{
+    "model": "adm.actividadequipo",
+    "pk": 18,
+    "fields": {
+        "nombre": "Perforación de suelo",
+        "tipo": "PRODUCTIVO",
+        "activo": true,
+        "tipos_equipo": [
+            5
+        ]
+    }
+},
+{
+    "model": "adm.actividadequipo",
+    "pk": 19,
+    "fields": {
+        "nombre": "Perforación de roca",
+        "tipo": "PRODUCTIVO",
+        "activo": true,
+        "tipos_equipo": [
+            5
+        ]
+    }
+}
+]

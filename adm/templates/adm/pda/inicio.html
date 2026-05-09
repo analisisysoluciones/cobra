@@ -1,0 +1,31 @@
+{% extends "base/base.html" %}
+{% block page_content %}
+
+<div class="container text-center">
+
+    <h3>PDA Operador</h3>
+
+    {% if jornada %}
+        <a href="{% url 'adm:pda_jornada' %}" class="btn btn-success btn-lg">
+            Continuar Jornada
+        </a>
+    {% else %}
+        <form method="POST" action="{% url 'adm:iniciar_jornada' %}">
+    {% csrf_token %}
+
+    <select name="equipo" class="form-control">
+        {% for eq in equipos %}
+        <option value="{{ eq.id }}">{{ eq.descripcion }}</option>
+        {% endfor %}
+    </select>
+
+    <button type="submit" class="btn btn-success mt-3">
+        Iniciar jornada
+    </button>
+
+</form>
+    {% endif %}
+
+</div>
+
+{% endblock %}

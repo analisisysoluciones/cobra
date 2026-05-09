@@ -27,9 +27,9 @@
 
       <!-- En tu base.html o en el archivo de la plantilla que estés utilizando -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    
     
         <!-- jQuery primero -->
     
@@ -43,392 +43,490 @@
 
 <body id="page-top">
 {% block side_bar %}
-    <!-- Page Wrapper -->
-    <div id="wrapper">
+<div id="wrapper">
 
-        <!-- Sidebar -->
-        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
-            
-            <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
-                {% comment %} <div class="sidebar-brand-icon rotate-n-15">
-                    <i class="fas fa-laugh-wink"></i>
-                </div> {% endcomment %}
-                <img src="{% static 'base/inemo.png' %}" width="70" height="70">
-                <div class="sidebar-brand-text mx-3">Cobra Sistemas</div>
-            </a>
-            
-            <!-- Divider -->
-            <hr class="sidebar-divider my-0">
+  <!-- ── SIDEBAR ── -->
+  <ul class="navbar-nav sidebar accordion" id="accordionSidebar"
+      style="background:linear-gradient(180deg,#1a1f3a 0%,#141829 100%);
+             min-height:100vh;width:240px;flex-shrink:0;overflow-y:auto;">
 
-            <!-- Nav Item - Dashboard -->
-            <li class="nav-item">
-                {% if 'administrador' in user.groups.all|join:', ' or 'supervisor' in user.groups.all|join:', ' %}
-                <a class="nav-link" href="{% url 'ven:tablero' %}">
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Tablero</span></a>
-                {% endif %}
-            </li>
+    <!-- Brand -->
+    <a class="sidebar-brand d-flex align-items-center px-3 py-3"
+       href="{% url 'ven:tablero' %}"
+       style="border-bottom:1px solid rgba(255,255,255,.08);text-decoration:none;">
+      <img src="{% static 'base/inemo.png' %}" width="40" height="40"
+           style="border-radius:10px;">
+      <div class="ml-3">
+        <div class="font-weight-bold text-white" style="font-size:.92rem;line-height:1.2;">Cobra</div>
+        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;
+                    letter-spacing:.08em;color:rgba(255,255,255,.4);">Control de Obra</div>
+      </div>
+    </a>
 
-            
-            <!-- Divider -->
-            <hr class="sidebar-divider">
+    <!-- Dashboard -->
+    {% if perms.auth.view_user %}
+    <li class="nav-item mx-2 mt-3 mb-1">
+      <a href="{% url 'ven:tablero' %}"
+         class="d-flex align-items-center px-3 py-2 rounded font-weight-bold"
+         style="background:rgba(78,115,223,.25);color:#fff;font-size:.82rem;text-decoration:none;gap:.6rem;">
+        <i class="fas fa-tachometer-alt" style="color:#7b9ff5;width:18px;text-align:center;"></i>
+        Tablero general
+      </a>
+    </li>
+    {% endif %}
 
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Opciones de menú
-            </div>
+    <hr style="border-color:rgba(255,255,255,.07);margin:.4rem .75rem;">
 
+    <!-- ════════════════════════════ OPERACIÓN ════════════════════════════ -->
+    <div class="px-3 pt-2 pb-1"
+         style="font-size:.6rem;font-weight:800;text-transform:uppercase;
+                letter-spacing:.12em;color:rgba(255,255,255,.3);">Operación</div>
 
-            <!-- Nav Item - Pages Collapse Menu -->
-            
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#catalogosMenuBanco" aria-expanded="true" aria-controls="catalogosMenuBanco">
-                    <i class="fas fa-wallet icon-with-border"></i>  
-                    <span class="font-weight-bold text-white">Movimientos Bancarios</span>
-                </a>
-                <div id="catalogosMenuBanco" class="collapse" aria-labelledby="headingCatalogos" data-parent="#accordionSidebar">
-                    <div class="bg-gradient-light py-2 collapse-inner rounded">
-                        
-                        <h6 class="collapse-header text-primary">
-                            <i class="fas fa-piggy-bank mr-2"></i> Bancos y Cuentas
-                        </h6>
-                        
+    <!-- Operación -->
+    <li class="nav-item mx-2">
+      <a class="nav-link collapsed d-flex align-items-center py-2 px-2 rounded font-weight-bold"
+         href="#" data-toggle="collapse" data-target="#menuOperacion"
+         style="color:rgba(255,255,255,.75);font-size:.82rem;gap:.65rem;">
+        <span class="d-flex align-items-center justify-content-center rounded"
+              style="width:20px;height:20px;background:rgba(78,115,223,.25);color:#7b9ff5;font-size:.72rem;">
+          <i class="fas fa-cogs"></i>
+        </span>
+        <span class="flex-grow-1">Operación</span>
+        <i class="fas fa-chevron-down" style="font-size:.6rem;color:rgba(255,255,255,.3);"></i>
+      </a>
+      <div id="menuOperacion" class="collapse" data-parent="#accordionSidebar">
+        <div class="py-1">
+          <div class="px-3 pt-2 pb-1"
+               style="font-size:.58rem;font-weight:800;text-transform:uppercase;
+                      letter-spacing:.1em;color:rgba(255,255,255,.25);padding-left:2.85rem;">Nómina</div>
+          <a href="{% url 'nom:asignacion_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-user-check" style="font-size:.68rem;width:14px;text-align:center;"></i> Asignaciones
+          </a>
+          <a href="{% url 'nom:asignaciones_masivas' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-users" style="font-size:.68rem;width:14px;text-align:center;"></i> Asignaciones masivas
+          </a>
+          <a href="{% url 'nom:tipo_destajo_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-hammer" style="font-size:.68rem;width:14px;text-align:center;"></i> Destajos
+          </a>
+          <a href="{% url 'nom:tarifa_destajo_obra_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-dollar-sign" style="font-size:.68rem;width:14px;text-align:center;"></i> Costos destajo
+          </a>
+          <a href="{% url 'nom:seleccionar_fecha' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-calculator" style="font-size:.68rem;width:14px;text-align:center;"></i> Cálculo nómina
+          </a>
+          <div class="px-3 pt-2 pb-1"
+               style="font-size:.58rem;font-weight:800;text-transform:uppercase;
+                      letter-spacing:.1em;color:rgba(255,255,255,.25);padding-left:2.85rem;">Almacén</div>
+          <a href="{% url 'inv:requisicion_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-file-alt" style="font-size:.68rem;width:14px;text-align:center;"></i> Requisiciones
+          </a>
+          <a href="{% url 'inv:salida_almacen_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-dolly" style="font-size:.68rem;width:14px;text-align:center;"></i> Salidas almacén
+          </a>
+          <div class="px-3 pt-2 pb-1"
+               style="font-size:.58rem;font-weight:800;text-transform:uppercase;
+                      letter-spacing:.1em;color:rgba(255,255,255,.25);padding-left:2.85rem;">Actividades</div>
+          <a href="{% url 'adm:actividades_escritorio' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-clipboard-list" style="font-size:.68rem;width:14px;text-align:center;"></i> Actividades equipo
+          </a>
+          <a href="{% url 'adm:oficina_actividades' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-tasks" style="font-size:.68rem;width:14px;text-align:center;"></i> Actividades operadores
+          </a>
+        </div>
+      </div>
+    </li>
 
-                        {% if perms.adm.view_banco %}
-                        <a class="collapse-item" href="{% url 'adm:banco_list' %}">
-                            <i class="fas fa-university mr-2 text-dark"></i> Bancos
-                        </a>
-                        {% endif %}
+    <!-- Maquinaria PDA -->
+    <li class="nav-item mx-2">
+      <a class="nav-link collapsed d-flex align-items-center py-2 px-2 rounded font-weight-bold"
+         href="#" data-toggle="collapse" data-target="#menuPDA"
+         style="color:rgba(255,255,255,.75);font-size:.82rem;gap:.65rem;">
+        <span class="d-flex align-items-center justify-content-center rounded"
+              style="width:20px;height:20px;background:rgba(32,201,151,.2);color:#20c997;font-size:.72rem;">
+          <i class="fas fa-tablet-alt"></i>
+        </span>
+        <span class="flex-grow-1">Maquinaria PDA</span>
+        <i class="fas fa-chevron-down" style="font-size:.6rem;color:rgba(255,255,255,.3);"></i>
+      </a>
+      <div id="menuPDA" class="collapse" data-parent="#accordionSidebar">
+        <div class="py-1">
+          {% if perms.adm.view_equipo %}
+          <a href="{% url 'adm:equipo_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-tools" style="font-size:.68rem;width:14px;text-align:center;"></i> Equipo
+          </a>
+          {% endif %}
+          <a href="{% url 'adm:pda_menu' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-th" style="font-size:.68rem;width:14px;text-align:center;"></i> Menú PDA
+          </a>
+          <a href="{% url 'adm:pda_inicio' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-play-circle" style="font-size:.68rem;width:14px;text-align:center;"></i> Iniciar jornada
+          </a>
+          <a href="{% url 'adm:captura_bloques' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-table" style="font-size:.68rem;width:14px;text-align:center;"></i> Captura por bloques
+          </a>
+          <a href="{% url 'adm:jornada_escritorio' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-desktop" style="font-size:.68rem;width:14px;text-align:center;"></i> Jornada escritorio
+          </a>
+          <a href="{% url 'adm:dashboard_maquinaria' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-chart-bar" style="font-size:.68rem;width:14px;text-align:center;"></i> Dashboard maquinaria
+          </a>
+        </div>
+      </div>
+    </li>
 
-                        {% if perms.adm.view_cuenta %}
-                        <a class="collapse-item" href="{% url 'adm:cuenta_list' %}">
-                            <i class="fas fa-piggy-bank mr-2 text-success"></i> Cuentas Bancarias
-                        </a>
-                        {% endif %}
+    <hr style="border-color:rgba(255,255,255,.07);margin:.4rem .75rem;">
 
-                        {% if perms.adm.view_registrocuenta %}
-                        <a class="collapse-item" href="{% url 'adm:registrocuenta_list' %}">
-                            <i class="fas fa-exchange-alt mr-2 text-info"></i> Movtos a Cuentas
-                        </a>
-                        {% endif %}
+    <!-- ════════════════════════════ PERSONAL ════════════════════════════ -->
+    <div class="px-3 pt-2 pb-1"
+         style="font-size:.6rem;font-weight:800;text-transform:uppercase;
+                letter-spacing:.12em;color:rgba(255,255,255,.3);">Personal</div>
 
-                        {% if perms.adm.view_tipopago%}
-                        <a class="collapse-item" href="{% url 'adm:tipopago_list' %}">
-                            <i class="fas fa-credit-card mr-2 text-info"></i> Tipos de Pago
-                        </a>
-                        {% endif %}
+    <li class="nav-item mx-2">
+      <a class="nav-link collapsed d-flex align-items-center py-2 px-2 rounded font-weight-bold"
+         href="#" data-toggle="collapse" data-target="#menuPersonal"
+         style="color:rgba(255,255,255,.75);font-size:.82rem;gap:.65rem;">
+        <span class="d-flex align-items-center justify-content-center rounded"
+              style="width:20px;height:20px;background:rgba(155,89,182,.2);color:#c39bd3;font-size:.72rem;">
+          <i class="fas fa-users"></i>
+        </span>
+        <span class="flex-grow-1">Personal</span>
+        <i class="fas fa-chevron-down" style="font-size:.6rem;color:rgba(255,255,255,.3);"></i>
+      </a>
+      <div id="menuPersonal" class="collapse" data-parent="#accordionSidebar">
+        <div class="py-1">
+          <a href="{% url 'nom:empleado_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-id-card" style="font-size:.68rem;width:14px;text-align:center;"></i> Empleados
+          </a>
+          <a href="{% url 'nom:perfil_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-briefcase" style="font-size:.68rem;width:14px;text-align:center;"></i> Perfiles de puesto
+          </a>
+          <a href="{% url 'nom:periodos_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-calendar-alt" style="font-size:.68rem;width:14px;text-align:center;"></i> Periodos
+          </a>
+          <a href="{% url 'nom:nominas_cerradas_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-file-invoice-dollar" style="font-size:.68rem;width:14px;text-align:center;"></i> Nóminas cerradas
+          </a>
+          <a href="#" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-umbrella-beach" style="font-size:.68rem;width:14px;text-align:center;"></i> Vacaciones
+          </a>
+          <a href="#" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-file-contract" style="font-size:.68rem;width:14px;text-align:center;"></i> Finiquitos
+          </a>
+        </div>
+      </div>
+    </li>
 
-                        <a class="collapse-item" href="{% url 'adm:pagoindirecto_list' %}">
-                            💸 Pagos Indirectos
-                        </a>
+    <hr style="border-color:rgba(255,255,255,.07);margin:.4rem .75rem;">
 
-                        
+    <!-- ════════════════════════════ FINANZAS Y VENTAS ════════════════════════════ -->
+    <div class="px-3 pt-2 pb-1"
+         style="font-size:.6rem;font-weight:800;text-transform:uppercase;
+                letter-spacing:.12em;color:rgba(255,255,255,.3);">Finanzas y Ventas</div>
 
-                            <a class="nav-link" href="{% url 'finanzas:ingreso_list' %}">
-                                <i class="fas fa-wallet"></i>
-                                <span>Ingresos Extraordinarios</span>
-                            </a>
-                        
+    <!-- Finanzas -->
+    <li class="nav-item mx-2">
+      <a class="nav-link collapsed d-flex align-items-center py-2 px-2 rounded font-weight-bold"
+         href="#" data-toggle="collapse" data-target="#menuFinanzas"
+         style="color:rgba(255,255,255,.75);font-size:.82rem;gap:.65rem;">
+        <span class="d-flex align-items-center justify-content-center rounded"
+              style="width:20px;height:20px;background:rgba(28,200,138,.2);color:#1cc88a;font-size:.72rem;">
+          <i class="fas fa-wallet"></i>
+        </span>
+        <span class="flex-grow-1">Finanzas</span>
+        <i class="fas fa-chevron-down" style="font-size:.6rem;color:rgba(255,255,255,.3);"></i>
+      </a>
+      <div id="menuFinanzas" class="collapse" data-parent="#accordionSidebar">
+        <div class="py-1">
+          <div class="py-1" style="padding-left:2.85rem;font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.25);">Bancos</div>
+          {% if perms.adm.view_banco %}
+          <a href="{% url 'adm:banco_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-university" style="font-size:.68rem;width:14px;text-align:center;"></i> Bancos
+          </a>
+          {% endif %}
+          {% if perms.adm.view_cuenta %}
+          <a href="{% url 'adm:cuenta_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-piggy-bank" style="font-size:.68rem;width:14px;text-align:center;"></i> Cuentas
+          </a>
+          {% endif %}
+          {% if perms.adm.view_registrocuenta %}
+          <a href="{% url 'adm:registrocuenta_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-exchange-alt" style="font-size:.68rem;width:14px;text-align:center;"></i> Movimientos
+          </a>
+          {% endif %}
+          {% if perms.adm.view_tipopago %}
+          <a href="{% url 'adm:tipopago_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-credit-card" style="font-size:.68rem;width:14px;text-align:center;"></i> Tipos de pago
+          </a>
+          {% endif %}
+          <div class="py-1" style="padding-left:2.85rem;font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.25);">Pagos</div>
+          <a href="{% url 'adm:pagoindirecto_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-money-bill-wave" style="font-size:.68rem;width:14px;text-align:center;"></i> Pagos indirectos
+          </a>
+          <a href="{% url 'cxp:compras_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-clipboard-list" style="font-size:.68rem;width:14px;text-align:center;"></i> Compras
+          </a>
+          <a href="{% url 'finanzas:ingreso_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-plus-circle" style="font-size:.68rem;width:14px;text-align:center;"></i> Ingresos extraordinarios
+          </a>
+        </div>
+      </div>
+    </li>
 
+    <!-- Ventas -->
+    <li class="nav-item mx-2">
+      <a class="nav-link collapsed d-flex align-items-center py-2 px-2 rounded font-weight-bold"
+         href="#" data-toggle="collapse" data-target="#menuVentas"
+         style="color:rgba(255,255,255,.75);font-size:.82rem;gap:.65rem;">
+        <span class="d-flex align-items-center justify-content-center rounded"
+              style="width:20px;height:20px;background:rgba(246,194,62,.2);color:#f6c23e;font-size:.72rem;">
+          <i class="fas fa-store"></i>
+        </span>
+        <span class="flex-grow-1">Ventas</span>
+        <i class="fas fa-chevron-down" style="font-size:.6rem;color:rgba(255,255,255,.3);"></i>
+      </a>
+      <div id="menuVentas" class="collapse" data-parent="#accordionSidebar">
+        <div class="py-1">
+          <a href="{% url 'ven:productoinmobiliario_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-box" style="font-size:.68rem;width:14px;text-align:center;"></i> Productos
+          </a>
+          <a href="{% url 'ven:cliente_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-user-tag" style="font-size:.68rem;width:14px;text-align:center;"></i> Clientes
+          </a>
+          <a href="#" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-chart-line" style="font-size:.68rem;width:14px;text-align:center;"></i> Reportes de ventas
+          </a>
+        </div>
+      </div>
+    </li>
 
-                        
-                    </div>
-                </div>
-            </li>
-            
+    <!-- Rentas -->
+    <li class="nav-item mx-2">
+      <a class="nav-link collapsed d-flex align-items-center py-2 px-2 rounded font-weight-bold"
+         href="#" data-toggle="collapse" data-target="#menuRentas"
+         style="color:rgba(255,255,255,.75);font-size:.82rem;gap:.65rem;">
+        <span class="d-flex align-items-center justify-content-center rounded"
+              style="width:20px;height:20px;background:rgba(23,162,184,.2);color:#17a2b8;font-size:.72rem;">
+          <i class="fas fa-truck"></i>
+        </span>
+        <span class="flex-grow-1">Rentas</span>
+        <i class="fas fa-chevron-down" style="font-size:.6rem;color:rgba(255,255,255,.3);"></i>
+      </a>
+      <div id="menuRentas" class="collapse" data-parent="#accordionSidebar">
+        <div class="py-1">
+          <a href="{% url 'renta:cliente_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-user" style="font-size:.68rem;width:14px;text-align:center;"></i> Clientes
+          </a>
+          <a href="{% url 'renta:renta_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-file-contract" style="font-size:.68rem;width:14px;text-align:center;"></i> Rentas
+          </a>
+          <a href="{% url 'renta:tarifa_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-tag" style="font-size:.68rem;width:14px;text-align:center;"></i> Tarifas
+          </a>
+          <a href="{% url 'renta:renta_reporte' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-chart-pie" style="font-size:.68rem;width:14px;text-align:center;"></i> Reporte
+          </a>
+        </div>
+      </div>
+    </li>
 
-            
+    <hr style="border-color:rgba(255,255,255,.07);margin:.4rem .75rem;">
 
-            
-            <!-- Nav Item - Empleado Menu -->
-            {% if perms.nom.view_empleados %}
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#empleadosMenu" aria-expanded="true">
-                    <i class="fas fa-users icon-with-border"></i> <!-- Ícono de empleados -->
-                    <span class="font-weight-bold text-white">Empleados</span>
-                </a>
-                <div id="empleadosMenu" class="collapse">
-                    <div class="bg-gradient-light py-2 collapse-inner rounded">
-                        <h6 class="collapse-header text-primary">👷 Gestión de Personal:</h6>
-                        <a class="collapse-item" href="{% url 'nom:periodos_list' %}">
-                            <i class="fa fa-calendar-check text-danger"></i> Periodos de Nómina
-                        </a>
-                        
-                        <a class="collapse-item" href="{% url 'nom:empleado_list' %}">
-                            <i class="fas fa-user-tie text-info"></i> Lista de Empleados
-                        </a>
-                        {% comment %} <a class="collapse-item" href="{% url 'nom:asistencia_list' %}">
-                            <i class="fas fa-calendar-check text-success"></i>1.- Asistencia
-                        </a> {% endcomment %}
-                        <a class="collapse-item" href="{% url 'nom:asignaciones_masivas' %}">
-                            <i class="fas fa-hard-hat text-primary"></i>2.- Asignación Masivas
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <h6 class="collapse-header text-primary">💰 Nómina:</h6>
+    <!-- ════════════════════════════ ADMINISTRACIÓN ════════════════════════════ -->
+    <div class="px-3 pt-2 pb-1"
+         style="font-size:.6rem;font-weight:800;text-transform:uppercase;
+                letter-spacing:.12em;color:rgba(255,255,255,.3);">Administración</div>
 
-                        {% comment %} <a class="collapse-item" href="http://127.0.0.1:8000/adm/nomina/2025-02-01/">
-                            <i class="fas fa-file-invoice-dollar text-danger"></i> Cálculo de Nómina
-                        </a> {% endcomment %}
+    {% if perms.adm.view_proyectos %}
+    <li class="nav-item mx-2">
+      <a class="nav-link collapsed d-flex align-items-center py-2 px-2 rounded font-weight-bold"
+         href="#" data-toggle="collapse" data-target="#menuAdmin"
+         style="color:rgba(255,255,255,.75);font-size:.82rem;gap:.65rem;">
+        <span class="d-flex align-items-center justify-content-center rounded"
+              style="width:20px;height:20px;background:rgba(231,74,59,.2);color:#e74a3b;font-size:.72rem;">
+          <i class="fas fa-wrench"></i>
+        </span>
+        <span class="flex-grow-1">Administración</span>
+        <i class="fas fa-chevron-down" style="font-size:.6rem;color:rgba(255,255,255,.3);"></i>
+      </a>
+      <div id="menuAdmin" class="collapse" data-parent="#accordionSidebar">
+        <div class="py-1">
+          {% if perms.adm.view_residente %}
+          <a href="{% url 'adm:residente_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-user-friends" style="font-size:.68rem;width:14px;text-align:center;"></i> Residentes
+          </a>
+          {% endif %}
+          {% if perms.adm.view_proyecto %}
+          <a href="{% url 'adm:proyecto_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-project-diagram" style="font-size:.68rem;width:14px;text-align:center;"></i> Proyectos
+          </a>
+          {% endif %}
+          {% if perms.adm.view_simbologia %}
+          <a href="{% url 'adm:simbologia_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-map-signs" style="font-size:.68rem;width:14px;text-align:center;"></i> Simbología
+          </a>
+          {% endif %}
+          {% if perms.adm.view_bitacora %}
+          <a href="{% url 'adm:bitacora_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-file-alt" style="font-size:.68rem;width:14px;text-align:center;"></i> Bitácora
+          </a>
+          {% endif %}
+          <a href="{% url 'adm:documentos_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-folder-open" style="font-size:.68rem;width:14px;text-align:center;"></i> Expedientes
+          </a>
+          <a href="{% url 'adm:cargacombustible_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-gas-pump" style="font-size:.68rem;width:14px;text-align:center;"></i> Combustible
+          </a>
+          <a href="{% url 'adm:orden_servicio_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-clipboard-check" style="font-size:.68rem;width:14px;text-align:center;"></i> Órdenes de servicio
+          </a>
+          <a href="{% url 'adm:mantenimiento_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-tools" style="font-size:.68rem;width:14px;text-align:center;"></i> Mantenimiento
+          </a>
+        </div>
+      </div>
+    </li>
+    {% endif %}
 
+    {% if perms.inv.view_unidad %}
+    <li class="nav-item mx-2">
+      <a class="nav-link collapsed d-flex align-items-center py-2 px-2 rounded font-weight-bold"
+         href="#" data-toggle="collapse" data-target="#menuCatalogos"
+         style="color:rgba(255,255,255,.75);font-size:.82rem;gap:.65rem;">
+        <span class="d-flex align-items-center justify-content-center rounded"
+              style="width:20px;height:20px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);font-size:.72rem;">
+          <i class="fas fa-th-list"></i>
+        </span>
+        <span class="flex-grow-1">Catálogos</span>
+        <i class="fas fa-chevron-down" style="font-size:.6rem;color:rgba(255,255,255,.3);"></i>
+      </a>
+      <div id="menuCatalogos" class="collapse" data-parent="#accordionSidebar">
+        <div class="py-1">
+          <div class="py-1" style="padding-left:2.85rem;font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.25);">Equipos</div>
+          <a href="{% url 'adm:tipo_equipo_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-layer-group" style="font-size:.68rem;width:14px;text-align:center;"></i> Tipos de equipo
+          </a>
+          <a href="{% url 'adm:actividad_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-tasks" style="font-size:.68rem;width:14px;text-align:center;"></i> Actividades
+          </a>
+          <div class="py-1" style="padding-left:2.85rem;font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.25);">Inventario</div>
+          {% if perms.inv.view_unidad %}
+          <a href="{% url 'inv:unidad_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-ruler-combined" style="font-size:.68rem;width:14px;text-align:center;"></i> Unidades
+          </a>
+          {% endif %}
+          {% if perms.inv.view_material %}
+          <a href="{% url 'inv:material_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-cubes" style="font-size:.68rem;width:14px;text-align:center;"></i> Materiales
+          </a>
+          {% endif %}
+          {% if perms.adm.view_proveedor %}
+          <a href="{% url 'cxp:proveedor_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-truck" style="font-size:.68rem;width:14px;text-align:center;"></i> Proveedores
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </li>
+    {% endif %}
 
-                        <a class="collapse-item" href="{% url 'nom:asignacion_list' %}">
-                            <i class="fas fa-hard-hat text-primary"></i>Lista Asignación
-                        </a>
-                                                
+    <!-- Reportes -->
+    <li class="nav-item mx-2 mb-2">
+      <a class="nav-link collapsed d-flex align-items-center py-2 px-2 rounded font-weight-bold"
+         href="#" data-toggle="collapse" data-target="#menuReportes"
+         style="color:rgba(255,255,255,.75);font-size:.82rem;gap:.65rem;">
+        <span class="d-flex align-items-center justify-content-center rounded"
+              style="width:20px;height:20px;background:rgba(246,194,62,.2);color:#f6c23e;font-size:.72rem;">
+          <i class="fas fa-chart-bar"></i>
+        </span>
+        <span class="flex-grow-1">Reportes</span>
+        <i class="fas fa-chevron-down" style="font-size:.6rem;color:rgba(255,255,255,.3);"></i>
+      </a>
+      <div id="menuReportes" class="collapse" data-parent="#accordionSidebar">
+        <div class="py-1">
+          <a href="#" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-file-invoice-dollar" style="font-size:.68rem;width:14px;text-align:center;"></i> Reporte nómina
+          </a>
+          <a href="{% url 'nom:nomina_reporte_detalle' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-list-alt" style="font-size:.68rem;width:14px;text-align:center;"></i> Detalle nómina
+          </a>
+          <a href="#" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-clock" style="font-size:.68rem;width:14px;text-align:center;"></i> Horas extra
+          </a>
+          <a href="#" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-user-times" style="font-size:.68rem;width:14px;text-align:center;"></i> Faltas
+          </a>
+          <a href="{% url 'adm:reporte_equipo_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-truck-monster" style="font-size:.68rem;width:14px;text-align:center;"></i> Reporte equipo
+          </a>
+          <a href="{% url 'adm:pda_mobile_inicio' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-mobile-alt" style="font-size:.68rem;width:14px;text-align:center;"></i> PDA móvil
+          </a>
+        </div>
+      </div>
+    </li>
 
-                        <a class="collapse-item" href="{% url 'nom:seleccionar_fecha' %}">
-                            <i class="fas fa-file-invoice-dollar text-danger"></i> Cálculo de Nómina
-                        </a>
+    <!-- Sidebar toggler SB Admin -->
+    <div class="text-center d-none d-md-inline pb-2">
+      <button class="rounded-circle border-0" id="sidebarToggle"></button>
+    </div>
 
-                        
-                        <a class="collapse-item" href="{% url 'nom:nominas_cerradas_list' %}">
-                            <i class="fas fa-lock text-success"></i> Nóminas Cerradas
-                        </a>
-                         
-                        <a class="collapse-item" href="">
-                            <i class="fas fa-plane text-secondary"></i> Vacaciones
-                        </a>
-                        <a class="collapse-item" href="">
-                            <i class="fas fa-hand-holding-usd text-dark"></i> Finiquitos
-                        </a>
-                        <a class="collapse-item" href="{% url 'nom:tipo_destajo_list' %}">
-                            <i class="fas fa-hand-holding-usd text-dark"></i> Lista de destajos
-                        </a>
-                        <a class="collapse-item" href="{% url 'nom:tarifa_destajo_obra_list' %}">
-                            <i class="fas fa-hand-holding-usd text-dark"></i> Costo destajo
-                        </a>
-                    </div>
-                </div>
-            </li>
-            {% endif %}
-            
-
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#ventasMenu" aria-expanded="true">
-                    <i class="fas fa-store text-warning"></i> <!-- Ícono de tienda -->
-                    <span class="font-weight-bold text-dark">Ventas</span>
-                </a>
-                <div id="ventasMenu" class="collapse">
-                    <div class="bg-gradient-light py-2 collapse-inner rounded">
-                        <h6 class="collapse-header text-primary">📊 Gestión de Ventas:</h6>
-
-                        
-                         <a class="collapse-item" href="{% url 'ven:productoinmobiliario_list' %}">Productos Inmobiliarios</a>
-                        
-                        
-                        <a class="collapse-item" href="">
-                            <i class="fas fa-box text-info"></i> Productos Vendidos
-                        </a>
-                        <a class="collapse-item" href="">
-                            <i class="fas fa-chart-line text-danger"></i> Reportes de Ventas
-                        </a>
-                        
-                        <div class="dropdown-divider"></div>
-                        <h6 class="collapse-header text-primary">💳 Finanzas:</h6>
-                        
-                        {% comment %} <a class="collapse-item" href="{% url 'ven:registrocuenta_list' %}">Movimientos cuenta</a>                        {% endcomment %}
-                        
-                        
-                        <a class="collapse-item" href="{% url 'ven:cliente_list' %}">Clientes</a> 
-                        
-                        
-                    </div>
-                </div>
-            </li>
-            
-
-
-
-            <!-- Nav Item - Pages Collapse Menu -->
-            {% if perms.inv.view_unidad %}
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#catalogosMenu" aria-expanded="true" aria-controls="catalogosMenu">
-                    <i class="fas fa-th-list icon-with-border"></i>  <span class="font-weight-bold text-white">Catálogos</span> </a>
-                <div id="catalogosMenu" class="collapse" aria-labelledby="headingCatalogos" data-parent="#accordionSidebar">
-                    <div class="bg-gradient-light py-2 collapse-inner rounded">
-                        <h6 class="collapse-header text-primary">
-                            <i class="fas fa-folder-open mr-2"></i> Catálogo de Inventario
-                        </h6>
-            
-                        {% if perms.inv.view_unidad %}
-                        <a class="collapse-item" href="{% url 'inv:unidad_list' %}">
-                            <i class="fas fa-ruler-combined mr-2 text-info"></i> Unidades
-                        </a>
-                        {% endif %}
-            
-                        {% if perms.inv.view_material %}
-                        <a class="collapse-item" href="{% url 'inv:material_list' %}">
-                            <i class="fas fa-cubes mr-2 text-success"></i> Materiales
-                        </a>
-                        {% endif %}
-            
-                        {% if perms.adm.view_proveedor %}
-                        <a class="collapse-item" href="{% url 'cxp:proveedor_list' %}">
-                            <i class="fas fa-truck mr-2 text-warning"></i> Proveedores
-                        </a>
-                        {% endif %}
-            
-                        {% if perms.adm.view_equipo %}
-                        <a class="collapse-item" href="{% url 'adm:equipo_list' %}">
-                            <i class="fas fa-tools mr-2 text-danger"></i> Equipo y Herramienta
-                        </a>
-                        {% endif %}
-
-                        <a class="collapse-item" href="{% url 'adm:reporte_equipo_list' %}">
-                            <i class="fas fa-cogs mr-2 text-warning"></i> Reportes de Equipo
-                        </a>
-
-                        <a class="collapse-item" href="{% url 'inv:requisicion_list' %}">
-                            <i class="fas fa-file-alt"></i> Requisiciones
-                        </a>
-            
-            
-                    </div>
-                </div>
-            </li>
-            {% endif %}
-
-            <!-- Divider -->
-            <hr class="sidebar-divider">
-
-
-            <!-- Nav Item - Pages Collapse Menu -->
-            {% if perms.cxp.view_compras %}
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#catalogosMenuCompras" aria-expanded="true" aria-controls="catalogosMenuCompras">
-                    <i class="fas fa-shopping-cart icon-with-border"></i>  
-                    <span class="font-weight-bold text-white">Compras</span> 
-                </a>
-                <div id="catalogosMenuCompras" class="collapse" aria-labelledby="headingCatalogos" data-parent="#accordionSidebar">
-                    <div class="bg-gradient-light py-2 collapse-inner rounded text-dark">
-                        
-                        
-                        <a class="collapse-item text-dark font-weight-bold" href="{% url 'cxp:compras_list' %}">
-
-                            <i class="fas fa-clipboard-list mr-2 text-info"></i> Lista de compras
-                        </a>
-                        
-                        <a class="collapse-item" href="{% url 'adm:listado_pagos' %}">
-                            <i class="fas fa-money-check-alt mr-2 text-success"></i> Listado de Pagos
-                        </a>
-
-                        
-                        <a class="collapse-item text-white bg-primary rounded py-1 px-2" href="{% url 'adm:compras_pagadas' %}">
-                            <i class="fas fa-receipt text-white"></i> Compras Pagadas
-                        </a>
-                        
-                    </div>
-                </div>
-            </li>
-            {% endif %}
-
-            <!-- Nav Item - Utilities Collapse Menu -->
-            {% if perms.adm.view_proyectos %}
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities"
-                    aria-expanded="true" aria-controls="collapseUtilities">
-                    <i class="fas fa-fw fa-wrench"></i>
-                    <span>Administración</span>
-                </a>
-                {% comment %} <div id="collapsePages" class="collapse show" aria-labelledby="headingPages"
-                    data-parent="#accordionSidebar"> {% endcomment %}
-                    <div id="collapseUtilities" class="collapse" aria-labelledby="headingUtilities" data-parent="#accordionSidebar">
-                        <div class="bg-gradient-light py-2 collapse-inner rounded">
-                            <h6 class="collapse-header text-primary">
-                                <i class="fas fa-cog mr-2"></i> Administración
-                            </h6>
-                    
-                            {% if perms.adm.view_residente %}
-                            <a class="collapse-item" href="{% url 'adm:residente_list' %}">
-                                <i class="fas fa-user-friends mr-2 text-info"></i> Residentes
-                            </a>
-                            {% endif %}
-                    
-                            {% if perms.adm.view_proyecto %}
-                            <a class="collapse-item" href="{% url 'adm:proyecto_list' %}">
-                                <i class="fas fa-project-diagram mr-2 text-success"></i> Proyectos
-                            </a>
-                            {% endif %}
-                    
-                            {% if perms.adm.view_simbologia %}
-                            <a class="collapse-item" href="{% url 'adm:simbologia_list' %}">
-                                <i class="fas fa-map-signs mr-2 text-warning"></i> Simbología
-                            </a>
-                            {% endif %}
-                    
-                            {% if perms.adm.view_bitacora %}
-                            <a class="collapse-item" href="{% url 'adm:bitacora_list' %}">
-                                <i class="fas fa-file-alt mr-2 text-danger"></i> Bitácora
-                            </a>
-                            {% endif %}
-
-                            <a class="collapse-item" href="{% url 'adm:documentos_list' %}">
-                                <i class="fas fa-file-alt mr-2 text-danger"></i> Expedientes
-                            </a>
-
-                            <a class="collapse-item" href="{% url 'adm:cargacombustible_list' %}">
-                                <i class="fas fa-gas-pump mr-2 text-warning"></i> Combustible
-                            </a>
-
-                            
-                        </div>
-                    </div>
-            </li>
-            {% endif %}
-
-            
-            
-            
-            {% comment %} <!-- Nav Item - Pages Collapse Menu -->
-            <li class="nav-item active">
-                <a class="nav-link" href="#" data-toggle="collapse" data-target="#collapsePages" aria-expanded="true"
-                    aria-controls="collapsePages">
-                    <i class="fas fa-fw fa-folder"></i>
-                    <span>Pages</span>
-                </a>
-                <div id="collapsePages" class="collapse show" aria-labelledby="headingPages"
-                    data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Login Screens:</h6>
-                        <a class="collapse-item" href="login.html">Login</a>
-                        <a class="collapse-item" href="register.html">Register</a>
-                        <a class="collapse-item active" href="{% url 'ven:crear_producto_inmobiliario' %}">Principal</a>
-                        
-                    </div>
-                </div>
-
-                
-            </li> {% endcomment %}
-
-            <!-- Nav Item - Charts -->
-            <li class="nav-item">
-                <a class="nav-link" href="#">
-                    <i class="fas fa-fw fa-chart-area"></i>
-                    <span>Charts</span></a>
-            </li>
-
-            <!-- Nav Item - Tables -->
-            {% if 'administrador' in user.groups.all|join:', ' or 'supervisor' in user.groups.all|join:', ' %}
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'adm:dashboard_proyectos' %}">
-                    <i class="fas fa-fw fa-table"></i>
-                    <span>Resumen Proyectos</span></a>
-            </li>
-            {% endif %}
- 
-            <!-- Divider -->
-            <hr class="sidebar-divider d-none d-md-block">
-
-            <!-- Sidebar Toggler (Sidebar) -->
-            <div class="text-center d-none d-md-inline">
-                <button class="rounded-circle border-0" id="sidebarToggle"></button>
-            </div>
-
-        </ul>
-        <!-- End of Sidebar -->
-{% endblock side_bar %}
-        <!-- Content Wrapper -->
+  </ul>
+  <!-- End of Sidebar -->
+{% endblock side_bar %}        <!-- Content Wrapper -->
         <div id="content-wrapper" class="d-flex flex-column">
 
             <!-- Main Content -->
@@ -732,7 +830,7 @@
 
   <script src=https://cdnjs.cloudflare.com/ajax/libs/jquery-chained/1.0.1/jquery.chained.min.js></script>
  <!-- Bootstrap Bundle (incluye Popper.js) -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  
  
 
   {% comment %} <script src="{% static  'base/js/jquery.chained.min.js' %}"></script> {% endcomment %}

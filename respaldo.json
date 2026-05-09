@@ -1,0 +1,4050 @@
+[
+{
+  "model": "cxp.proveedor",
+  "pk": 3,
+  "fields": {
+    "estado": true,
+    "fc": "2025-06-23T18:44:06.734Z",
+    "fm": "2025-06-23T18:44:06.734Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "FERRETERIA \"LA MICHOACANA\"",
+    "domicilio": "JOSE MA. MERCADO #270",
+    "telefono": "+523867521547",
+    "email": "Lozatecho2021@gmail.com",
+    "experiencia": 34
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 4,
+  "fields": {
+    "estado": true,
+    "fc": "2025-06-23T18:52:10.097Z",
+    "fm": "2025-06-23T18:52:10.097Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "REFACCIONARIA \"JA-JA\"",
+    "domicilio": "AHUALULCO DE MERCADO JALISCO NOGAL JALISCO JAL MX, 46730 AHUALULCO DE MERCADO",
+    "telefono": "+523867520603",
+    "email": "inedimoli@gmail.com",
+    "experiencia": 153
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 5,
+  "fields": {
+    "estado": true,
+    "fc": "2025-06-23T19:02:16.602Z",
+    "fm": "2025-06-23T19:02:16.602Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "REFACCIONARIA \"EJIDAL\"",
+    "domicilio": "RAMÍREZ LAZO 35, AHUALULCO EJIDAL, 46733 AHUALULCO DE MERCADO, JAL.",
+    "telefono": "+523861264608",
+    "email": "inedimoli@gmail.com",
+    "experiencia": 212
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 6,
+  "fields": {
+    "estado": true,
+    "fc": "2025-06-23T20:44:32.148Z",
+    "fm": "2025-06-23T20:45:20.492Z",
+    "uc": 1,
+    "um": 1,
+    "razon_social": "REFACCIONES CATERPILAR \"CADECO\"",
+    "domicilio": "OLEADUCTO 2834, ALAMO INDUSTRIAL, GUADALAJARA JALISCO",
+    "telefono": "+523331379678",
+    "email": "ventasnet@cadeco.com.mx",
+    "experiencia": 153
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 7,
+  "fields": {
+    "estado": true,
+    "fc": "2025-06-23T20:53:06.194Z",
+    "fm": "2025-06-23T20:53:06.194Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "REFACCIONES NEW HOLLAND \"MAQCEN\"",
+    "domicilio": "AV.MANUEL, ANILLO PERIFERICO SUR, MANUEL GOMEZ MORIN 5982, ARTESANOS, 45598 SAN PEDRO TLAQUEPAQUE, JAL",
+    "telefono": "+523336010133",
+    "email": "ventasgdl@maqcen.com",
+    "experiencia": 153
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 8,
+  "fields": {
+    "estado": true,
+    "fc": "2025-06-23T20:57:19.026Z",
+    "fm": "2025-06-23T20:57:19.026Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "REFACCIONES NEW HOLLAND \"RYPAOSA \"",
+    "domicilio": "ANILLO PERIFERICO SUR AV. MANUEL GOMES MORIN, 5982, ATESANOS, 45598, TLAQUEPAQUE, JAL",
+    "telefono": "+523312950858",
+    "email": "inedimoli@gmail.com",
+    "experiencia": 153
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 9,
+  "fields": {
+    "estado": true,
+    "fc": "2025-06-23T20:58:42.254Z",
+    "fm": "2025-06-23T20:58:42.254Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "REFACCIONES Y HULES PARA CAMIONES \"GARBO\"",
+    "domicilio": "OBRERA, 44420 GUADALAJARA, JAL",
+    "telefono": "+523322576180",
+    "email": "inedimoli@gmail.com",
+    "experiencia": 153
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 10,
+  "fields": {
+    "estado": true,
+    "fc": "2025-06-23T21:15:10.635Z",
+    "fm": "2025-06-23T21:15:10.635Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "LLANTERA \"EL CARNAL\"",
+    "domicilio": "CARRETERA REFUGIO- SAN MARCOS",
+    "telefono": "+523861034523",
+    "email": "inedimoli@gmail.com",
+    "experiencia": 230
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 11,
+  "fields": {
+    "estado": true,
+    "fc": "2025-07-05T19:00:15.924Z",
+    "fm": "2025-07-05T19:00:15.924Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "SERVICENTRO LLANTERO ARCINIEGA",
+    "domicilio": "JOSE MARIA #, MERCADO 277, LOS CASCOS, 46730 AHUALULCO DE MERCADO, JAL.",
+    "telefono": "+523867522450",
+    "email": "inedimoli@gmail.com",
+    "experiencia": 34
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 12,
+  "fields": {
+    "estado": true,
+    "fc": "2025-07-22T16:24:59.694Z",
+    "fm": "2025-07-22T16:24:59.694Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "PROLUB",
+    "domicilio": "AHUALULCO DE MERCADO JALISCO NOGAL JALISCO JAL MX, 46730 AHUALULCO DE MERCADO",
+    "telefono": "xd",
+    "email": "inedimoli@gmail.com",
+    "experiencia": 33
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 13,
+  "fields": {
+    "estado": true,
+    "fc": "2025-08-21T20:27:59.868Z",
+    "fm": "2025-08-21T20:28:37.279Z",
+    "uc": 1,
+    "um": 1,
+    "razon_social": "MARIO ROMERO",
+    "domicilio": "AHUALULCO DE MERCADO, MADERO #20",
+    "telefono": "3861030088",
+    "email": "marioromero@gmail.com",
+    "experiencia": 5
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 14,
+  "fields": {
+    "estado": true,
+    "fc": "2025-09-06T19:50:40.902Z",
+    "fm": "2025-09-06T19:50:40.903Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "CEMENTO",
+    "domicilio": "CRUZ AZUL",
+    "telefono": "3861045762",
+    "email": "inemoli@gmail.com",
+    "experiencia": 75
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 15,
+  "fields": {
+    "estado": true,
+    "fc": "2025-09-16T18:26:14.160Z",
+    "fm": "2025-09-16T18:26:14.160Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "LOS GUERITOS",
+    "domicilio": "MA MERCADO #21, AHUALULCO DE MERCADO",
+    "telefono": "3867520333",
+    "email": "losguieritos.2@gmail.com",
+    "experiencia": 29
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 16,
+  "fields": {
+    "estado": true,
+    "fc": "2025-09-29T16:13:35.357Z",
+    "fm": "2025-09-29T16:13:35.357Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "LLANTERA\" EL COCOL\"",
+    "domicilio": "ALDAMA #40. ETZATLAN JAL.",
+    "telefono": "3323277379",
+    "email": "llanteracocol@gmail.com",
+    "experiencia": 230
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 17,
+  "fields": {
+    "estado": true,
+    "fc": "2025-09-29T16:15:44.992Z",
+    "fm": "2025-09-29T16:15:44.992Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "IMPULSORA AGROPECUARIA",
+    "domicilio": "JUAREZ #143-1, EL CARMEN DE ORDAZ",
+    "telefono": "(044)3331989806",
+    "email": "agropecuaria@gmail.com",
+    "experiencia": 7
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 18,
+  "fields": {
+    "estado": true,
+    "fc": "2025-09-29T18:48:49.582Z",
+    "fm": "2025-09-29T18:48:49.582Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "BANCO DE ARENA LOS ISIOTES \"NOVOA\"",
+    "domicilio": "AHUALULCO DE MERCADO",
+    "telefono": "3331293123",
+    "email": "bancodearenanovoa@gmail.com",
+    "experiencia": 80
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 19,
+  "fields": {
+    "estado": true,
+    "fc": "2025-09-29T18:54:52.118Z",
+    "fm": "2025-09-29T18:54:52.118Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "COMEX",
+    "domicilio": "AHUALULCO DE MERCADO",
+    "telefono": "3867521978",
+    "email": "comex@gmail.com",
+    "experiencia": 29
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 20,
+  "fields": {
+    "estado": true,
+    "fc": "2025-10-02T16:43:40.621Z",
+    "fm": "2025-10-02T16:43:40.621Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "MATERIALES PARA CONTRUCCION Y TLAPALERIA \"AVIÑA\"",
+    "domicilio": "ING. JOSE SIORDIA #340",
+    "telefono": "+523867531530",
+    "email": "S/N@sincorreoelectronico.com",
+    "experiencia": 7
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 21,
+  "fields": {
+    "estado": true,
+    "fc": "2025-10-03T17:46:19.909Z",
+    "fm": "2025-10-03T17:46:19.909Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "EL SEÑOR TABIQUE",
+    "domicilio": "CALLE CONSTITUCIÓN N.82 PTE TLAJOMULCO DE ZUÑIGA JAL.",
+    "telefono": "37980509",
+    "email": "oswaldorodriguez@gmail.com",
+    "experiencia": 7
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 22,
+  "fields": {
+    "estado": true,
+    "fc": "2025-10-03T18:49:19.252Z",
+    "fm": "2025-10-03T18:49:19.252Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "DISTRIBUIDORA CRUZ AZUL GUADALAJARA",
+    "domicilio": "AVENIDA SOLIDARIDAD  #190 TALA JALISCO",
+    "telefono": "3861208258",
+    "email": "joseluisfausto@gmail.com",
+    "experiencia": 83
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 23,
+  "fields": {
+    "estado": true,
+    "fc": "2025-10-04T19:39:48.473Z",
+    "fm": "2025-10-04T19:39:48.473Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "EL ARRAYAN",
+    "domicilio": "AHUALULCO DEL MERCADO",
+    "telefono": "4761800766",
+    "email": "S/N@sincorreoelectronico.com",
+    "experiencia": 7
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 24,
+  "fields": {
+    "estado": true,
+    "fc": "2025-10-25T16:59:14.706Z",
+    "fm": "2025-10-25T16:59:14.706Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "LLANTERA EL TRAPICHE",
+    "domicilio": "EL TRAPICHE",
+    "telefono": "3861002023",
+    "email": "llaneraeltrapiche@gmaill.com",
+    "experiencia": 11
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 25,
+  "fields": {
+    "estado": true,
+    "fc": "2025-11-01T15:32:25.227Z",
+    "fm": "2025-11-01T15:32:25.227Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "VIDRIERIA",
+    "domicilio": "AHUALULCO",
+    "telefono": "3861201213",
+    "email": "vidrieria.ahualulco@gmail.com",
+    "experiencia": 36
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 26,
+  "fields": {
+    "estado": true,
+    "fc": "2025-11-01T15:35:00.867Z",
+    "fm": "2025-11-01T15:35:00.867Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "TEQUILA MEDINEÑO",
+    "domicilio": "TEQUILA, JALISCO",
+    "telefono": "3867530721",
+    "email": "tequila.medineno@hotmail.com",
+    "experiencia": 7
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 27,
+  "fields": {
+    "estado": true,
+    "fc": "2025-11-01T19:20:34.246Z",
+    "fm": "2025-11-01T19:20:34.246Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "PROVEEDOR AGUSTÌN PADILLA",
+    "domicilio": "SAN PEDRO",
+    "telefono": "34322322",
+    "email": "sanpedro@htomail.com",
+    "experiencia": 7
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 28,
+  "fields": {
+    "estado": true,
+    "fc": "2025-11-03T17:13:47.795Z",
+    "fm": "2025-11-03T17:13:47.795Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "EL AMERICANO",
+    "domicilio": "CASTAÑEDA #9 FRACC. AGUA",
+    "telefono": "3339492350",
+    "email": "GMAIL_DE_EJEMPLO@GMAIL.COM",
+    "experiencia": 11
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 29,
+  "fields": {
+    "estado": true,
+    "fc": "2025-11-03T17:27:10.999Z",
+    "fm": "2025-11-03T17:27:10.999Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "FERREMATERIALES \"LA JOYA\"",
+    "domicilio": "ZARAGOSA #1 LA JOYA MAGDALENA JALISCO",
+    "telefono": "3867441283",
+    "email": "GMAIL_DE_EJEMPLO@GMAIL.COM",
+    "experiencia": 11
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 30,
+  "fields": {
+    "estado": true,
+    "fc": "2025-11-03T18:03:15.724Z",
+    "fm": "2025-11-03T18:03:15.724Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "LA CASA DEL CARPINTERO",
+    "domicilio": "ESCOBEDO #231, C.P. 46500, ETZATLAN, JAL.",
+    "telefono": "3861033598",
+    "email": "lacasadelcarpintero7@gmail.com",
+    "experiencia": 78
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 31,
+  "fields": {
+    "estado": true,
+    "fc": "2025-11-04T20:17:43.572Z",
+    "fm": "2025-11-04T20:17:43.572Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "FERRETERIA \"EL JOVEN\"",
+    "domicilio": "DOMICILIO_DE_EJEMPLO #2",
+    "telefono": "4731800766",
+    "email": "GMAIL_DE_EJEMPLO@GMAIL.COM",
+    "experiencia": 212
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 32,
+  "fields": {
+    "estado": true,
+    "fc": "2025-11-06T20:09:02.629Z",
+    "fm": "2025-11-06T20:09:02.629Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "FERRETERIA \"DASAN\"",
+    "domicilio": "AV. LIBERTAD 10 C.P: 46540 CENTRO SAN MARCOS, JALISCO, MEXICO",
+    "telefono": "3867570455",
+    "email": "MFGG.GL3Z@GMAIL.COM",
+    "experiencia": 212
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 33,
+  "fields": {
+    "estado": true,
+    "fc": "2025-12-13T14:59:43.213Z",
+    "fm": "2025-12-13T14:59:43.213Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "PAPELERIA Y MÁS",
+    "domicilio": "16 DE SEPTIEMBRE 120",
+    "telefono": "3861045762",
+    "email": "papeleria2010@gmail.com",
+    "experiencia": 194
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 34,
+  "fields": {
+    "estado": true,
+    "fc": "2025-12-30T19:28:48.551Z",
+    "fm": "2025-12-30T19:28:48.551Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "FERRETERIA SAN IGNACIO",
+    "domicilio": "SAN IGNACIO",
+    "telefono": "2343212343",
+    "email": "NA@XD.COM",
+    "experiencia": 212
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 35,
+  "fields": {
+    "estado": true,
+    "fc": "2026-02-17T03:23:48.203Z",
+    "fm": "2026-02-17T03:23:48.204Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "HERRAMIENTAS EL AMERICANO",
+    "domicilio": "ANTIGUA FABRICA DE SANDALIAS",
+    "telefono": "3339492350",
+    "email": "elamericano1989@gmail.com",
+    "experiencia": 11
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 36,
+  "fields": {
+    "estado": true,
+    "fc": "2026-02-28T18:12:05.872Z",
+    "fm": "2026-02-28T18:12:05.872Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "FERREMATERIALES DON PEDRO RAMIREZ",
+    "domicilio": "JUAREZ #143, SAN MARTÍN",
+    "telefono": "3867550534",
+    "email": "ferrematerialesdonpedro123@gmail.com",
+    "experiencia": 213
+  }
+},
+{
+  "model": "cxp.proveedor",
+  "pk": 37,
+  "fields": {
+    "estado": true,
+    "fc": "2026-03-14T18:23:04.757Z",
+    "fm": "2026-03-14T18:23:04.757Z",
+    "uc": 1,
+    "um": null,
+    "razon_social": "EQUIPOS SANTA CRUZ",
+    "domicilio": "CARRETERA EL REFUGIO-SAN MARCOS",
+    "telefono": "38610560620",
+    "email": "Equipossantacruz@gmail.com",
+    "experiencia": 11
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 1,
+  "fields": {
+    "origen": 900,
+    "clave": 900,
+    "descripcion": "INSTALACION HIDRAULICA Y SANITARIA",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 2,
+  "fields": {
+    "origen": 900,
+    "clave": 901,
+    "descripcion": "INSTALACION HIDRAULICA Y SANITARIA",
+    "abreviatura": "IHS",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 3,
+  "fields": {
+    "origen": 100,
+    "clave": 100,
+    "descripcion": "TRABAJOS PRELIMINARES",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 4,
+  "fields": {
+    "origen": 100,
+    "clave": 101,
+    "descripcion": "TRABAJOS PRELIMINARES",
+    "abreviatura": "TP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 5,
+  "fields": {
+    "origen": 100,
+    "clave": 102,
+    "descripcion": "MOVIMIENTOS DE TIERRA",
+    "abreviatura": "MDT",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 6,
+  "fields": {
+    "origen": 100,
+    "clave": 103,
+    "descripcion": "FLETES DE MAQUINARIA",
+    "abreviatura": "FDM",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 7,
+  "fields": {
+    "origen": 100,
+    "clave": 104,
+    "descripcion": "MATERIAL DE ALBAÑILERIA",
+    "abreviatura": "MATP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 8,
+  "fields": {
+    "origen": 100,
+    "clave": 105,
+    "descripcion": "MANO DE OBRA ALBAÑILERIA",
+    "abreviatura": "MOATP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 9,
+  "fields": {
+    "origen": 100,
+    "clave": 106,
+    "descripcion": "FLETE DE MATERIAL DE ALBAÑILERIA",
+    "abreviatura": "FMATP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 10,
+  "fields": {
+    "origen": 100,
+    "clave": 107,
+    "descripcion": "FLETE DE EQUIPO Y HERRAMIENTA",
+    "abreviatura": "FEYHTP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 11,
+  "fields": {
+    "origen": 100,
+    "clave": 108,
+    "descripcion": "EQUIPO Y HERRAMIENTA",
+    "abreviatura": "EYHTP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 12,
+  "fields": {
+    "origen": 100,
+    "clave": 109,
+    "descripcion": "RENTA DE EQUIPO",
+    "abreviatura": "ERTP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 13,
+  "fields": {
+    "origen": 100,
+    "clave": 110,
+    "descripcion": "SUBCONTRATISTA DE ALBAÑILERIA",
+    "abreviatura": "SCATP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 14,
+  "fields": {
+    "origen": 100,
+    "clave": 111,
+    "descripcion": "GASTOS POR COMPROBAR",
+    "abreviatura": "GPCTP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 15,
+  "fields": {
+    "origen": 100,
+    "clave": 112,
+    "descripcion": "DEMOLICION ALBAÑILERIA",
+    "abreviatura": "DEM ALB",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 16,
+  "fields": {
+    "origen": 100,
+    "clave": 113,
+    "descripcion": "DESMANTELAMIENTO CARPINTERIA",
+    "abreviatura": "DES CAR",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 17,
+  "fields": {
+    "origen": 200,
+    "clave": 200,
+    "descripcion": "ESTUDIOS PRELIMINARES",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 18,
+  "fields": {
+    "origen": 200,
+    "clave": 201,
+    "descripcion": "ESTUDIOS DE MECANICA DE SUELOS",
+    "abreviatura": "EMS",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 19,
+  "fields": {
+    "origen": 200,
+    "clave": 202,
+    "descripcion": "ESTUDIO TOPOGRAFICO",
+    "abreviatura": "ET",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 20,
+  "fields": {
+    "origen": 200,
+    "clave": 203,
+    "descripcion": "CALCULO ESTRUCTURAL",
+    "abreviatura": "CE",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 21,
+  "fields": {
+    "origen": 200,
+    "clave": 204,
+    "descripcion": "DISEÑO ELECTRICO",
+    "abreviatura": "DIELE",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 22,
+  "fields": {
+    "origen": 200,
+    "clave": 205,
+    "descripcion": "DISEÑO HIDRAULICO Y SANITARIO",
+    "abreviatura": "DIHYS",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 23,
+  "fields": {
+    "origen": 200,
+    "clave": 206,
+    "descripcion": "PROYECTO OBRA CIVIL",
+    "abreviatura": "PRO-CIV",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 24,
+  "fields": {
+    "origen": 200,
+    "clave": 207,
+    "descripcion": "GASTOS FUERA DE PRESUPUESTO",
+    "abreviatura": "GFDP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 25,
+  "fields": {
+    "origen": 300,
+    "clave": 300,
+    "descripcion": "OBRAS PROVISIONALES",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 26,
+  "fields": {
+    "origen": 300,
+    "clave": 301,
+    "descripcion": "OBRAS PROVISIONALES",
+    "abreviatura": "OP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 27,
+  "fields": {
+    "origen": 300,
+    "clave": 302,
+    "descripcion": "MOVIMIENTO LINEA ELECTRICA",
+    "abreviatura": "MOV-ELEC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 28,
+  "fields": {
+    "origen": 500,
+    "clave": 500,
+    "descripcion": "ALBAÑELERIA",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 29,
+  "fields": {
+    "origen": 500,
+    "clave": 501,
+    "descripcion": "MATERIAL DE ALBAÑILERIA",
+    "abreviatura": "MA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 30,
+  "fields": {
+    "origen": 500,
+    "clave": 502,
+    "descripcion": "MANO DE OBRA FIJA",
+    "abreviatura": "MOAF",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 31,
+  "fields": {
+    "origen": 500,
+    "clave": 503,
+    "descripcion": "MANO DE OBRA ALBAÑILERIA A DESTAJO",
+    "abreviatura": "MOAD",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 32,
+  "fields": {
+    "origen": 500,
+    "clave": 504,
+    "descripcion": "FLETE DE MATERIAL DE ALBAÑILERIA",
+    "abreviatura": "FMA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 33,
+  "fields": {
+    "origen": 500,
+    "clave": 505,
+    "descripcion": "FLETE DE EQUIPO Y HERRMIENTA",
+    "abreviatura": "FEH",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 34,
+  "fields": {
+    "origen": 500,
+    "clave": 506,
+    "descripcion": "EQUIPO Y HERRAMIENTA",
+    "abreviatura": "EYH",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 35,
+  "fields": {
+    "origen": 500,
+    "clave": 507,
+    "descripcion": "RENTA DE EQUIPO",
+    "abreviatura": "RDE",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 36,
+  "fields": {
+    "origen": 500,
+    "clave": 508,
+    "descripcion": "MANTENIMIENTO DE EQUIPO",
+    "abreviatura": "ME",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 37,
+  "fields": {
+    "origen": 500,
+    "clave": 509,
+    "descripcion": "SUBCONTRATISTA DE ALBAÑILERIA",
+    "abreviatura": "SCA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 38,
+  "fields": {
+    "origen": 500,
+    "clave": 510,
+    "descripcion": "IMSS",
+    "abreviatura": "IMSS",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 39,
+  "fields": {
+    "origen": 500,
+    "clave": 511,
+    "descripcion": "GASTOS POR COMPROBAR",
+    "abreviatura": "GPC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 40,
+  "fields": {
+    "origen": 500,
+    "clave": 512,
+    "descripcion": "IMPUESTOS SAR",
+    "abreviatura": "IMP SAR",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 41,
+  "fields": {
+    "origen": 500,
+    "clave": 513,
+    "descripcion": "PISOS Y ACABADOS",
+    "abreviatura": "PI Y AC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 42,
+  "fields": {
+    "origen": 9800,
+    "clave": 9800,
+    "descripcion": "HONORARIOS",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 43,
+  "fields": {
+    "origen": 9800,
+    "clave": 9801,
+    "descripcion": "HONORARIOS",
+    "abreviatura": "HON",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 44,
+  "fields": {
+    "origen": 9800,
+    "clave": 9802,
+    "descripcion": "HONORARIOS ESPECIALES",
+    "abreviatura": "HON ESP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 45,
+  "fields": {
+    "origen": 9800,
+    "clave": 9803,
+    "descripcion": "MATERIAL DE ALBAÑILERIA <VARIOS>",
+    "abreviatura": "MAT VA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 46,
+  "fields": {
+    "origen": 9800,
+    "clave": 9804,
+    "descripcion": "HONORARIOS POR RESIDENCIA DE OBRA",
+    "abreviatura": "HPRO",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 47,
+  "fields": {
+    "origen": 9800,
+    "clave": 9805,
+    "descripcion": "HONORARIOS POR ADMON DE OBRA",
+    "abreviatura": "HON-ADMON",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 48,
+  "fields": {
+    "origen": 9800,
+    "clave": 9806,
+    "descripcion": "HONORARIOS ASESORIA IMSS",
+    "abreviatura": "HON IMSS",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 49,
+  "fields": {
+    "origen": 9800,
+    "clave": 9809,
+    "descripcion": "VIATICOS GENERALES",
+    "abreviatura": "VIATGEN",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 50,
+  "fields": {
+    "origen": 9900,
+    "clave": 9900,
+    "descripcion": "ENTREGAS",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 51,
+  "fields": {
+    "origen": 9900,
+    "clave": 9901,
+    "descripcion": "ENTREGAS",
+    "abreviatura": "ENTREGAS",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 52,
+  "fields": {
+    "origen": 100,
+    "clave": 114,
+    "descripcion": "DESMANTELAMIENTO ALUMINIO Y VIDRIOS",
+    "abreviatura": "DES ALUVI",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 53,
+  "fields": {
+    "origen": 100,
+    "clave": 115,
+    "descripcion": "DESMANTELAMIENTO ELECTRICO",
+    "abreviatura": "DES ELEC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 54,
+  "fields": {
+    "origen": 100,
+    "clave": 116,
+    "descripcion": "DESMANTELAMIENTO HIDRO SANITARIO",
+    "abreviatura": "DES HISAN",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 55,
+  "fields": {
+    "origen": 100,
+    "clave": 117,
+    "descripcion": "MURO DE CONTENSION",
+    "abreviatura": "MUR/CON",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 56,
+  "fields": {
+    "origen": 100,
+    "clave": 118,
+    "descripcion": "MURO DE CONTENSION <SUELO CEMENTO>",
+    "abreviatura": "MU-CON-SC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 57,
+  "fields": {
+    "origen": 100,
+    "clave": 119,
+    "descripcion": "COMBUSTIBLES <EQUIPO>",
+    "abreviatura": "COMB-EQ",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 58,
+  "fields": {
+    "origen": 100,
+    "clave": 120,
+    "descripcion": "DESPALME TERRENO",
+    "abreviatura": "DESP-TERR",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 59,
+  "fields": {
+    "origen": 100,
+    "clave": 121,
+    "descripcion": "RELLENO MURO DE CONTENSION",
+    "abreviatura": "RELL/CONT",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 60,
+  "fields": {
+    "origen": 100,
+    "clave": 122,
+    "descripcion": "PLANTILLA MURO CONTENCION",
+    "abreviatura": "PLAMUR",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 61,
+  "fields": {
+    "origen": 100,
+    "clave": 123,
+    "descripcion": "CALLE INGRESO TALUD",
+    "abreviatura": "CAINH/TALU",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 62,
+  "fields": {
+    "origen": 300,
+    "clave": 303,
+    "descripcion": "BODEGA",
+    "abreviatura": "BOD",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 63,
+  "fields": {
+    "origen": 400,
+    "clave": 400,
+    "descripcion": "GASTOS PRELIMINARES",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 64,
+  "fields": {
+    "origen": 400,
+    "clave": 401,
+    "descripcion": "GASTOS PRELIMINARES",
+    "abreviatura": "GP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 65,
+  "fields": {
+    "origen": 400,
+    "clave": 402,
+    "descripcion": "PERMISOS DE OBRA",
+    "abreviatura": "PDO",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 66,
+  "fields": {
+    "origen": 400,
+    "clave": 403,
+    "descripcion": "GASTOS DE PROYECTO",
+    "abreviatura": "GDP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 67,
+  "fields": {
+    "origen": 400,
+    "clave": 404,
+    "descripcion": "GSATOS DE PERSONAL TECNICO",
+    "abreviatura": "GDPT",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 68,
+  "fields": {
+    "origen": 400,
+    "clave": 405,
+    "descripcion": "GASTOS DE PERSONAL TECNICO Y ADMINISTRATIVO",
+    "abreviatura": "GPDTA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 69,
+  "fields": {
+    "origen": 300,
+    "clave": 304,
+    "descripcion": "SANITARIO PROVISIONAL",
+    "abreviatura": "SAN/PROV",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 70,
+  "fields": {
+    "origen": 500,
+    "clave": 514,
+    "descripcion": "ACARREO DE AGUA EN PIPA",
+    "abreviatura": "ADEAGUA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 71,
+  "fields": {
+    "origen": 500,
+    "clave": 515,
+    "descripcion": "GASTOS POR COMPROBAR",
+    "abreviatura": "GPC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 72,
+  "fields": {
+    "origen": 500,
+    "clave": 516,
+    "descripcion": "ACABADOS",
+    "abreviatura": "ACA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 73,
+  "fields": {
+    "origen": 500,
+    "clave": 517,
+    "descripcion": "PISOS Y RECUBRIMIENTOS",
+    "abreviatura": "PIREC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 74,
+  "fields": {
+    "origen": 500,
+    "clave": 518,
+    "descripcion": "MARMOL PISOS, BAñOS Y RECUBRIMIENTOS",
+    "abreviatura": "MARMOL",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 75,
+  "fields": {
+    "origen": 500,
+    "clave": 519,
+    "descripcion": "PREFABRICASOS DE CONCRETO",
+    "abreviatura": "PRECON",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 76,
+  "fields": {
+    "origen": 500,
+    "clave": 520,
+    "descripcion": "COMBUSTIBLES Y LUBRICANTES",
+    "abreviatura": "COM-LUB",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 77,
+  "fields": {
+    "origen": 500,
+    "clave": 521,
+    "descripcion": "IMPERBIALIZANTE DE CUBIERTA DE MADERA",
+    "abreviatura": "IMP-CUBMAD",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 78,
+  "fields": {
+    "origen": 500,
+    "clave": 522,
+    "descripcion": "MATERIAL ESTRUCTURA DE MADERA",
+    "abreviatura": "EST-MAD",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 79,
+  "fields": {
+    "origen": 500,
+    "clave": 523,
+    "descripcion": "MATERIAL DRENES JARDIN",
+    "abreviatura": "MAT-DRENES",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 80,
+  "fields": {
+    "origen": 500,
+    "clave": 524,
+    "descripcion": "MATERIAL TIERRA DE CAMPO",
+    "abreviatura": "TIER-CAMPO",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 81,
+  "fields": {
+    "origen": 500,
+    "clave": 525,
+    "descripcion": "MATERIAL DE ALBERCA",
+    "abreviatura": "MAT-ALBERC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 82,
+  "fields": {
+    "origen": 500,
+    "clave": 526,
+    "descripcion": "MATERIAL ESTANQUE",
+    "abreviatura": "MAT-ESTANQ",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 83,
+  "fields": {
+    "origen": 500,
+    "clave": 527,
+    "descripcion": "ALBAñILERIA CIMENTACION",
+    "abreviatura": "ALB/CIM",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 84,
+  "fields": {
+    "origen": 500,
+    "clave": 528,
+    "descripcion": "MANO DE OBRA CIMENTACION",
+    "abreviatura": "MDO/CIM",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 85,
+  "fields": {
+    "origen": 500,
+    "clave": 529,
+    "descripcion": "SUBCONTRATISTA DE YESERIA",
+    "abreviatura": "SCA/YES",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 86,
+  "fields": {
+    "origen": 500,
+    "clave": 530,
+    "descripcion": "SUBCONTRATISTA DE MARMOL",
+    "abreviatura": "SCA/MAR",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 87,
+  "fields": {
+    "origen": 500,
+    "clave": 531,
+    "descripcion": "SUBCONTRATISTA DE CANTERA",
+    "abreviatura": "SUB/CANT",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 88,
+  "fields": {
+    "origen": 500,
+    "clave": 532,
+    "descripcion": "SUBCONTRATISTA INSTALADOR DE CERAMICA",
+    "abreviatura": "SUB/CER",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 89,
+  "fields": {
+    "origen": 500,
+    "clave": 533,
+    "descripcion": "SUBCONTRATISTA DE TABLAROCA",
+    "abreviatura": "SCA/TABROC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 90,
+  "fields": {
+    "origen": 500,
+    "clave": 534,
+    "descripcion": "TRABAJOS DE FIBRA DE VIDRIO",
+    "abreviatura": "FIB/VIDRIO",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 91,
+  "fields": {
+    "origen": 500,
+    "clave": 535,
+    "descripcion": "SUMINISTRO PIEDRA LAJA",
+    "abreviatura": "P LAJA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 92,
+  "fields": {
+    "origen": 600,
+    "clave": 600,
+    "descripcion": "ESTRUCTURA DE CONCERTO",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 93,
+  "fields": {
+    "origen": 600,
+    "clave": 601,
+    "descripcion": "MATERIAL ESTRUCTURA DE CONCRETO",
+    "abreviatura": "MAT CON",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 94,
+  "fields": {
+    "origen": 600,
+    "clave": 602,
+    "descripcion": "MANO DE OBRA ESTRUCTURA DE CONCRETO",
+    "abreviatura": "MDO EC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 95,
+  "fields": {
+    "origen": 600,
+    "clave": 603,
+    "descripcion": "ESTRUCTURA DE CONCRETO",
+    "abreviatura": "EDC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 96,
+  "fields": {
+    "origen": 600,
+    "clave": 604,
+    "descripcion": "FLETES DE ESTRUCTURA DE CONCRETO",
+    "abreviatura": "FEC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 97,
+  "fields": {
+    "origen": 600,
+    "clave": 605,
+    "descripcion": "ESTRUCTURA MIXTA",
+    "abreviatura": "EST/MIXTA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 98,
+  "fields": {
+    "origen": 700,
+    "clave": 700,
+    "descripcion": "ESTRUCTURA DE ACERO",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 99,
+  "fields": {
+    "origen": 700,
+    "clave": 701,
+    "descripcion": "ESTRUCTURA DE ACERO",
+    "abreviatura": "EST AC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 100,
+  "fields": {
+    "origen": 700,
+    "clave": 702,
+    "descripcion": "MATERIAL DE ESTRUCTURA DE ACERO",
+    "abreviatura": "MA ES AC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 101,
+  "fields": {
+    "origen": 700,
+    "clave": 703,
+    "descripcion": "MANO DE OBRA ESTRUCTURA DE ACERO",
+    "abreviatura": "MOEA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 102,
+  "fields": {
+    "origen": 700,
+    "clave": 704,
+    "descripcion": "CUBIERTA DE LAMINA",
+    "abreviatura": "CUB LAM",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 103,
+  "fields": {
+    "origen": 800,
+    "clave": 800,
+    "descripcion": "INSTALACION ELECTRICA",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 104,
+  "fields": {
+    "origen": 800,
+    "clave": 801,
+    "descripcion": "INSTALACION ELECTRICA",
+    "abreviatura": "IE",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 105,
+  "fields": {
+    "origen": 800,
+    "clave": 802,
+    "descripcion": "MATERIAL INSTALACION ELECTRICA",
+    "abreviatura": "MIE",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 106,
+  "fields": {
+    "origen": 800,
+    "clave": 803,
+    "descripcion": "MANO DE OBRA INSTALACION ELECTRICA",
+    "abreviatura": "MDO IE",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 107,
+  "fields": {
+    "origen": 800,
+    "clave": 804,
+    "descripcion": "INSTALACIONES ESPECIALES",
+    "abreviatura": "INS ESP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 108,
+  "fields": {
+    "origen": 800,
+    "clave": 805,
+    "descripcion": "ACCESORIOS ELECTRICOS",
+    "abreviatura": "ACCSEL",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 109,
+  "fields": {
+    "origen": 800,
+    "clave": 806,
+    "descripcion": "INSTALACION ELECTRICA <ALTA TENSION>",
+    "abreviatura": "ELEC/ALTA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 110,
+  "fields": {
+    "origen": 800,
+    "clave": 807,
+    "descripcion": "INSTALACION ELECTRICA <PLANTA DE EMERGENCIA>",
+    "abreviatura": "EI/PE",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 111,
+  "fields": {
+    "origen": 800,
+    "clave": 808,
+    "descripcion": "INSTALACION ELECTRICA AIRE ACONDICIONADO <FP>",
+    "abreviatura": "IE-AA-FP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 112,
+  "fields": {
+    "origen": 800,
+    "clave": 809,
+    "descripcion": "INSTALACION ELECTRICA TEL-SON Y DATOS <FP>",
+    "abreviatura": "IE-INT-FP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 113,
+  "fields": {
+    "origen": 800,
+    "clave": 810,
+    "descripcion": "INSTALACION ELECTRICA LUTRON",
+    "abreviatura": "INT-LUT-FP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 114,
+  "fields": {
+    "origen": 800,
+    "clave": 811,
+    "descripcion": "REDES BAJA TENSION CALLE",
+    "abreviatura": "R/BT/CALLE",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 115,
+  "fields": {
+    "origen": 800,
+    "clave": 812,
+    "descripcion": "ELECTRICIDAD FUERA DE PPTO",
+    "abreviatura": "ELECFDP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 116,
+  "fields": {
+    "origen": 800,
+    "clave": 813,
+    "descripcion": "LUMINARIAS",
+    "abreviatura": "LUM",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 117,
+  "fields": {
+    "origen": 900,
+    "clave": 902,
+    "descripcion": "MATERIAL INSTALACION HIDRAULICA",
+    "abreviatura": "MAT HID",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 118,
+  "fields": {
+    "origen": 900,
+    "clave": 903,
+    "descripcion": "MATERIAL INSTALACION SANITARIA",
+    "abreviatura": "MAT SAN",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 119,
+  "fields": {
+    "origen": 900,
+    "clave": 904,
+    "descripcion": "MANO DE OBRA HIDRAULICA",
+    "abreviatura": "MDO HID",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 120,
+  "fields": {
+    "origen": 900,
+    "clave": 905,
+    "descripcion": "MANO DE OBRA SANITARIA",
+    "abreviatura": "MDO SAN",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 121,
+  "fields": {
+    "origen": 900,
+    "clave": 906,
+    "descripcion": "MATERIAL DE EQUIPO HIDRONEUMATICO",
+    "abreviatura": "MAT HIDRO",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 122,
+  "fields": {
+    "origen": 900,
+    "clave": 907,
+    "descripcion": "MANO DE OBRA EQUIPO HIDRONEUMATICO",
+    "abreviatura": "MDO HIDRO",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 123,
+  "fields": {
+    "origen": 900,
+    "clave": 908,
+    "descripcion": "VALVULAS Y ACCESORIOS",
+    "abreviatura": "VALV/ACCS",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 124,
+  "fields": {
+    "origen": 900,
+    "clave": 909,
+    "descripcion": "EQUIPO BOMBEO JACUZZI",
+    "abreviatura": "EQUI-JACU",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 125,
+  "fields": {
+    "origen": 900,
+    "clave": 910,
+    "descripcion": "CALENTADORES Y ACCESORIOS",
+    "abreviatura": "CAL-ACCS",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 126,
+  "fields": {
+    "origen": 900,
+    "clave": 911,
+    "descripcion": "SISTEMA DE FILTRADO",
+    "abreviatura": "SIS-FIL",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 127,
+  "fields": {
+    "origen": 900,
+    "clave": 912,
+    "descripcion": "HID,SAN Y GAS FUERA DE PPTO",
+    "abreviatura": "HS YG FP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 128,
+  "fields": {
+    "origen": 900,
+    "clave": 914,
+    "descripcion": "REDES PARA ALBERCA Y JACUZZI",
+    "abreviatura": "R/ALB/JAC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 129,
+  "fields": {
+    "origen": 900,
+    "clave": 915,
+    "descripcion": "MANO DE OBRA HID-SAN",
+    "abreviatura": "MOHID-SAN",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 130,
+  "fields": {
+    "origen": 900,
+    "clave": 916,
+    "descripcion": "FORRADO Y AISLAMIENTO DE TUBERIAS Y REDES",
+    "abreviatura": "AIS-TUB",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 131,
+  "fields": {
+    "origen": 1000,
+    "clave": 1000,
+    "descripcion": "OBRAS DE INFRAESTUCTURA",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 132,
+  "fields": {
+    "origen": 1000,
+    "clave": 1001,
+    "descripcion": "POZO PROFUNDO",
+    "abreviatura": "POPRO",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 133,
+  "fields": {
+    "origen": 1000,
+    "clave": 1002,
+    "descripcion": "EQUIPAMIENTO SEPTICO",
+    "abreviatura": "EQU/SEPTI",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 134,
+  "fields": {
+    "origen": 1000,
+    "clave": 1003,
+    "descripcion": "MATERIALES REDES PROFUNDAS",
+    "abreviatura": "M/OBRA/RED",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 135,
+  "fields": {
+    "origen": 1000,
+    "clave": 1004,
+    "descripcion": "MANO DE OBRA REDES PROFUNDAS",
+    "abreviatura": "M/OBRA/RED",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 136,
+  "fields": {
+    "origen": 1000,
+    "clave": 1005,
+    "descripcion": "MATERIALES MURO DE CONTENCION",
+    "abreviatura": "MAT/MURCON",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 137,
+  "fields": {
+    "origen": 1000,
+    "clave": 1006,
+    "descripcion": "MANO DE OBRA MURO DE CONTENCION",
+    "abreviatura": "MAT/MURCON",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 138,
+  "fields": {
+    "origen": 1000,
+    "clave": 1007,
+    "descripcion": "MANO DE OBRA MURO LATERAL",
+    "abreviatura": "MOBRAM/LAT",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 139,
+  "fields": {
+    "origen": 1000,
+    "clave": 1008,
+    "descripcion": "MATERIAL MURO LATERAL",
+    "abreviatura": "MATMURLAT",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 140,
+  "fields": {
+    "origen": 1100,
+    "clave": 1100,
+    "descripcion": "AIRE ACONDICIONADO",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 141,
+  "fields": {
+    "origen": 1100,
+    "clave": 1101,
+    "descripcion": "AIRE ACONDICIONADO",
+    "abreviatura": "AA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 142,
+  "fields": {
+    "origen": 1300,
+    "clave": 1300,
+    "descripcion": "IMPERMEABILIZANTES",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 143,
+  "fields": {
+    "origen": 1300,
+    "clave": 1301,
+    "descripcion": "IMPERMEABILIZANTES",
+    "abreviatura": "IMP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 144,
+  "fields": {
+    "origen": 1400,
+    "clave": 1400,
+    "descripcion": "MUEBLES Y ACCESORIOS DE BAñO",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 145,
+  "fields": {
+    "origen": 1400,
+    "clave": 1401,
+    "descripcion": "MUEBLES DE BAñO",
+    "abreviatura": "MDB",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 146,
+  "fields": {
+    "origen": 1400,
+    "clave": 1402,
+    "descripcion": "ACCESORIOS DE BAñO",
+    "abreviatura": "ACCS-BAñO",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 147,
+  "fields": {
+    "origen": 1400,
+    "clave": 1403,
+    "descripcion": "VALVULAS DE BAñO",
+    "abreviatura": "VALV/BAñO",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 148,
+  "fields": {
+    "origen": 1400,
+    "clave": 1490,
+    "descripcion": "FORRADO Y AISLAMIENTO DE TUBERIAS O REDES",
+    "abreviatura": "AIS-TUB",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 149,
+  "fields": {
+    "origen": 1500,
+    "clave": 1500,
+    "descripcion": "HERRERIA DE ALUMINIO",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 150,
+  "fields": {
+    "origen": 1500,
+    "clave": 1501,
+    "descripcion": "HERRERIA DE ALUMINIO",
+    "abreviatura": "HDAL",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 151,
+  "fields": {
+    "origen": 1600,
+    "clave": 1600,
+    "descripcion": "HERRERIA DE ACERO",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 152,
+  "fields": {
+    "origen": 1600,
+    "clave": 1601,
+    "descripcion": "HERRERIA DE ACERO",
+    "abreviatura": "HDAC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 153,
+  "fields": {
+    "origen": 1600,
+    "clave": 1602,
+    "descripcion": "ACCESORIOS HERRERIA DE ACERO",
+    "abreviatura": "ACCHERAC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 154,
+  "fields": {
+    "origen": 1600,
+    "clave": 1603,
+    "descripcion": "HERRERIA DE ACERO INOXIDABLE",
+    "abreviatura": "HERRACINOX",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 155,
+  "fields": {
+    "origen": 1200,
+    "clave": 1200,
+    "descripcion": "EQUIPOS ESPECIALES",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 156,
+  "fields": {
+    "origen": 1200,
+    "clave": 1201,
+    "descripcion": "INSTALACION DE EQUIPOS ESPECIALES",
+    "abreviatura": "INS EQ ESP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 157,
+  "fields": {
+    "origen": 1200,
+    "clave": 1202,
+    "descripcion": "EQUIPO DE INTERCOMUNICACION",
+    "abreviatura": "EDI",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 158,
+  "fields": {
+    "origen": 1200,
+    "clave": 1203,
+    "descripcion": "PUERTAS AUTOMATICAAS",
+    "abreviatura": "PA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 159,
+  "fields": {
+    "origen": 1200,
+    "clave": 1204,
+    "descripcion": "INSTALACION TELEFONICA",
+    "abreviatura": "INS TEL",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 160,
+  "fields": {
+    "origen": 1200,
+    "clave": 1205,
+    "descripcion": "INSTALACION DE EQUIPO DE TELEVISION",
+    "abreviatura": "ITV",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 161,
+  "fields": {
+    "origen": 1200,
+    "clave": 1206,
+    "descripcion": "LUMINARIAS Y ACCESORIOS",
+    "abreviatura": "LUM-ACCS",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 162,
+  "fields": {
+    "origen": 1200,
+    "clave": 1207,
+    "descripcion": "ACC.LUM.LUTRON",
+    "abreviatura": "ACCS.LUT.",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 163,
+  "fields": {
+    "origen": 1200,
+    "clave": 1208,
+    "descripcion": "EQUIPAMIENTO ALBERCA",
+    "abreviatura": "EQ-ALBERCA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 164,
+  "fields": {
+    "origen": 1200,
+    "clave": 1209,
+    "descripcion": "REDES AUDIO Y VIDEO INTERCOMUNICACION C. CERRADO",
+    "abreviatura": "AUD-VID",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 165,
+  "fields": {
+    "origen": 1200,
+    "clave": 1210,
+    "descripcion": "INSTALACION SISTEMA DE INFILTRACION",
+    "abreviatura": "SIS-INFIL",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 166,
+  "fields": {
+    "origen": 1200,
+    "clave": 1211,
+    "descripcion": "INS. GAS SIST. CHIMENEAS",
+    "abreviatura": "INSGASCHIM",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 167,
+  "fields": {
+    "origen": 1700,
+    "clave": 1700,
+    "descripcion": "PINTURA",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 168,
+  "fields": {
+    "origen": 1700,
+    "clave": 1701,
+    "descripcion": "PINTURA",
+    "abreviatura": "PIN",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 169,
+  "fields": {
+    "origen": 1700,
+    "clave": 1702,
+    "descripcion": "MATERIAL DE PINTURA",
+    "abreviatura": "MDPI",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 170,
+  "fields": {
+    "origen": 1700,
+    "clave": 1703,
+    "descripcion": "MANO DE OBRA PINTURA",
+    "abreviatura": "MDOPI",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 171,
+  "fields": {
+    "origen": 1800,
+    "clave": 1800,
+    "descripcion": "CARPINTERIA",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 172,
+  "fields": {
+    "origen": 1800,
+    "clave": 1801,
+    "descripcion": "CARPINTERIA",
+    "abreviatura": "CA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 173,
+  "fields": {
+    "origen": 1800,
+    "clave": 1802,
+    "descripcion": "MATERIAL DE CARPINTERIA",
+    "abreviatura": "MATDCA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 174,
+  "fields": {
+    "origen": 1800,
+    "clave": 1803,
+    "descripcion": "MANO DE OBRA CARPINTERIA",
+    "abreviatura": "MDOCA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 175,
+  "fields": {
+    "origen": 1800,
+    "clave": 1804,
+    "descripcion": "MATERIAL DE LACAS",
+    "abreviatura": "MATDL",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 176,
+  "fields": {
+    "origen": 1800,
+    "clave": 1805,
+    "descripcion": "MANO DE OBRA DE LACAS",
+    "abreviatura": "MDOLAC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 177,
+  "fields": {
+    "origen": 1800,
+    "clave": 1806,
+    "descripcion": "CARPINTERIA Y LACA <CUBIERTA>",
+    "abreviatura": "CAR-LA-CUB",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 178,
+  "fields": {
+    "origen": 1800,
+    "clave": 1807,
+    "descripcion": "HABILITADO E INSTALACION DE MORILLOS",
+    "abreviatura": "I. MORILLO",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 179,
+  "fields": {
+    "origen": 1800,
+    "clave": 1808,
+    "descripcion": "IMPLEMENTOS VARIOS CARPINTERIA",
+    "abreviatura": "MA-VA-CAR",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 180,
+  "fields": {
+    "origen": 1800,
+    "clave": 1809,
+    "descripcion": "VENTANERIA PREFABRICADA",
+    "abreviatura": "VEN-PREF",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 181,
+  "fields": {
+    "origen": 1800,
+    "clave": 1810,
+    "descripcion": "PULIDO Y BARNIZADO DE DUELA",
+    "abreviatura": "PUL-BAR-DU",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 182,
+  "fields": {
+    "origen": 1800,
+    "clave": 1811,
+    "descripcion": "DUELA DE MADERA <LAMBRIN>",
+    "abreviatura": "DUE/MAD",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 183,
+  "fields": {
+    "origen": 1800,
+    "clave": 1812,
+    "descripcion": "MUEBLES DE MADERA",
+    "abreviatura": "MUE/MAD",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 184,
+  "fields": {
+    "origen": 1800,
+    "clave": 1813,
+    "descripcion": "HERRAJES ESPECIALES",
+    "abreviatura": "HERR-ESP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 185,
+  "fields": {
+    "origen": 1900,
+    "clave": 1900,
+    "descripcion": "CERRAJERIA",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 186,
+  "fields": {
+    "origen": 1900,
+    "clave": 1901,
+    "descripcion": "CERRAJERIA",
+    "abreviatura": "CE",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 187,
+  "fields": {
+    "origen": 2000,
+    "clave": 2000,
+    "descripcion": "VIDRIERIA",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 188,
+  "fields": {
+    "origen": 2000,
+    "clave": 2001,
+    "descripcion": "VIDRERIA",
+    "abreviatura": "VI",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 189,
+  "fields": {
+    "origen": 2000,
+    "clave": 2002,
+    "descripcion": "MATERIAL DE VIDRERIA",
+    "abreviatura": "MATDVI",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 190,
+  "fields": {
+    "origen": 2000,
+    "clave": 2003,
+    "descripcion": "MANO DE OBRA VIDRERIA",
+    "abreviatura": "MDOVI",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 191,
+  "fields": {
+    "origen": 2000,
+    "clave": 2004,
+    "descripcion": "LUNAS",
+    "abreviatura": "LU",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 192,
+  "fields": {
+    "origen": 2000,
+    "clave": 2005,
+    "descripcion": "EMPLOMADOS Y VITRALES",
+    "abreviatura": "EM Y VI",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 193,
+  "fields": {
+    "origen": 2100,
+    "clave": 2100,
+    "descripcion": "VARIOS",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 194,
+  "fields": {
+    "origen": 2100,
+    "clave": 2101,
+    "descripcion": "VARIOS",
+    "abreviatura": "VA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 195,
+  "fields": {
+    "origen": 2100,
+    "clave": 2102,
+    "descripcion": "NOTAS VARIAS CAJA CHICA",
+    "abreviatura": "NVCCH",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 196,
+  "fields": {
+    "origen": 2200,
+    "clave": 2200,
+    "descripcion": "JARDINERIA",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 197,
+  "fields": {
+    "origen": 2200,
+    "clave": 2201,
+    "descripcion": "JARDINERIA",
+    "abreviatura": "JAR",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 198,
+  "fields": {
+    "origen": 2200,
+    "clave": 2202,
+    "descripcion": "TIERRA DE CAMPO",
+    "abreviatura": "TDCA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 199,
+  "fields": {
+    "origen": 2200,
+    "clave": 2203,
+    "descripcion": "RIEGO POR ASPERSION",
+    "abreviatura": "RPA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 200,
+  "fields": {
+    "origen": 2200,
+    "clave": 2204,
+    "descripcion": "TALA DE ARBOLES",
+    "abreviatura": "TALA/ARB",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 201,
+  "fields": {
+    "origen": 2300,
+    "clave": 2300,
+    "descripcion": "DECORACION",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 202,
+  "fields": {
+    "origen": 2300,
+    "clave": 2301,
+    "descripcion": "DECORACION",
+    "abreviatura": "DEC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 203,
+  "fields": {
+    "origen": 2300,
+    "clave": 2302,
+    "descripcion": "ALFOMBRAS",
+    "abreviatura": "ALF",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 204,
+  "fields": {
+    "origen": 2300,
+    "clave": 2303,
+    "descripcion": "TAPICES",
+    "abreviatura": "TAP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 205,
+  "fields": {
+    "origen": 2300,
+    "clave": 2304,
+    "descripcion": "LAMPARAS DECORATIVAS",
+    "abreviatura": "LAMDEC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 206,
+  "fields": {
+    "origen": 2300,
+    "clave": 2305,
+    "descripcion": "TRABAJOS DE LATON",
+    "abreviatura": "TDLAT",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 207,
+  "fields": {
+    "origen": 2300,
+    "clave": 2306,
+    "descripcion": "PINTURA DECORATIVA",
+    "abreviatura": "PI/DEC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 208,
+  "fields": {
+    "origen": 2300,
+    "clave": 2307,
+    "descripcion": "PISOS DE MADERA DUELA",
+    "abreviatura": "PIS/DUE/MA",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 209,
+  "fields": {
+    "origen": 2400,
+    "clave": 2400,
+    "descripcion": "COCINA",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 210,
+  "fields": {
+    "origen": 2400,
+    "clave": 2401,
+    "descripcion": "COCINAS",
+    "abreviatura": "COC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 211,
+  "fields": {
+    "origen": 2400,
+    "clave": 2402,
+    "descripcion": "MUEBLES Y ACC. DE COCINA",
+    "abreviatura": "MUB-ACC-CO",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 212,
+  "fields": {
+    "origen": 2500,
+    "clave": 2500,
+    "descripcion": "FERRETERIA",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 213,
+  "fields": {
+    "origen": 2500,
+    "clave": 2501,
+    "descripcion": "MATERIAL DE FERRETERIA",
+    "abreviatura": "MAFE",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 214,
+  "fields": {
+    "origen": 2600,
+    "clave": 2600,
+    "descripcion": "IMPERMEABILIZANTES",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 215,
+  "fields": {
+    "origen": 2600,
+    "clave": 2601,
+    "descripcion": "IMPERMEABILIZANTES",
+    "abreviatura": "IMP.",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 216,
+  "fields": {
+    "origen": 2700,
+    "clave": 2700,
+    "descripcion": "LUBRICANTES Y COMBUSTIBLES",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 217,
+  "fields": {
+    "origen": 2700,
+    "clave": 2701,
+    "descripcion": "LUBRICANTES Y COMBUSTIBLES",
+    "abreviatura": "LUBYC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 218,
+  "fields": {
+    "origen": 2700,
+    "clave": 2702,
+    "descripcion": "CASETAS AUTOPISTA",
+    "abreviatura": "CASAUTO",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 219,
+  "fields": {
+    "origen": 2800,
+    "clave": 2800,
+    "descripcion": "YESERIA",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 220,
+  "fields": {
+    "origen": 2800,
+    "clave": 2801,
+    "descripcion": "YESERIA",
+    "abreviatura": "YESO",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 221,
+  "fields": {
+    "origen": 2800,
+    "clave": 2802,
+    "descripcion": "MATERIAL DE YESERIA",
+    "abreviatura": "MAYE",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 222,
+  "fields": {
+    "origen": 2800,
+    "clave": 2803,
+    "descripcion": "MANO DE OBRA DE YESERIA",
+    "abreviatura": "MOYE",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 223,
+  "fields": {
+    "origen": 2800,
+    "clave": 2808,
+    "descripcion": "PISOS Y ACABADOS",
+    "abreviatura": "PLAF",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 224,
+  "fields": {
+    "origen": 2800,
+    "clave": 2809,
+    "descripcion": "PLAFOND",
+    "abreviatura": "PLAF",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 225,
+  "fields": {
+    "origen": 2900,
+    "clave": 2900,
+    "descripcion": "OBRA CIVIL",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 226,
+  "fields": {
+    "origen": 2900,
+    "clave": 2901,
+    "descripcion": "ZAPATAS",
+    "abreviatura": "DUC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 227,
+  "fields": {
+    "origen": 2900,
+    "clave": 2902,
+    "descripcion": "DUCTOS",
+    "abreviatura": "DUC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 228,
+  "fields": {
+    "origen": 2900,
+    "clave": 2903,
+    "descripcion": "MURO PERIMETRAL",
+    "abreviatura": "MU-PER",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 229,
+  "fields": {
+    "origen": 2900,
+    "clave": 2904,
+    "descripcion": "PISOS",
+    "abreviatura": "PIS",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 230,
+  "fields": {
+    "origen": 2900,
+    "clave": 2905,
+    "descripcion": "SERVICIOS",
+    "abreviatura": "SERV",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 231,
+  "fields": {
+    "origen": 2900,
+    "clave": 2906,
+    "descripcion": "OBRA CIVIL",
+    "abreviatura": "OB-CIV",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 232,
+  "fields": {
+    "origen": 3000,
+    "clave": 3000,
+    "descripcion": "GASTOS FUERA DE PRESUPUESTO",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 233,
+  "fields": {
+    "origen": 3000,
+    "clave": 3001,
+    "descripcion": "GASTOS FUERA DE PRESUPUESTO",
+    "abreviatura": "GFDP",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 234,
+  "fields": {
+    "origen": 3000,
+    "clave": 3002,
+    "descripcion": "MATERIAL DE ALBAñILERIA <FDP>",
+    "abreviatura": "MA<FDP>",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 235,
+  "fields": {
+    "origen": 3000,
+    "clave": 3003,
+    "descripcion": "SUBCONTRATISTA DE ALBAñILERIA <FDP>",
+    "abreviatura": "SCA <FDP>",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 236,
+  "fields": {
+    "origen": 3000,
+    "clave": 3004,
+    "descripcion": "MANO DE OBRA <FDP>",
+    "abreviatura": "MDO <FDP>",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 237,
+  "fields": {
+    "origen": 3000,
+    "clave": 3005,
+    "descripcion": "MAT ALBAñILERIA FDP <MURO DE CONTENCION>",
+    "abreviatura": "MAFPMC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 238,
+  "fields": {
+    "origen": 3000,
+    "clave": 3006,
+    "descripcion": "NOMINA FDP <MURO DE CONTENCION>",
+    "abreviatura": "NOMFDPPMC",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 239,
+  "fields": {
+    "origen": 8900,
+    "clave": 8900,
+    "descripcion": "HONORARIOS POR MATERIALES",
+    "abreviatura": null,
+    "estatus": true,
+    "tipo": "Padre"
+  }
+},
+{
+  "model": "adm.simbologia",
+  "pk": 240,
+  "fields": {
+    "origen": 8900,
+    "clave": 8901,
+    "descripcion": "HONORARIOS POR MATERIALES",
+    "abreviatura": "HPM",
+    "estatus": true,
+    "tipo": "Hijo"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 1,
+  "fields": {
+    "estado": true,
+    "fc": "2025-06-21T14:45:55.244Z",
+    "fm": "2025-08-11T20:03:37.437Z",
+    "uc": 1,
+    "um": 1,
+    "nombre": "SIN DEFINIR",
+    "ubicacion": "AHUALULCO",
+    "latitud": "0.000000",
+    "longitud": "0.000000",
+    "residente": 1,
+    "cuenta": 2,
+    "mapa": "",
+    "presupuesto": "0.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 2,
+  "fields": {
+    "estado": true,
+    "fc": "2025-06-21T14:45:55.244Z",
+    "fm": "2025-08-11T20:04:08.452Z",
+    "uc": 1,
+    "um": 1,
+    "nombre": "LAS HIGUERAS",
+    "ubicacion": "LA ESTANCITA",
+    "latitud": "20.740729",
+    "longitud": "-103.997371",
+    "residente": 1,
+    "cuenta": 4,
+    "mapa": "",
+    "presupuesto": "200000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 3,
+  "fields": {
+    "estado": true,
+    "fc": "2025-06-21T15:02:04.533Z",
+    "fm": "2025-08-11T20:04:31.905Z",
+    "uc": 1,
+    "um": 1,
+    "nombre": "LOS SAUCES",
+    "ubicacion": "AHUALULCO DE MERCADO",
+    "latitud": "20.712168",
+    "longitud": "-103.976701",
+    "residente": 1,
+    "cuenta": 5,
+    "mapa": "",
+    "presupuesto": "200000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 4,
+  "fields": {
+    "estado": true,
+    "fc": "2025-06-21T15:32:50.058Z",
+    "fm": "2025-08-11T20:04:49.086Z",
+    "uc": 1,
+    "um": 1,
+    "nombre": "RECORDATO",
+    "ubicacion": "POR DEFINIR",
+    "latitud": "0.000000",
+    "longitud": "0.000000",
+    "residente": 1,
+    "cuenta": 6,
+    "mapa": "",
+    "presupuesto": "0.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 5,
+  "fields": {
+    "estado": true,
+    "fc": "2025-06-24T00:07:49.272Z",
+    "fm": "2025-08-11T20:03:02.166Z",
+    "uc": 1,
+    "um": 1,
+    "nombre": "MINA",
+    "ubicacion": "ETZATLAN",
+    "latitud": "0.000000",
+    "longitud": "0.000000",
+    "residente": 2,
+    "cuenta": 3,
+    "mapa": "",
+    "presupuesto": "0.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 6,
+  "fields": {
+    "estado": true,
+    "fc": "2025-06-24T00:08:50.530Z",
+    "fm": "2025-08-11T20:02:54.784Z",
+    "uc": 1,
+    "um": 1,
+    "nombre": "EL CERRITO",
+    "ubicacion": "AHUALULCO",
+    "latitud": "0.000000",
+    "longitud": "0.000000",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "0.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 7,
+  "fields": {
+    "estado": true,
+    "fc": "2025-06-24T00:14:14.888Z",
+    "fm": "2025-08-11T20:02:45.828Z",
+    "uc": 1,
+    "um": 1,
+    "nombre": "MIRAFLORES",
+    "ubicacion": "AHUALULCO",
+    "latitud": "0.000000",
+    "longitud": "0.000000",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "0.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 8,
+  "fields": {
+    "estado": true,
+    "fc": "2025-06-28T17:50:21.119Z",
+    "fm": "2025-06-28T17:50:21.119Z",
+    "uc": 1,
+    "um": null,
+    "nombre": "LA PIEDRA",
+    "ubicacion": "EL CARMEN",
+    "latitud": "2.000000",
+    "longitud": "3.000000",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "0.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 9,
+  "fields": {
+    "estado": true,
+    "fc": "2025-06-28T17:51:23.122Z",
+    "fm": "2025-08-11T20:02:38.458Z",
+    "uc": 1,
+    "um": 1,
+    "nombre": "CASA BLADI",
+    "ubicacion": "16 DE SEPTIEMBRE 270",
+    "latitud": "1.000000",
+    "longitud": "3.000000",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "0.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 10,
+  "fields": {
+    "estado": true,
+    "fc": "2025-07-23T16:28:39.278Z",
+    "fm": "2025-08-11T20:02:30.503Z",
+    "uc": 1,
+    "um": 1,
+    "nombre": "VALLARTA",
+    "ubicacion": "PUERTO  VALLARTA JALISCO",
+    "latitud": "200.000000",
+    "longitud": "200.000000",
+    "residente": 2,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "2000000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 11,
+  "fields": {
+    "estado": true,
+    "fc": "2025-07-28T17:26:40.314Z",
+    "fm": "2025-07-28T17:26:40.314Z",
+    "uc": 1,
+    "um": null,
+    "nombre": "SAN SABESTIÁN",
+    "ubicacion": "SAN SEBASTIÁN DEL OESTE",
+    "latitud": "12.000000",
+    "longitud": "11.000000",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "20000000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 12,
+  "fields": {
+    "estado": true,
+    "fc": "2025-07-29T14:52:04.078Z",
+    "fm": "2025-07-29T14:52:04.078Z",
+    "uc": 1,
+    "um": null,
+    "nombre": "LILIA LOTE",
+    "ubicacion": "SANTA PAULA 167",
+    "latitud": "12.000000",
+    "longitud": "111.000000",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "111.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 13,
+  "fields": {
+    "estado": true,
+    "fc": "2025-08-01T19:30:02.559Z",
+    "fm": "2025-10-25T15:57:54.240Z",
+    "uc": 1,
+    "um": 1,
+    "nombre": "CASA ELIZA",
+    "ubicacion": "SAN INGNACION",
+    "latitud": "12.000000",
+    "longitud": "121.000000",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "2000000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 14,
+  "fields": {
+    "estado": true,
+    "fc": "2025-08-08T18:06:24.619Z",
+    "fm": "2025-08-08T18:06:24.619Z",
+    "uc": 1,
+    "um": null,
+    "nombre": "LA MORITA",
+    "ubicacion": "EL CARMEN",
+    "latitud": "120.000000",
+    "longitud": "120.000000",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "20000000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 15,
+  "fields": {
+    "estado": true,
+    "fc": "2025-08-11T20:05:43.127Z",
+    "fm": "2025-08-11T20:05:43.127Z",
+    "uc": 1,
+    "um": null,
+    "nombre": "LA FLORESTA",
+    "ubicacion": "AHUALULCO",
+    "latitud": "222.000000",
+    "longitud": "222.000000",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "200000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 16,
+  "fields": {
+    "estado": true,
+    "fc": "2025-08-22T17:06:35.135Z",
+    "fm": "2025-08-22T17:06:35.135Z",
+    "uc": 1,
+    "um": null,
+    "nombre": "ETZATLAN",
+    "ubicacion": "ETZATLAN",
+    "latitud": "33.000000",
+    "longitud": "33.000000",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "200000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 17,
+  "fields": {
+    "estado": true,
+    "fc": "2025-09-06T14:53:20.544Z",
+    "fm": "2025-09-06T14:53:20.544Z",
+    "uc": 1,
+    "um": null,
+    "nombre": "HOGAR 8",
+    "ubicacion": "BARRIO LA FLORESTA",
+    "latitud": "1.000000",
+    "longitud": "1.000000",
+    "residente": 2,
+    "cuenta": 7,
+    "mapa": "",
+    "presupuesto": "400000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 18,
+  "fields": {
+    "estado": true,
+    "fc": "2025-09-25T19:43:46.613Z",
+    "fm": "2025-09-25T19:43:46.613Z",
+    "uc": 1,
+    "um": null,
+    "nombre": "LA ESTANCIA DE AYONES",
+    "ubicacion": "SAN JUANITO",
+    "latitud": "-0.000001",
+    "longitud": "-0.000001",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "200000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 21,
+  "fields": {
+    "estado": true,
+    "fc": "2025-10-25T15:59:04.989Z",
+    "fm": "2025-10-25T15:59:04.989Z",
+    "uc": 1,
+    "um": null,
+    "nombre": "SAN IGNACIO",
+    "ubicacion": "SAN INGNACIO",
+    "latitud": "-0.000002",
+    "longitud": "-0.000001",
+    "residente": 1,
+    "cuenta": 7,
+    "mapa": "",
+    "presupuesto": "200000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 22,
+  "fields": {
+    "estado": true,
+    "fc": "2025-11-01T17:55:52.615Z",
+    "fm": "2025-11-01T17:55:52.615Z",
+    "uc": 1,
+    "um": null,
+    "nombre": "CALLE VICENTE GUERRERO",
+    "ubicacion": "AHUALULCO",
+    "latitud": "-0.000001",
+    "longitud": "-0.000001",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "200000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 23,
+  "fields": {
+    "estado": true,
+    "fc": "2025-11-01T18:01:35.309Z",
+    "fm": "2025-11-01T18:01:35.309Z",
+    "uc": 1,
+    "um": null,
+    "nombre": "RANCHO ALEX",
+    "ubicacion": "AHUALULCO",
+    "latitud": "-0.000001",
+    "longitud": "-0.000001",
+    "residente": 1,
+    "cuenta": 2,
+    "mapa": "",
+    "presupuesto": "200000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 25,
+  "fields": {
+    "estado": true,
+    "fc": "2025-11-03T16:54:13.155Z",
+    "fm": "2025-11-15T20:12:16.998Z",
+    "uc": 1,
+    "um": 1,
+    "nombre": "EL MEDINEÑO",
+    "ubicacion": "TEQUILA",
+    "latitud": "-0.000001",
+    "longitud": "-0.000001",
+    "residente": 1,
+    "cuenta": 2,
+    "mapa": "",
+    "presupuesto": "200000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 26,
+  "fields": {
+    "estado": true,
+    "fc": "2025-11-06T20:05:28.579Z",
+    "fm": "2025-11-06T20:05:28.579Z",
+    "uc": 1,
+    "um": null,
+    "nombre": "SAN MARCOS",
+    "ubicacion": "JALISCO",
+    "latitud": "-0.000001",
+    "longitud": "-0.000001",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "200000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 27,
+  "fields": {
+    "estado": true,
+    "fc": "2025-11-06T20:06:10.841Z",
+    "fm": "2025-11-06T20:06:10.841Z",
+    "uc": 1,
+    "um": null,
+    "nombre": "CALLE OCAMPO",
+    "ubicacion": "AHUALULCO",
+    "latitud": "-0.000001",
+    "longitud": "-0.000001",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "200000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 28,
+  "fields": {
+    "estado": true,
+    "fc": "2025-11-06T20:06:45.304Z",
+    "fm": "2025-11-06T20:23:12.050Z",
+    "uc": 1,
+    "um": 15,
+    "nombre": "SANTISIMA TRINIDAD",
+    "ubicacion": "JALISCO",
+    "latitud": "-0.000001",
+    "longitud": "-0.000001",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "200000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 29,
+  "fields": {
+    "estado": true,
+    "fc": "2025-11-18T18:50:31.442Z",
+    "fm": "2025-11-18T18:50:31.442Z",
+    "uc": 1,
+    "um": null,
+    "nombre": "BODEGA JERRY",
+    "ubicacion": "AHUALULCO",
+    "latitud": "-0.000001",
+    "longitud": "-0.000001",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "200000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 30,
+  "fields": {
+    "estado": true,
+    "fc": "2025-12-11T18:27:19.629Z",
+    "fm": "2025-12-11T18:27:19.629Z",
+    "uc": 1,
+    "um": null,
+    "nombre": "SAN MARTIN",
+    "ubicacion": "SAN MARTIN",
+    "latitud": "221.999999",
+    "longitud": "221.999998",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "20000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 31,
+  "fields": {
+    "estado": true,
+    "fc": "2025-12-11T18:28:33.254Z",
+    "fm": "2025-12-11T18:28:33.254Z",
+    "uc": 1,
+    "um": null,
+    "nombre": "CIENEGA",
+    "ubicacion": "CIENEGA",
+    "latitud": "221.999999",
+    "longitud": "221.999999",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "200000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 32,
+  "fields": {
+    "estado": true,
+    "fc": "2025-12-11T19:10:37.012Z",
+    "fm": "2026-02-22T21:13:21.017Z",
+    "uc": 1,
+    "um": 1,
+    "nombre": "AMATITAN",
+    "ubicacion": "AMATITAN",
+    "latitud": "221.999999",
+    "longitud": "221.999999",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "2200000.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 33,
+  "fields": {
+    "estado": true,
+    "fc": "2025-12-20T15:52:32.705Z",
+    "fm": "2025-12-20T15:52:32.705Z",
+    "uc": 1,
+    "um": 1,
+    "nombre": "MAQUINARIA",
+    "ubicacion": "AHUALULCO",
+    "latitud": "0.000000",
+    "longitud": "0.000000",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "0.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 35,
+  "fields": {
+    "estado": true,
+    "fc": "2025-12-26T17:27:11.212Z",
+    "fm": "2025-12-26T17:27:11.212Z",
+    "uc": 1,
+    "um": 1,
+    "nombre": "GALEANA",
+    "ubicacion": "AHUALULCO",
+    "latitud": "20.673625",
+    "longitud": "-103.347819",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "0.00"
+  }
+},
+{
+  "model": "adm.proyecto",
+  "pk": 36,
+  "fields": {
+    "estado": true,
+    "fc": "2025-12-26T18:56:54.542Z",
+    "fm": "2025-12-26T18:56:54.542Z",
+    "uc": 1,
+    "um": 1,
+    "nombre": "ARENAL",
+    "ubicacion": "ARENAL JALISCO",
+    "latitud": "0.000000",
+    "longitud": "0.000000",
+    "residente": 1,
+    "cuenta": 1,
+    "mapa": "",
+    "presupuesto": "20000.00"
+  }
+}
+]

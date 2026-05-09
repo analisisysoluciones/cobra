@@ -11,9 +11,20 @@ from django.http import JsonResponse
 from bases.views import SinPrivilegios
 from django.db import transaction, IntegrityError
 from django.contrib.auth.decorators import login_required
+from django.views.generic import DetailView
+from django.utils.dateparse import parse_date
+from .services.equipo_360 import Equipo360Service
+from django.utils import timezone
+from django.contrib import messages
+from django.views.generic import CreateView
+from datetime import timedelta
+
+
+
+
 from .models import( Banco, Cuenta, Residente, Proyecto, TipoDocumento,
                     Simbologia, Equipo, Bitacora, RegistroCuenta, TipoPago, Pago, MovimientoCuenta, DocumentoGeneral,
-                    CargaCombustible, ReporteEquipo, PagoIndirecto
+                    CargaCombustible, ReporteEquipo, PagoIndirecto, OrdenServicio, ReporteEquipoPDA, MantenimientoEquipo
                     )
 
 from ventas.models import ProductoInmobiliario, Venta, Movimiento
@@ -24,7 +35,10 @@ from cxp.models import Proveedor, CompraEnc
 from .forms import( BancoForm, CuentaForm, ResidenteForm, TipoDocumentoForm, ProyectoForm, 
                    SimbologiaForm, PagoForm,
                    ReporteMovimientoForm, EquipoForm, BitacoraForm, TipoPagoForm, RegistroCuentaForm, DocumentoGeneralForm,
-                   CargaCombustibleForm, FiltroCombustibleForm, ReporteEquipoForm, PagoIndirectoForm)
+                   CargaCombustibleForm, FiltroCombustibleForm, ReporteEquipoForm, PagoIndirectoForm, FiltroReporteEquipoForm,
+                   OrdenServicioForm, MantenimientoEquipoForm
+
+                   )
 
 from xhtml2pdf import pisa
 from django.http import HttpResponse
@@ -42,7 +56,7 @@ import uuid
 from django.utils.timezone import now
 from io import BytesIO
 from django.http import FileResponse
-from datetime import timedelta, datetime, date
+from datetime import timedelta, datetime, date, time
 from io import BytesIO
 from decimal import Decimal
 from reportlab.lib.pagesizes import letter, legal, landscape
@@ -55,6 +69,151 @@ from reportlab.pdfbase import pdfmetrics
 from django.utils.formats import number_format
 from django.utils.dateparse import parse_date
 from django.db.models import Count, Sum, Q
+import platform
+from io import BytesIO
+from django.urls import reverse_lazy
+from django.views.generic import CreateView, ListView
+from decimal import Decimal
+
+from decimal import Decimal
+from datetime import datetime, time
+from django.utils import timezone
+
+
+def parse_fecha(valor):
+    if not valor:
+        return None
+    return datetime.strptime(valor, "%Y-%m-%d").date()
+
+
+def normalizar_fecha(valor):
+    if isinstance(valor, datetime):
+        if timezone.is_naive(valor):
+            return timezone.make_aware(valor)
+        return valor
+    return timezone.make_aware(datetime.combine(valor, time.min))
+
+
+def to_decimal(valor):
+    if valor is None:
+        return Decimal("0.00")
+    return Decimal(str(valor))
+
+
+def get_reporte_360_equipo(equipo, request):
+
+    fecha_inicio = parse_fecha(request.GET.get("fecha_inicio"))
+    fecha_fin = parse_fecha(request.GET.get("fecha_fin"))
+
+    eventos = []
+
+    # ------------------------
+    # OPERACIÓN
+    # ------------------------
+    qs_op = ReporteEquipoPDA.objects.filter(equipo=equipo)
+
+    if fecha_inicio:
+        qs_op = qs_op.filter(inicio__date__gte=fecha_inicio)
+
+    if fecha_fin:
+        qs_op = qs_op.filter(inicio__date__lte=fecha_fin)
+
+    for r in qs_op:
+        eventos.append({
+            "tipo": "OPERACION",
+            "fecha": normalizar_fecha(r.inicio),
+            "descripcion": f"Uso por {r.usuario}",
+            "horas": to_decimal(r.horas),
+            "costo": Decimal("0.00"),
+        })
+
+    # ------------------------
+    # MANTENIMIENTO
+    # ------------------------
+    qs_m = MantenimientoEquipo.objects.filter(equipo=equipo)
+
+    if fecha_inicio:
+        qs_m = qs_m.filter(fecha__gte=fecha_inicio)
+
+    if fecha_fin:
+        qs_m = qs_m.filter(fecha__lte=fecha_fin)
+
+    for m in qs_m:
+        eventos.append({
+            "tipo": "MANTENIMIENTO",
+            "fecha": normalizar_fecha(m.fecha),
+            "descripcion": m.descripcion,
+            "horas": Decimal("0.00"),
+            "costo": to_decimal(m.costo),
+        })
+
+    # ------------------------
+    # SERVICIO
+    # ------------------------
+    qs_s = OrdenServicio.objects.filter(equipo=equipo)
+
+    if fecha_inicio:
+        qs_s = qs_s.filter(fecha__gte=fecha_inicio)
+
+    if fecha_fin:
+        qs_s = qs_s.filter(fecha__lte=fecha_fin)
+
+    for s in qs_s:
+        eventos.append({
+            "tipo": "SERVICIO",
+            "fecha": normalizar_fecha(s.fecha),
+            "descripcion": s.descripcion_falla,
+            "horas": Decimal("0.00"),
+            "costo": to_decimal(s.costo),
+        })
+
+    # ------------------------
+    # ORDENAR
+    # ------------------------
+    eventos.sort(key=lambda x: x["fecha"], reverse=True)
+
+    # ------------------------
+    # TOTALES
+    # ------------------------
+    total_horas = sum((e["horas"] for e in eventos), Decimal("0.00"))
+    total_costos = sum((e["costo"] for e in eventos), Decimal("0.00"))
+
+    return {
+        "eventos": eventos,
+        "total_horas": total_horas,
+        "total_costos": total_costos,
+        "costo_por_hora": total_costos / total_horas if total_horas else Decimal("0.00")
+    }
+
+
+
+def generarc_pdf(html_string):
+    """
+    Recibe SOLO html_string (SafeString o str).
+    No usa request. No debe llamar GET, POST, request, etc.
+    """
+    sistema = platform.system()
+
+    # Linux → WeasyPrint
+    if sistema == "Linux":
+        try:
+            from weasyprint import HTML
+            pdf_bytes = HTML(string=html_string).write_pdf()
+            return pdf_bytes
+        except Exception as e:
+            print("ERROR WeasyPrint:", e)
+            return None
+
+    # Windows → xhtml2pdf
+    else:
+        try:
+            from xhtml2pdf import pisa
+            result = BytesIO()
+            pisa.CreatePDF(html_string, dest=result)
+            return result.getvalue()
+        except Exception as e:
+            print("ERROR Xhtml2pdf:", e)
+            return None
 
 
 
@@ -205,10 +364,14 @@ class ProyectoNew(SuccessMessageMixin, LoginRequiredMixin, generic.CreateView):
         context = super().get_context_data(**kwargs)
         context['residentes'] = Residente.objects.all()
         context['cuentas'] = Cuenta.objects.all()
+        context['residentes'] = Residente.objects.all()
+        context['bancos'] = Banco.objects.all()
         return context
     
+        
     def form_valid(self, form):
         form.instance.uc = self.request.user
+        form.instance.um = self.request.user.id
         return super().form_valid(form)
 
 
@@ -224,6 +387,7 @@ class ProyectoEdit(SuccessMessageMixin, LoginRequiredMixin, generic.UpdateView):
         context['obj'] = self.object
         context['residentes'] = Residente.objects.all()  # Asegúrate de que esto obtenga todos los residentes
         context['cuentas'] = Cuenta.objects.all()        # Asegúrate de que esto obtenga todas las cuentas
+        context['bancos'] = Banco.objects.all()
         return context
     
     def form_valid(self, form):
@@ -238,6 +402,69 @@ class ProyectoDel(LoginRequiredMixin, generic.DeleteView):
     template_name = "adm/proyecto_list.html"
     context_object_name = "proyectos"
     login_url = "bases:login"
+
+
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+
+
+@login_required
+@require_POST
+@transaction.atomic
+def crear_cuenta_ajax(request):
+
+    try:
+
+        banco_id = request.POST.get("banco")
+        cuenta_txt = request.POST.get("cuenta")
+        clabe = request.POST.get("clabe")
+        saldo = request.POST.get("saldo") or 0
+
+        if Cuenta.objects.filter(cuenta=cuenta_txt).exists():
+
+            return JsonResponse({
+                "ok": False,
+                "error": "La cuenta ya existe"
+            })
+
+        if Cuenta.objects.filter(clabe=clabe).exists():
+
+            return JsonResponse({
+                "ok": False,
+                "error": "La CLABE ya existe"
+            })
+
+        banco = Banco.objects.get(id=banco_id)
+
+        cuenta = Cuenta.objects.create(
+            banco=banco,
+            cuenta=cuenta_txt,
+            clabe=clabe,
+            saldo_inicial=saldo,
+            saldo_actual=saldo,
+            tipo_cuenta='Proyecto',
+            uc=request.user,
+            um=request.user.id,
+            estado=True
+        )
+
+        return JsonResponse({
+
+            "ok": True,
+            "id": cuenta.id,
+            "texto": f"{cuenta.banco.nombre} - {cuenta.cuenta}"
+
+        })
+
+    except Exception as e:
+
+        return JsonResponse({
+            "ok": False,
+            "error": str(e)
+        })
 
 
 
@@ -363,6 +590,29 @@ class EquipoListView(LoginRequiredMixin, PermissionRequiredMixin, generic.ListVi
     template_name = 'adm/equipo_list.html'
     context_object_name = 'equipos'
 
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        q = self.request.GET.get('q')
+        orden = self.request.GET.get('orden')
+
+        # 🔍 filtro búsqueda
+        if q:
+            queryset = queryset.filter(
+                Q(identificador__icontains=q) |
+                Q(descripcion__icontains=q)
+            )
+
+        # 🔽 orden dinámico
+        if orden in ["identificador", "-identificador", "descripcion", "-descripcion"]:
+            queryset = queryset.order_by(orden)
+        else:
+            queryset = queryset.order_by("descripcion")  # default
+
+        return queryset
+
+        
 class EquipoCreateView(LoginRequiredMixin, generic.CreateView):
     model = Equipo
     form_class = EquipoForm
@@ -1263,7 +1513,9 @@ class CargaCombustibleListView(LoginRequiredMixin, PermissionRequiredMixin, gene
     model = CargaCombustible
     template_name = 'adm/cargacombustible_list.html'
     context_object_name = 'cargas'
-
+    ordering = ['-fc', '-id']
+    
+    
 class CargaCombustibleCreateView(LoginRequiredMixin, PermissionRequiredMixin, generic.CreateView):
     permission_required = 'adm.add_cargacombustible'
     model = CargaCombustible
@@ -1304,7 +1556,11 @@ class CargaCombustibleDeleteView(LoginRequiredMixin, PermissionRequiredMixin, ge
 
 def reporte_carga_combustible(request):
     form = FiltroCombustibleForm(request.GET or None)
-    cargas = CargaCombustible.objects.select_related('equipo')
+
+    # 👇 Incluimos 'uc' para traer el usuario que capturó
+    cargas = CargaCombustible.objects.select_related(
+        'equipo', 'proyecto', 'uc'
+    )
 
     if form.is_valid():
         fecha_inicio = form.cleaned_data.get('fecha_inicio')
@@ -1316,71 +1572,106 @@ def reporte_carga_combustible(request):
         if tipo_combustible:
             cargas = cargas.filter(tipo_combustible=tipo_combustible)
 
-
         if fecha_inicio and fecha_fin:
-            cargas = cargas.filter(fecha_carga__range=(fecha_inicio, fecha_fin))
+            cargas = cargas.filter(
+                fecha_carga__range=(fecha_inicio, fecha_fin)
+            )
+
         if equipo:
             cargas = cargas.filter(equipo=equipo)
+
         if operador:
             cargas = cargas.filter(operador__icontains=operador)
 
-    # Totales
-    total_litros = cargas.aggregate(total=Sum('cantidad_litros'))['total'] or 0
-    total_costo = cargas.aggregate(total=Sum('costo_total'))['total'] or 0
+    total_litros = cargas.aggregate(
+        total=Sum('cantidad_litros')
+    )['total'] or 0
 
-    # Exportación
+    total_costo = cargas.aggregate(
+        total=Sum('costo_total')
+    )['total'] or 0
+
     export_format = request.GET.get('export')
 
+    # =====================================================
+    # EXPORTACIÓN A EXCEL
+    # =====================================================
     if export_format == 'excel':
         wb = Workbook()
         ws = wb.active
         ws.title = "Reporte Combustible"
 
         ws.append([
-            'Fecha', 'Equipo', 'Tipo Combustible', 'Litros', 'Costo Total',
-            'Odómetro', 'Operador', 'Hora', 'Observaciones'
+            'Fecha', 'Proyecto', 'Equipo', 'Tipo Combustible',
+            'Litros', 'Costo Total', 'Odómetro', 'Operador',
+            'Usuario', 'Hora', 'Observaciones'
         ])
 
         for carga in cargas:
             ws.append([
                 carga.fecha_carga.strftime('%Y-%m-%d'),
+                str(carga.proyecto) if carga.proyecto else '',
                 str(carga.equipo),
                 carga.get_tipo_combustible_display(),
                 float(carga.cantidad_litros),
                 float(carga.costo_total),
                 carga.odometro or '',
                 carga.operador or '',
+                carga.uc.username if carga.uc else '',
                 carga.hora or '',
                 carga.observaciones or ''
             ])
 
-        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename=reporte_combustible.xlsx'
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = (
+            'attachment; filename=reporte_combustible.xlsx'
+        )
         wb.save(response)
         return response
 
+    # =====================================================
+    # EXPORTACIÓN A PDF
+    # =====================================================
     elif export_format == 'pdf':
-        html = render_to_string('adm/reporte_combustible_pdf.html', {
+        html = render_to_string(
+            'adm/reporte_combustible_pdf.html',
+            {
+                'cargas': cargas,
+                'total_litros': total_litros,
+                'total_costo': total_costo,
+            }
+        )
+
+        pdf_bytes = generarc_pdf(html)
+        if not pdf_bytes:
+            return HttpResponse(
+                "Error al generar PDF", status=500
+            )
+
+        response = HttpResponse(
+            pdf_bytes,
+            content_type='application/pdf'
+        )
+        response['Content-Disposition'] = (
+            'inline; filename="reporte_combustible.pdf"'
+        )
+        return response
+
+    # =====================================================
+    # VISTA NORMAL (HTML)
+    # =====================================================
+    return render(
+        request,
+        'adm/reporte_combustible.html',
+        {
+            'form': form,
             'cargas': cargas,
             'total_litros': total_litros,
             'total_costo': total_costo,
-        })
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'inline; filename="reporte_combustible.pdf"'
-
-        pisa_status = pisa.CreatePDF(html, dest=response)
-        if pisa_status.err:
-            return HttpResponse('Error al generar el PDF', status=500)
-        return response
-
-    # Vista normal en HTML
-    return render(request, 'adm/reporte_combustible.html', {
-        'form': form,
-        'cargas': cargas,
-        'total_litros': total_litros,
-        'total_costo': total_costo,
-    })
-
+        }
+    )
 
 # Vista para listar todos los reportes de equipo
 class ReporteEquipoListView(generic.ListView):
@@ -1524,3 +1815,363 @@ class PagoIndirectoAfectarView(LoginRequiredMixin, PermissionRequiredMixin, gene
             messages.error(self.request, f"❌ Error inesperado: {str(e)}")
         
         return redirect('adm:pagoindirecto_list')
+
+
+def limpio(valor):
+    return valor not in [None, "", "None"]
+
+from django.templatetags.static import static
+
+def reporte_equipo_view(request):
+    form = FiltroReporteEquipoForm(request.GET or None)
+    resultados = filtrar_reporte_equipo(request)
+    totales = calcular_totales_y_promedios(resultados)
+
+    return render(request, "adm/reporte_equipo.html", {
+        "form": form,
+        "resultados": resultados,
+        "totales": totales,
+    })
+
+from django.template.loader import get_template
+from django.http import HttpResponse
+from xhtml2pdf import pisa
+from io import BytesIO
+from openpyxl import Workbook
+
+
+
+from django.template.loader import get_template
+from django.http import HttpResponse
+from xhtml2pdf import pisa
+from io import BytesIO
+
+import os
+from django.conf import settings
+from django.templatetags.static import static
+
+def link_callback(uri, rel):
+    # Convertir URLs estáticas a rutas de archivo absolutas
+    if uri.startswith(settings.STATIC_URL):
+        path = os.path.join(settings.STATIC_ROOT, uri.replace(settings.STATIC_URL, ""))
+    elif uri.startswith(settings.MEDIA_URL):
+        path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, ""))
+    else:
+        return uri
+
+    if not os.path.isfile(path):
+        raise Exception(f"Archivo no encontrado: {path}")
+    return path
+
+def render_to_pdf(template_src, context_dict):
+    template = get_template(template_src)
+    html = template.render(context_dict).encode("utf-8")
+    result = BytesIO()
+
+    pisa_status = pisa.CreatePDF(
+        html,
+        dest=result,
+        encoding='utf-8',
+        link_callback=link_callback
+    )
+
+    if pisa_status.err:
+        return None
+
+    return result.getvalue()
+
+
+
+
+def reporte_equipo_pdf(request):
+    resultados = filtrar_reporte_equipo(request)
+    totales = calcular_totales_y_promedios(resultados)
+
+    context = {
+        "resultados": resultados,
+        "totales": totales,
+        "empresa": "CREDO CONSTRUCCIÓN",
+        "logo_path": settings.STATIC_URL + "base/inemo.png",
+    }
+
+    pdf = render_to_pdf("adm/reporte_equipo_pdf.html", context)
+
+    if pdf:
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = "inline; filename=reporte_equipo.pdf"
+        return response
+
+    return HttpResponse("Error al generar PDF")
+from openpyxl import Workbook
+
+def reporte_equipo_excel(request):
+    resultados = filtrar_reporte_equipo(request)
+    totales = calcular_totales_y_promedios(resultados)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Reporte Equipo"
+
+    headers = [
+        "Fecha", "Proyecto", "Equipo", "Operador", "Actividad",
+        "Horas", "Diesel Cargado", "Diesel Restante", "Fallas", "Observaciones"
+    ]
+    ws.append(headers)
+
+    for r in resultados:
+        ws.append([
+            r.fecha.strftime("%Y-%m-%d") if r.fecha else "",
+            str(r.Proyecto) if r.Proyecto else "",
+            str(r.equipo) if r.equipo else "",
+            r.operador or "",
+            r.actividad or "",
+            r.horas or "",
+            r.diesel_carga or "",
+            r.diesel_resta or "",
+            r.fallas or "",
+            r.observa or "",
+        ])
+
+def calcular_totales_y_promedios(resultados):
+    total_horas = 0
+    total_diesel_cargado = 0
+    total_diesel_restante = 0
+
+    count = resultados.count()
+
+    for r in resultados:
+        # Horas
+        try:
+            total_horas += float(r.horas)
+        except:
+            pass
+
+        # Diesel cargado
+        try:
+            total_diesel_cargado += float(r.diesel_carga)
+        except:
+            pass
+
+        # Diesel restante
+        try:
+            total_diesel_restante += float(r.diesel_resta)
+        except:
+            pass
+
+    if count > 0:
+        promedio_horas = total_horas / count
+        promedio_diesel = total_diesel_cargado / count
+    else:
+        promedio_horas = 0
+        promedio_diesel = 0
+
+    return {
+        "horas": total_horas,
+        "diesel_cargado": total_diesel_cargado,
+        "diesel_restante": total_diesel_restante,
+        "promedio_horas": promedio_horas,
+        "promedio_diesel": promedio_diesel,
+    }
+
+
+
+# operacion/views/orden_servicio.py
+
+class OrdenServicioListView(ListView):
+    model = OrdenServicio
+    template_name = 'adm/orden_servicio_list.html'
+    context_object_name = 'ordenes'
+
+
+
+
+class OrdenServicioCreateView(CreateView):
+    model = OrdenServicio
+    form_class = OrdenServicioForm
+    template_name = 'adm/orden_servicio_form.html'
+    success_url = reverse_lazy('adm:orden_servicio_list')
+
+    def form_invalid(self, form):
+
+        for err in form.non_field_errors():
+            messages.warning(self.request, err)
+
+        return super().form_invalid(form)
+
+    def form_valid(self, form):
+
+        hace_10s = timezone.now() - timedelta(seconds=10)
+
+        equipo = form.cleaned_data["equipo"]
+        proveedor = form.cleaned_data["proveedor"]
+        descripcion = form.cleaned_data["descripcion_falla"].strip()
+
+        existe = OrdenServicio.objects.filter(
+            equipo=equipo,
+            proveedor=proveedor,
+            descripcion_falla__iexact=descripcion,
+            creado__gte=hace_10s
+        ).exists()
+
+        if existe:
+            form.add_error(
+                None,
+                "Posible orden duplicada detectada en los últimos segundos."
+            )
+            messages.warning(self.request, "Duplicado detectado.")
+            return self.form_invalid(form)
+
+        form.instance.uc = self.request.user
+        form.instance.um = self.request.user.id
+
+        messages.success(
+            self.request,
+            "Orden de servicio creada correctamente."
+        )
+
+        return super().form_valid(form)    
+
+
+
+class Equipo360View(DetailView):
+    model = Equipo
+    template_name = "adm/equipo_360.html"
+    context_object_name = "equipo"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(get_reporte_360_equipo(equipo=self.object, request=self.request))
+        return context
+
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+
+    #     equipo = self.object
+
+    #     # Fechas desde GET
+    #     fecha_inicio = self.request.GET.get("fecha_inicio")
+    #     fecha_fin = self.request.GET.get("fecha_fin")
+
+    #     fecha_inicio = parse_date(fecha_inicio) if fecha_inicio else None
+    #     fecha_fin = parse_date(fecha_fin) if fecha_fin else None
+
+    #     # 🔥 Llamada al servicio
+    #     data = Equipo360Service.obtener_reporte_360(
+    #         equipo=equipo,
+    #         fecha_inicio=fecha_inicio,
+    #         fecha_fin=fecha_fin
+    #     )
+
+    #     context.update(data)
+
+    #     return context
+   
+
+
+def filtrar_reporte_equipo(request):
+    form = FiltroReporteEquipoForm(request.GET or None)
+    resultados = ReporteEquipo.objects.all()
+
+    if form.is_valid():
+        fecha_inicio = form.cleaned_data.get("fecha_inicio")
+        fecha_fin = form.cleaned_data.get("fecha_fin")
+        proyecto = form.cleaned_data.get("proyecto")
+        equipo = form.cleaned_data.get("equipo")
+
+        if fecha_inicio:
+            resultados = resultados.filter(fecha__gte=fecha_inicio)
+
+        if fecha_fin:
+            resultados = resultados.filter(fecha__lte=fecha_fin)
+
+        if proyecto:
+            resultados = resultados.filter(Proyecto=proyecto)
+
+        if equipo:
+            resultados = resultados.filter(equipo=equipo)
+
+    return resultados.order_by("-fecha")        
+
+
+
+# views.py
+
+
+@login_required
+def reporte_pda(request):
+
+    equipos = Equipo.objects.filter(estado=True)
+
+    abierto = ReporteEquipoPDA.objects.filter(
+        usuario=request.user,
+        fin__isnull=True
+    ).last()
+
+    if request.method == 'POST':
+        accion = request.POST.get('accion')
+
+        if accion == 'inicio':
+
+            if abierto:
+                return render(request, 'pda/reporte.html', {
+                    'equipos': equipos,
+                    'reporte_abierto': abierto,
+                    'error': 'Ya tienes un reporte abierto'
+                })
+
+            ReporteEquipoPDA.objects.create(
+                equipo_id=request.POST.get('equipo'),
+                usuario=request.user,
+                inicio=timezone.now(),
+                foto_inicio=request.FILES.get('foto_inicio'),
+            )
+
+        elif accion == 'fin':
+
+            if not abierto:
+                return render(request, 'pda/reporte.html', {
+                    'equipos': equipos,
+                    'reporte_abierto': None,
+                    'error': 'No tienes reporte activo'
+                })
+
+            abierto.fin = timezone.now()
+            
+            abierto.foto_fin = request.FILES.get('foto_fin')
+            abierto.save()
+
+        return redirect('adm:reporte_pda')  # 👈 usa namespace
+
+    # ✅ ESTE RETURN VA DENTRO DEL DEF
+    return render(request, 'pda/reporte.html', {
+        'equipos': equipos,
+        'reporte_abierto': abierto
+    })
+
+
+
+
+class MantenimientoEquipoListView(LoginRequiredMixin, generic.ListView):
+    model = MantenimientoEquipo
+    template_name = 'adm/mantenimiento_list.html'
+    context_object_name = 'mantenimientos'
+
+
+class MantenimientoEquipoCreateView(LoginRequiredMixin, generic.CreateView):
+    model = MantenimientoEquipo
+    form_class = MantenimientoEquipoForm
+    template_name = 'adm/mantenimiento_form.html'
+    success_url = reverse_lazy('adm:mantenimiento_list')
+
+
+class MantenimientoEquipoUpdateView(LoginRequiredMixin, generic.UpdateView):
+    model = MantenimientoEquipo
+    form_class = MantenimientoEquipoForm
+    template_name = 'adm/mantenimiento_form.html'
+    success_url = reverse_lazy('adm:mantenimiento_list')
+
+
+class MantenimientoEquipoDeleteView(LoginRequiredMixin, generic.DeleteView):
+    model = MantenimientoEquipo
+    template_name = 'adm/mantenimiento_confirm_delete.html'
+    success_url = reverse_lazy('adm:mantenimiento_list')

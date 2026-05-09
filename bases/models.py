@@ -11,7 +11,7 @@ class ClaseModelo(models.Model):
       estado = models.BooleanField(default=True)
       fc = models.DateTimeField(auto_now_add=True)
       fm = models.DateTimeField(auto_now=True)
-      uc = models.ForeignKey(User, on_delete=models.CASCADE)
+      uc = models.ForeignKey(User, on_delete=models.CASCADE,related_name="%(class)s_creado_por")
       um = models.IntegerField(blank=True,null=True)
 
       class Meta:
@@ -29,8 +29,8 @@ class Folios(models.Model):
         verbose_name_plural = "Folios"
 
     def __str__(self):
-        return f"{self.tipo_documento.tipo} - {self.anio} - {self.consecutivo:04d}"
-
+        return f"{self.tipo_documento} - {self.anio} - {self.consecutivo:04d}"
+    
     def next_consecutivo(self):
         """Incrementa y retorna el próximo consecutivo, asegurando unicidad."""
         from cxp.models import CompraEnc

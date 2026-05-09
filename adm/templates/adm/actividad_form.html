@@ -1,0 +1,41 @@
+{% extends "base/base.html" %}
+{% block page_content %}
+
+<div class="card">
+    <div class="card-header">
+        <h5>Actividad</h5>
+    </div>
+
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>Nombre</label>
+                {{ form.nombre }}
+            </div>
+
+            <div class="form-group">
+                <label>Tipo</label>
+                {{ form.tipo }}
+            </div>
+
+            <div class="form-group">
+                <label>Tipos de Equipo</label>
+                {{ form.tipos_equipo }}
+            </div>
+
+            <div class="form-check">
+                {{ form.activo }} Activo
+            </div>
+
+            <br>
+
+            <button type="submit" class="btn btn-success">Guardar</button>
+            <a href="{% url 'adm:actividad_list' %}" class="btn btn-secondary">Cancelar</a>
+
+        </form>
+    </div>
+</div>
+
+{% endblock %}

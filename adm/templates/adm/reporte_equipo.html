@@ -1,0 +1,183 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block titulo %}Reporte de Equipo{% endblock %}
+
+{% block page_content %}
+
+<!-- Encabezado -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Reporte de Equipo</h1>
+    
+</div>
+
+<!-- Filtros -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3 bg-primary">
+        <h6 class="m-0 font-weight-bold text-white">Filtros del Reporte</h6>
+    </div>
+
+    <div class="card-body">
+        <form method="GET" class="row">
+
+            <!-- Fecha Inicio -->
+            <div class="form-group col-md-3">
+                <label for="id_fecha_inicio">Fecha Inicio</label>
+                <input type="date" name="fecha_inicio" id="id_fecha_inicio"
+                       class="form-control"
+                       value="{{ request.GET.fecha_inicio }}">
+            </div>
+
+            <!-- Fecha Fin -->
+            <div class="form-group col-md-3">
+                <label for="id_fecha_fin">Fecha Fin</label>
+                <input type="date" name="fecha_fin" id="id_fecha_fin"
+                       class="form-control"
+                       value="{{ request.GET.fecha_fin }}">
+            </div>
+
+            <!-- Proyecto -->
+            <div class="form-group col-md-3">
+                <label for="id_proyecto">Proyecto</label>
+                <select name="proyecto" id="id_proyecto" class="form-control">
+                    <option value="">Todos</option>
+                    {% for p in form.fields.proyecto.queryset %}
+                        <option value="{{ p.id }}"
+                        {% if request.GET.proyecto == p.id|stringformat:"s" %}selected{% endif %}>
+                            {{ p }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Equipo -->
+            <div class="form-group col-md-3">
+                <label for="id_equipo">Equipo</label>
+                <select name="equipo" id="id_equipo" class="form-control">
+                    <option value="">Todos</option>
+                    {% for e in form.fields.equipo.queryset %}
+                        <option value="{{ e.id }}"
+                        {% if request.GET.equipo == e.id|stringformat:"s" %}selected{% endif %}>
+                            {{ e }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Botón Filtrar -->
+            <div class="form-group col-md-12 text-right mt-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Filtrar
+                </button>
+            </div>
+
+            
+            
+            
+
+        </form>
+    </div>
+</div>
+
+<!-- Resultados -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3 bg-success">
+        <h6 class="m-0 font-weight-bold text-white">Resultados del Reporte</h6>
+    </div>
+
+    <div class="card-body">
+        <div class="mb-3 text-right">
+    <a href="{% url 'adm:reporte_equipo_pdf' %}?{{ request.GET.urlencode }}" 
+   class="btn btn-danger" target="_blank">
+   PDF
+   </a>
+    <a href="{% url 'adm:reporte_equipo_excel' %}?{{ request.GET.urlencode }}" 
+   class="btn btn-success">
+   Excel
+   </a>
+</div>
+
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover" width="100%" cellspacing="0">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Proyecto</th>
+                        <th>Equipo</th>
+                        <th>Operador</th>
+                        <th>Actividad</th>
+                        <th>Horas</th>
+                        <th>Diesel Cargado</th>
+                        <th>Diesel Restante</th>
+                        <th>Fallas</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+
+            <tbody>
+                {% for r in resultados %}
+                <tr>
+                    <td>{{ r.fecha }}</td>
+                    <td>{{ r.Proyecto }}</td>
+                    <td>{{ r.equipo }}</td>
+                    <td>{{ r.operador }}</td>
+                    <td>{{ r.actividad }}</td>
+                    <td>{{ r.horas }}</td>
+                    <td>{{ r.diesel_carga }}</td>
+                    <td>{{ r.diesel_resta }}</td>
+                    <td>{{ r.fallas }}</td>
+                    <td>{{ r.observa }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" class="text-center text-danger">
+                        No se encontraron resultados con los filtros aplicados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+
+
+            </table>
+   <hr>
+
+<h3>Totales</h3>
+<table>
+    <tr>
+        <td><b>Total Horas</b></td>
+        <td>{{ totales.horas }}</td>
+    </tr>
+    <tr>
+        <td><b>Total Diesel Cargado</b></td>
+        <td>{{ totales.diesel_cargado }} L</td>
+    </tr>
+    <tr>
+        <td><b>Total Diesel Restante</b></td>
+        <td>{{ totales.diesel_restante }} L</td>
+    </tr>
+</table>
+
+<br>
+
+<h3>Promedios</h3>
+<table>
+    <tr>
+        <td><b>Promedio Horas</b></td>
+        <td>{{ totales.promedio_horas|floatformat:2 }}</td>
+    </tr>
+    <tr>
+        <td><b>Promedio Diesel Cargado</b></td>
+        <td>{{ totales.promedio_diesel|floatformat:2 }} L</td>
+    </tr>
+</table>
+
+
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

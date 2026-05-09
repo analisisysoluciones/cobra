@@ -1,19 +1,18 @@
 from django.db import models
 from django.contrib.auth.models import User
 from bases.models import ClaseModelo, Folios
-from cxp.models import CompraEnc
+from cxp.models import CompraEnc, Proveedor
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import transaction, models
 from decimal import Decimal
 import re
 from django.utils import timezone
 from datetime import date, timedelta
 from django.apps import apps
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Q, UniqueConstraint
 from django.core.validators import FileExtensionValidator
-
-
-
+from django.contrib.postgres.indexes import GinIndex
+from django.conf import settings
 
 # Create your models here.
 
@@ -143,21 +142,53 @@ class Proyecto(ClaseModelo):
         verbose_name = "Proyecto"
         verbose_name_plural = "Proyectos"
 
-        
+class TipoEquipo(models.Model):
+    nombre = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.nombre     
+
+
 class Equipo(ClaseModelo):
     identificador = models.IntegerField('Identificador',unique=True,default=0)
     descripcion = models.CharField('Descripcion',max_length=60,blank=False,null=False,default='Unidad')
-    modelo=models.IntegerField('Modelo',blank=False,null=False,default=0)
+    modelo=models.CharField('Modelo',max_length=20,blank=False,null=False,default=0)
     placas=models.CharField('Placas',max_length=10,blank=True,null=True,default='S/P')
-        
-    def __str__(self):
-        return f"{self.descripcion} (Placas: {self.placas})" 
+    tipo_equipo = models.ForeignKey(
+        TipoEquipo,
+        on_delete=models.PROTECT, null=True, blank=True
+    )
 
+    # 👇 clave para lo que descubriste hoy
+    TIPO_CONTROL = (
+        ("HORAS", "Por horas (hodómetro)"),
+        ("KM", "Por kilometraje"),
+        ("GPS", "Por GPS"),
+    )
+    tipo_control = models.CharField(max_length=10, choices=TIPO_CONTROL, null=True, blank=True, default="KM")
+
+    TIPO_EQUIPO = [
+    ("PESADO", "Pesado"),
+    ("LIGERO", "Ligero"),
+    ("VEHICULO", "Vehículo"),
+    ]
+
+    tipo = models.CharField(
+        max_length=10,
+        choices=TIPO_EQUIPO,
+        default="LIGERO"
+    )
+
+    def __str__(self):
+        return f"{self.descripcion} ({self.placas})"
         
-    def save(self):
+            
+    def save(self, *args, **kwargs):
+        if self.modelo:
+            self.modelo = self.modelo.upper().strip()
         self.descripcion = self.descripcion.upper()
         self.placas = self.placas.upper()
-        super(Equipo, self).save()
+        super().save(*args, **kwargs)
     
     class Meta:
         verbose_name = 'Maquinaria y equipo'
@@ -361,13 +392,71 @@ class CargaCombustible(ClaseModelo):
         blank=True,
         null=True
     )
+    operador = models.CharField(max_length=80,null=True,blank=True)
 
-    operador = models.CharField('Operador:',max_length=80, blank=True,null=True)
-    hora = models.CharField('Hora:',max_length=5, blank=True, null=True)
-    folio = models.IntegerField('Folio:',blank=True,null=True)
+    operador_fk = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL,related_name='cargas_operadas')
+
+    hora = models.TimeField(null=True, blank=True)
+    folio = models.CharField(
+        "Folio del ticket",
+        max_length=30,
+        null=True,
+        blank=True
+    )
+    proyecto = models.ForeignKey(Proyecto,on_delete=models.CASCADE, null=True, blank=True)
+    foto = models.ImageField(
+        upload_to='combustible/',
+        blank=True,
+        null=True
+    )
+    gasolinera = models.CharField(max_length=120, blank=True, null=True)
+
+    tanque_lleno = models.BooleanField(default=False)
+
+    precio_litro = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        blank=True,
+        null=True
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.pk:  # Solo al crear (no al editar)
+            # Hora actual en zona horaria de México
+            now_mx = timezone.now().astimezone(timezone.get_current_timezone())
+            self.folio = self.folio.strip().upper()
+            self.hora = now_mx.time()  # solo la parte de hora:minuto:segundo
+
+        super().save(*args, **kwargs)
+
+
 
     def __str__(self):
         return f"{self.get_tipo_combustible_display()} - {self.equipo} - {self.fecha_carga}"
+    
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=['equipo', 'fecha_carga', 'folio'],
+                condition=Q(folio__isnull=False),
+                name='unique_folio_por_equipo_fecha'
+            )
+        ]
+        ordering = ['-fecha_carga', '-id']
+        indexes = [
+
+            # Índices simples (altamente recomendados)
+            models.Index(fields=['fecha_carga']),
+            models.Index(fields=['equipo']),
+            models.Index(fields=['proyecto']),
+            models.Index(fields=['tipo_combustible']),
+
+            # Índices compuestos para reportes rápidos
+            models.Index(fields=['fecha_carga', 'equipo']),
+            models.Index(fields=['proyecto', 'fecha_carga']),
+
+            
+        ]
     
     
 
@@ -462,3 +551,232 @@ class PagoIndirecto(ClaseModelo):
 
     def __str__(self):
         return f"{self.proyecto.nombre} - {self.descripcion} - ${self.monto} ({self.get_estatus_display()}) - Folio: {self.folio_documento or 'Sin folio'}"
+
+
+# operacion/models/orden_servicio.py
+
+
+class OrdenServicio(ClaseModelo):
+
+    TIPO_SERVICIO = (
+        ('PRE', 'Preventivo'),
+        ('COR', 'Correctivo'),
+    )
+
+    ESTATUS = (
+        ('ABIERTA', 'Abierta'),
+        ('AUTORIZADA', 'Autorizada'),
+        ('PROCESO', 'En proceso'),
+        ('CERRADA', 'Cerrada'),
+        ('CANCELADA', 'Cancelada'),
+    )
+
+    fecha = models.DateField(default=timezone.now)
+
+    equipo = models.ForeignKey(
+        Equipo,
+        on_delete=models.PROTECT,
+        related_name='ordenes_servicio'
+    )
+
+    proveedor = models.ForeignKey(
+        Proveedor,
+        on_delete=models.PROTECT,
+        related_name='ordenes_servicio'
+    )
+
+    tipo_servicio = models.CharField(
+        max_length=3,
+        choices=TIPO_SERVICIO,
+        default='COR'
+    )
+
+    descripcion_falla = models.TextField()
+
+    estatus = models.CharField(
+        max_length=15,
+        choices=ESTATUS,
+        default='ABIERTA'
+    )
+    proyecto = models.ForeignKey(
+        'adm.Proyecto',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
+    costo = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+    responsable = models.CharField(
+        max_length=200,
+        blank=True
+    )
+    estado = models.CharField(
+        max_length=100,
+        blank=True
+    )
+
+    observaciones = models.TextField(blank=True, default='')
+
+    class Meta:
+        verbose_name = 'Orden de servicio'
+        verbose_name_plural = 'Órdenes de servicio'
+        db_table = 'op_orden_servicio'
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f"OS-{self.id} | {self.equipo}"
+
+
+
+class MantenimientoEquipo(models.Model):
+    equipo = models.ForeignKey(
+        'Equipo',
+        on_delete=models.CASCADE,
+        related_name='mantenimientos'
+    )
+
+    proyecto = models.ForeignKey(
+        'Proyecto',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='mantenimientos'
+    )
+
+    fecha = models.DateField()
+
+    TIPO_CHOICES = [
+        ('PREVENTIVO', 'Preventivo'),
+        ('CORRECTIVO', 'Correctivo'),
+    ]
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
+
+    descripcion = models.TextField()
+
+    proveedor = models.CharField(max_length=200, blank=True)
+
+    costo = models.DecimalField(max_digits=12, decimal_places=2)
+
+    proximo_cambio = models.DateField(null=True, blank=True)
+
+    creado = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.equipo} - {self.tipo} - {self.fecha}"
+
+
+# models.py
+class ActividadEquipo(models.Model):
+
+    nombre = models.CharField(max_length=100)
+
+    TIPO = (
+        ("PRODUCTIVO", "Productivo"),
+        ("SOPORTE", "Soporte"),
+        ("MUERTO", "Tiempo muerto"),
+    )
+    tipo = models.CharField(max_length=20, choices=TIPO)
+
+    # 👇 relación inteligente
+    tipos_equipo = models.ManyToManyField(TipoEquipo)
+
+    activo = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.nombre
+
+class ReporteEquipoPDA(models.Model):
+    equipo = models.ForeignKey('Equipo', on_delete=models.CASCADE)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    inicio = models.DateTimeField(default=timezone.now)
+    fin = models.DateTimeField(null=True, blank=True)
+
+    
+    foto_inicio = models.ImageField(upload_to='reportes/inicio/', null=True, blank=True)
+    foto_fin = models.ImageField(upload_to='reportes/fin/', null=True, blank=True)
+
+    latitud_inicio = models.FloatField(null=True, blank=True)
+    longitud_inicio = models.FloatField(null=True, blank=True)
+
+    latitud_fin = models.FloatField(null=True, blank=True)
+    longitud_fin = models.FloatField(null=True, blank=True)
+
+    creado = models.DateTimeField(auto_now_add=True)
+    estatus = models.CharField(
+        max_length=10,
+        choices=[('ABIERTA','ABIERTA'), ('CERRADA','CERRADA')],
+        default='ABIERTA'
+    )
+
+    def __str__(self):
+        return f"{self.equipo} - {self.usuario}"
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['usuario', 'fin']),
+            models.Index(fields=['equipo', 'fin']),
+        ]
+
+        constraints = [
+            UniqueConstraint(
+                fields=["usuario"],
+                condition=Q(estatus="ACTIVA"),
+                name="unique_jornada_activa_por_usuario"
+            )
+        ]
+
+    @property
+    def horas(self):
+        return sum(d.horas for d in self.detalles.all())
+
+
+class ReporteEquipoDetalle(models.Model):
+
+    reporte = models.ForeignKey(ReporteEquipoPDA, on_delete=models.CASCADE, related_name="detalles")
+
+    actividad = models.ForeignKey(ActividadEquipo, on_delete=models.PROTECT)
+
+    inicio = models.DateTimeField(default=timezone.now)
+    fin = models.DateTimeField(null=True, blank=True)
+
+    horas = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+
+    observaciones = models.TextField(null=True, blank=True)
+
+    usuario = models.ForeignKey(User, on_delete=models.PROTECT)
+
+    creado = models.DateTimeField(auto_now_add=True)
+
+    proyecto = models.ForeignKey(
+        'adm.Proyecto',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    editado_por = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+
+    editado_en = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['reporte', 'inicio']),
+        ]
+
+    
+    def save(self, *args, **kwargs):
+
+        if self.inicio and self.fin:
+            delta = self.fin - self.inicio
+            self.horas = round(delta.total_seconds() / 3600, 2)
+        else:
+            self.horas = Decimal("0.00")
+
+        super().save(*args, **kwargs)
+
+    
+

@@ -1,0 +1,62 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0">Perfiles de Puesto</h3>
+    <a href="{% url 'nom:perfil_create' %}" class="btn btn-primary">
+        <i class="fa fa-plus"></i> Nuevo Perfil
+    </a>
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+
+        <table class="table table-hover table-bordered align-middle">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th>Sueldo Mín</th>
+                    <th>Sueldo Máx</th>
+                    <th>Activo</th>
+                    <th width="180">Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for p in perfiles %}
+                <tr>
+                    <td>{{ p.nombre }}</td>
+                    <td>{{ p.get_categoria_display }}</td>
+                    <td>${{ p.sueldo_min|floatformat:2 }}</td>
+                    <td>${{ p.sueldo_max|floatformat:2 }}</td>
+                    <td>
+                        {% if p.activo %}
+                            <span class="badge badge-success">Activo</span>
+                        {% else %}
+                            <span class="badge badge-secondary">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'nom:perfil_update' p.id %}" class="btn btn-sm btn-warning">
+                            Editar
+                        </a>
+                        <a href="{% url 'nom:perfil_delete' p.id %}" class="btn btn-sm btn-danger">
+                            Eliminar
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No hay perfiles registrados</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+
+    </div>
+</div>
+
+{% endblock %}

@@ -9,7 +9,7 @@ from xhtml2pdf import pisa
 from django.contrib import messages
 from django.template.loader import render_to_string
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from .models import Categoria, Material, Unidad, Requisicion, ItemRequisicion, Firma
+from .models import Categoria, Material, Unidad, Requisicion, ItemRequisicion, Firma, SalidaAlmacen, SalidaAlmacenD
 from nomina.models import Empleado
 from .forms import CategoriaForm, MaterialForm, UnidadForm, RequisicionForm, FirmaForm, ItemRequisicionForm, RequisicionFilterForm
 from django.contrib.messages.views import SuccessMessageMixin
@@ -30,6 +30,8 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet,ParagraphStyle
 import os
 from django.conf import settings
+
+
 
 
 
@@ -149,6 +151,7 @@ class MaterialNew(SuccessMessageMixin, LoginRequiredMixin, generic.CreateView):
         return context
 
     def form_valid(self, form):
+        print("TIPO INSUMO:", form.cleaned_data.get('tipo_insumo'))
         form.instance.uc = self.request.user  # Asigna el usuario creador
         return super().form_valid(form)
 
@@ -734,3 +737,48 @@ def reporte_requisiciones_pdf(request):
 
     doc.build(story)
     return response
+
+from django.urls import reverse_lazy
+from django.views.generic import CreateView, DetailView
+from .forms import SalidaAlmacenForm, SalidaAlmacenDetalleForm
+
+
+class SalidaAlmacenCreateView(CreateView):
+    model = SalidaAlmacen
+    form_class = SalidaAlmacenForm
+    template_name = 'inv/salida_almacen_form.html'
+
+    def get_success_url(self):
+        return reverse_lazy('salida_almacen_detalle', kwargs={'pk': self.object.pk})
+
+    def form_valid(self, form):
+        form.instance.uc = self.request.user
+        form.instance.um = self.request.user.id
+        return super().form_valid(form)
+
+
+class SalidaAlmacenDetalleView(DetailView):
+    model = SalidaAlmacen
+    template_name = 'inv/salida_almacen_detalle.html'
+    context_object_name = 'salida'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_detalle'] = SalidaAlmacenDetalleForm()
+        return context
+
+
+
+
+
+class SalidaAlmacenListView(ListView):
+    model = SalidaAlmacen
+    template_name = 'inv/salida_almacen_list.html'
+    context_object_name = 'salidas'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return SalidaAlmacen.objects.select_related(
+            'equipo'
+            
+        ).order_by('-fecha', '-id')

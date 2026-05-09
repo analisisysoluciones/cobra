@@ -12,14 +12,14 @@
         {% else %}
             <table class="table table-stripped table-hover">
                 <thead>
-                    <th>ID</th>
+                    <!-- <th>ID</th> -->
                     <th>Nombre</th>
                     <th>Acciones</th>
                 </thead>
                 <tbody>
                     {% for banco in bancos %}
                         <tr>
-                            <td>{{ banco.id }}</td>
+                            <!-- <td>{{ banco.id }}</td> -->
                             <td>{{ banco.nombre }}</td>
                             <td>
                                 <a href="{% url 'adm:banco_edit' banco.id %}" class="btn btn-warning btn-circle"><i class="far fa-edit"></i></a>

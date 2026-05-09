@@ -532,19 +532,36 @@ def reporte_compras(request):
         headers = ['Fecha', 'Proveedor', 'Folio', 'Total', 'Pagado', 'Saldo', 'Estado', 'Estatus Pago']
         ws.append(headers)
 
-        for c in compras:
+        # SOLO UNA VEZ: iteramos compra por compra
+        for compra in compras:
+
+            pagos_realizados = compra.pagos.aggregate(
+                total=Sum('monto')
+            )['total'] or 0
+
+            saldo = compra.total - pagos_realizados
+
+            if pagos_realizados == 0:
+                estatus = "pendiente"
+            elif pagos_realizados < compra.total:
+                estatus = "parcial"
+            else:
+                estatus = "pagado"
+
             ws.append([
-                c.fecha.strftime('%Y-%m-%d'),
-                str(c.proveedor),
-                c.folio_documento,
-                float(c.total),
-                float(c.pagos_realizados or 0),
-                float(c.saldo_pendiente or 0),
-                c.estado,
-                c.estatus_pago,
+                compra.fecha.strftime("%Y-%m-%d"),
+                str(compra.proveedor),
+                compra.folio_documento,
+                float(compra.total),
+                float(pagos_realizados),
+                float(saldo),
+                compra.estado,
+                estatus,
             ])
 
-        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
         response['Content-Disposition'] = 'attachment; filename=reporte_compras.xlsx'
         wb.save(response)
         return response

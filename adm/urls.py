@@ -14,10 +14,18 @@ from .views import(
     compras_pagadas, reporte_egresos_pdf, generar_estado_cuenta_pdf, dashboard_proyectos, CargaCombustibleListView, CargaCombustibleCreateView,
     CargaCombustibleUpdateView, CargaCombustibleDeleteView, ReporteEquipoCreateView, ReporteEquipoListView, ReporteEquipoUpdateView,
     ReporteEquipoDeleteView, ReporteEquipoDetailView, PagoIndirectoListView, PagoIndirectoCreateView,
-    PagoIndirectoDeleteView, PagoIndirectoUpdateView
+    PagoIndirectoDeleteView, PagoIndirectoUpdateView, reporte_equipo_view, OrdenServicioCreateView, OrdenServicioListView, 
+    Equipo360View, reporte_pda, MantenimientoEquipoListView, MantenimientoEquipoCreateView, MantenimientoEquipoUpdateView, 
+    MantenimientoEquipoDeleteView, crear_cuenta_ajax
+    
 ) 
 
-
+from adm.api import api_equipos_activos, captura_combustible
+from adm.views_actividades import *
+from .views_pda import *
+from .views_dashboard import *
+from .views_oficina import oficina_actividades, editar_actividad
+from django.urls import path
 
 app_name = 'adm'
 
@@ -33,6 +41,12 @@ urlpatterns = [
     path('compras-pagadas/', compras_pagadas, name='compras_pagadas'),
     path('reporte-egresos/', reporte_egresos_pdf, name='reporte_egresos'),
     path('estado_cuenta/<int:cuenta_id>/pdf/', generar_estado_cuenta_pdf, name='estado_cuenta_pdf'),
+
+
+    path("reporte-equipo/", reporte_equipo_view, name="reporte_equipo"),
+    path('reporte-equipo/pdf/', views.reporte_equipo_pdf, name='reporte_equipo_pdf'),
+    path('reporte-equipo/excel/', views.reporte_equipo_excel, name='reporte_equipo_excel'),
+
     
     path('cuentas/', CuentaView.as_view(), name="cuenta_list"),
     path('cuentas/new/', CuentaNew.as_view(), name="cuenta_new"),
@@ -60,6 +74,7 @@ urlpatterns = [
     path('proyecto/delete/<int:pk>/', ProyectoDel.as_view(), name='proyecto_del'),
     path('proyecto/report/', proyecto_report, name='proyecto_report'),
     path('dashboard-proyectos/', dashboard_proyectos, name='dashboard_proyectos'),
+    path('cuentas/ajax/crear/',crear_cuenta_ajax,name='crear_cuenta_ajax'),
     
     path('simbologias/', SimbologiaView.as_view(), name='simbologia_list'),
     path('simbologias/nuevo/', SimbologiaNew.as_view(), name='simbologia_new'),
@@ -107,6 +122,90 @@ urlpatterns = [
     path("pagos-indirectos/<int:pk>/eliminar/", PagoIndirectoDeleteView.as_view(), name="pagoindirecto_delete"),
     path('pagoindirecto/afectar/<int:pk>/', views.PagoIndirectoAfectarView.as_view(), name='pagoindirecto_afectar'),
 
+    path('orden-servicio/nueva/', OrdenServicioCreateView.as_view(), name='orden_servicio_create'),
+    path('orden-servicio/', OrdenServicioListView.as_view(), name='orden_servicio_list'),
+
+    path('api/equipos-activos/', api_equipos_activos, name='api_equipos_activos'),
+    path('flotilla/captura/', captura_combustible, name='captura_combustible'),
+
+    path('equipo/<int:pk>/360/', Equipo360View.as_view(), name='equipo_360'),
+    path('pda/reporte/', reporte_pda, name='reporte_pda'),
+    path('mantenimiento/', MantenimientoEquipoListView.as_view(), name='mantenimiento_list'),
+    path('mantenimiento/new/', MantenimientoEquipoCreateView.as_view(), name='mantenimiento_new'),
+    path('mantenimiento/edit/<int:pk>/', MantenimientoEquipoUpdateView.as_view(), name='mantenimiento_edit'),
+    path('mantenimiento/delete/<int:pk>/', MantenimientoEquipoDeleteView.as_view(), name='mantenimiento_delete'),
+
+    path('tipo-equipo/', TipoEquipoListView.as_view(), name='tipo_equipo_list'),
+    path('tipo-equipo/nuevo/', TipoEquipoCreateView.as_view(), name='tipo_equipo_create'),
+    path('tipo-equipo/editar/<int:pk>/', TipoEquipoUpdateView.as_view(), name='tipo_equipo_update'),
+    path('tipo-equipo/eliminar/<int:pk>/', TipoEquipoDeleteView.as_view(), name='tipo_equipo_delete'),
+
+    # Actividades
+    path('actividades/', ActividadEquipoListView.as_view(), name='actividad_list'),
+    path('actividades/nuevo/', ActividadEquipoCreateView.as_view(), name='actividad_create'),
+    path('actividades/editar/<int:pk>/', ActividadEquipoUpdateView.as_view(), name='actividad_update'),
+    path('actividades/eliminar/<int:pk>/', ActividadEquipoDeleteView.as_view(), name='actividad_delete'),
+
+    path('pda/', pda_inicio, name='pda_inicio'),
+    #path('pda/jornada/', pda_jornada, name='pda_jornada'),
+    path('pda/iniciar/', iniciar_jornada, name='iniciar_jornada'),
+    path('pda/actividad/', iniciar_actividad, name='iniciar_actividad'),
+    path('pda/terminar/', terminar_jornada, name='terminar_jornada'),
+    #path('pda/estado/', estado_pda, name='estado_pda'),
+    path('pda/bloques/', captura_bloques, name='captura_bloques'),
+    path('pda/bloques/guardar/', guardar_bloques, name='guardar_bloques'),
+    path('pda/menu/', pda_menu, name='pda_menu'),
+    path('operacion/actividades/', captura_bloques, name='actividades_escritorio'),
+
+    # RENTAS
+
+        
+    
+    
+    path(
+        "pda/mis-movimientos/",
+        mis_movimientos,
+        name="mis_movimientos"
+    ),
+    path(
+        "pda/escritorio/",
+        jornada_escritorio,
+        name="jornada_escritorio"
+    ),
+
+    path(
+        "pda/escritorio/iniciar-actividad/",
+        iniciar_actividad_escritorio,
+        name="iniciar_actividad_escritorio"
+    ),
+
+    path(
+        "pda/escritorio/cerrar/",
+        terminar_jornada,
+        name="cerrar_jornada_escritorio"
+    ),
+    path(
+        "dashboard/maquinaria/",
+        dashboard_maquinaria,
+        name="dashboard_maquinaria"
+    ),
+    path("pda/mobile/", pda_mobile_inicio, name="pda_mobile_inicio"),
+    path("pda/mobile/operacion/", pda_mobile_operacion, name="pda_mobile_operacion"),
+    
+
+    path('oficina/actividades/', oficina_actividades, name='oficina_actividades'),
+    path('oficina/actividad/<int:pk>/editar/', editar_actividad, name='editar_actividad'),
+
+    path("proyectos/<int:pk>/360/", Proyecto360View.as_view(), name="proyecto_360"),
+
+    path("proyectos/<int:pk>/360/finanzas/", proyecto360_finanzas_ajax, name="proyecto_360_finanzas"),
+    #path("proyectos/<int:pk>/360/actividades/", proyecto360_actividades_ajax, name="proyecto_360_actividades"),
+    path("proyectos/<int:pk>/360/compras/", proyecto360_compras_ajax, name="proyecto_360_compras"),
+    path("proyectos/<int:pk>/360/nomina/", proyecto360_nomina_ajax, name="proyecto_360_nomina"),
+    #path("proyectos/<int:pk>/360/clientes/", proyecto360_clientes_ajax, name="proyecto_360_clientes"),
+
+
+    
     
 ]
 
@@ -120,3 +219,6 @@ urlpatterns = [
 
 
 
+
+
+    

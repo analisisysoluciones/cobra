@@ -10,6 +10,8 @@ from nomina.views.empleados import (
     DocumentoEmpleadoDelete, validar_curp
 )
 
+from nomina.views.perfiles import( PerfilCreateView, PerfilDeleteView, PerfilListView, PerfilUpdateView)
+
 from nomina.views.asistencia import (
     AsistenciaListView, AsistenciaDeleteView, capturar_falta, CapturarFaltaModalView
 )
@@ -46,12 +48,20 @@ from nomina.views.asignaciones import (
     crear_asignacion_diaria
 )
 
+
+from nomina.views.reporte_detallado import (
+    reporte_nomina_detalle_view,
+    reporte_nomina_detalle_pdf,
+    reporte_nomina_detalle_excel,
+)
+
 from nomina.views.destajos import (
     TarifaDestajoObraCreateView, TarifaDestajoObraDeleteView, TarifaDestajoObraListView,
     TarifaDestajoObraUpdateView, TipoDestajoCreateView, TipoDestajoDeleteView,
     TipoDestajoListView, TipoDestajoUpdateView
 )
 
+from nomina.views.reporte_general import (reporte_nomina_view, resumen_totales, generar_reporte_nomina, reporte_nomina_excel,reporte_nomina_pdf)
 from nomina.views.nomina_procesar import (procesar_nomina, procesar_nomina_form)
 
 from nomina.views.proyectos import (asignar_proyecto_individual, NominaDetalleUpdateView, NominaDetalleListView, asignar_proyectos)
@@ -85,6 +95,10 @@ urlpatterns = [
     path("destajos/editar/<int:pk>/", TipoDestajoUpdateView.as_view(), name="tipo_destajo_update"),
     path("destajos/eliminar/<int:pk>/", TipoDestajoDeleteView.as_view(), name="tipo_destajo_delete"),
     path('reiniciar/', reiniciar_nomina, name='reiniciar_nomina'),
+    path('reportes/', reporte_nomina_view, name='reporte_nomina'),
+    path('reporte/', reporte_nomina_view, name='nomina_reporte'),
+    path('reporte/pdf/', reporte_nomina_pdf, name='nomina_reporte_pdf'),
+    path('reporte/excel/', reporte_nomina_excel, name='nomina_reporte_excel'),
 
     # Tarifas por obra
     path("tarifas_destajo/", TarifaDestajoObraListView.as_view(), name="tarifa_destajo_obra_list"),
@@ -124,6 +138,10 @@ urlpatterns = [
     path('horas-extras/nuevo/', horas_extras_new, name='horas_extras_new'),
     path('periodos/pdf/', exportar_periodos_pdf, name='periodos_pdf'),
 
+    path('reporte-detallado/', reporte_nomina_detalle_view, name='nomina_reporte_detalle'),
+    path('reporte-detallado/pdf/', reporte_nomina_detalle_pdf, name='nomina_reporte_detalle_pdf'),
+    path('reporte-detallado/excel/', reporte_nomina_detalle_excel, name='nomina_reporte_detalle_excel'),
+
 
     # URLs para el flujo de nómina procesada y asignación de proyectos
     path('nomina/detalles-procesados/<int:nomina_historial_id>/', listar_detalles_nomina_procesada, name='listar_detalles_nomina_procesada'),
@@ -140,6 +158,12 @@ urlpatterns = [
     path("compensaciones/nuevo/", CompensacionVariableCreateView.as_view(), name="compensacion_variable_create"),
     path("compensaciones/editar/<int:pk>/", CompensacionVariableUpdateView.as_view(), name="compensacion_variable_update"),
     path("compensaciones/eliminar/<int:pk>/", CompensacionVariableDeleteView.as_view(), name="compensacion_variable_delete"),
+
+
+    path('perfiles/', PerfilListView.as_view(), name='perfil_list'),
+    path('perfiles/nuevo/', PerfilCreateView.as_view(), name='perfil_create'),
+    path('perfiles/<int:pk>/editar/', PerfilUpdateView.as_view(), name='perfil_update'),
+    path('perfiles/<int:pk>/eliminar/', PerfilDeleteView.as_view(), name='perfil_delete'),
 ]
 
 if settings.DEBUG:

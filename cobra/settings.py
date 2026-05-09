@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-u=i^e8b+gn_6kn_i3ntf)a3u(yb3vn_871o$yv!2#5pzk^&5)z
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1','*','localhost','192.168.1.64']
 
 
 # Application definition
@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'django_select2',
     'crispy_forms',
+    'django.contrib.humanize',
     'bases',
     'inv',
     'adm',
@@ -52,6 +53,7 @@ INSTALLED_APPS = [
     'cxp',
     'asistencia',
     'finanzas',
+    'renta',
 
 ]
 
@@ -102,7 +104,7 @@ DATABASES = {
      'default': {
 
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-
+        
         'NAME': 'cobra',
 
         'USER': 'postgres',
@@ -112,6 +114,9 @@ DATABASES = {
         'HOST': 'localhost',
 
         'PORT': '5432',
+        'OPTIONS': {
+            'client_encoding': 'UTF8',
+        },
         
     }
 }
@@ -206,3 +211,9 @@ LOGGING = {
         },
     }
 }
+LOGIN_URL = '/login/'
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://inemo.site",
+    "https://195.35.9.222",
+]

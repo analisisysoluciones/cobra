@@ -1,0 +1,33 @@
+{% extends "base/base.html" %}
+{% block page_content %}
+
+<div class="card">
+    <div class="card-header">
+        <h5>Tipos de Equipo</h5>
+        <a href="{% url 'adm:tipo_equipo_create' %}" class="btn btn-primary btn-sm float-right">Nuevo</a>
+    </div>
+
+    <div class="card-body">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th width="120">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for obj in objetos %}
+                <tr>
+                    <td>{{ obj.nombre }}</td>
+                    <td>
+                        <a href="{% url 'adm:tipo_equipo_update' obj.id %}" class="btn btn-warning btn-sm">✏️</a>
+                        <a href="{% url 'adm:tipo_equipo_delete' obj.id %}" class="btn btn-danger btn-sm">🗑️</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

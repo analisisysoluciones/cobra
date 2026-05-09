@@ -46,6 +46,35 @@
                         </div>
 
                         <div class="row">
+    <div class="col-10">
+        <div class="input-group mb-2">
+            <select name="tipo_insumo" class="form-control" id="id_tipo_insumo" required>
+                <option value="MATERIAL"
+                    {% if obj and obj.tipo_insumo == "MATERIAL" %}selected{% endif %}>
+                    Material
+                </option>
+
+                <option value="MANO_OBRA"
+                    {% if obj and obj.tipo_insumo == "MANO_OBRA" %}selected{% endif %}>
+                    Mano de Obra
+                </option>
+
+                <option value="EQUIPO"
+                    {% if obj and obj.tipo_insumo == "EQUIPO" %}selected{% endif %}>
+                    Equipo
+                </option>
+
+                <option value="HERRAMIENTA"
+                    {% if obj and obj.tipo_insumo == "HERRAMIENTA" %}selected{% endif %}>
+                    Herramienta
+                </option>
+            </select>
+        </div>
+    </div>
+</div>
+
+
+                        <div class="row">
                             <div class="col-6">
                                 <div class="input-group mb-2">
                                     <input type="number" name="existencia" class="form-control" step="0.001" placeholder="Existencia" value="{% if obj %}{{ obj.existencia }}{% endif %}">

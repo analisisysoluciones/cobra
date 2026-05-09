@@ -1,0 +1,175 @@
+{% extends "base/base.html" %}
+{% block page_content %}
+
+<!-- Topbar -->
+<div class="d-flex align-items-flex-end justify-content-between mb-4">
+  <div>
+    <h1 class="h4 mb-1 font-weight-bold text-gray-800">Catálogo de Actividades</h1>
+    <p class="mb-0 text-muted small">Gestión y configuración de actividades del sistema</p>
+  </div>
+</div>
+
+<div class="card shadow-sm border-0 rounded-lg">
+
+  <!-- Header -->
+  <div class="card-header d-flex align-items-center justify-content-between py-3"
+       style="background:linear-gradient(135deg,#4e73df 0%,#224abe 100%);border:none;">
+    <div class="d-flex align-items-center">
+      <div class="d-flex align-items-center justify-content-center rounded mr-3"
+           style="width:34px;height:34px;background:rgba(255,255,255,.18);">
+        <i class="fas fa-tasks text-white"></i>
+      </div>
+      <h6 class="m-0 font-weight-bold text-white">Actividades registradas</h6>
+    </div>
+    <a href="{% url 'adm:actividad_create' %}"
+       class="btn font-weight-bold"
+       style="background:rgba(255,255,255,.18);color:#fff;border:1.5px solid rgba(255,255,255,.35);
+              border-radius:8px;font-size:.8rem;padding:.42rem 1rem;">
+      <i class="fas fa-plus mr-1"></i> Nueva Actividad
+    </a>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="d-flex align-items-center justify-content-between px-4 py-3"
+       style="border-bottom:1px solid #eaecf4;">
+    <div class="position-relative" style="max-width:320px;width:100%;">
+      <i class="fas fa-search position-absolute text-muted"
+         style="left:.75rem;top:50%;transform:translateY(-50%);font-size:.75rem;"></i>
+      <input type="text" class="form-control form-control-sm pl-4"
+             placeholder="Buscar actividad..."
+             style="border-radius:8px;border:1.5px solid #e3e6f0;font-size:.82rem;font-weight:600;">
+    </div>
+    <span class="badge rounded-pill px-3 py-2"
+          style="background:#f8f9fc;border:1.5px solid #eaecf4;color:#b7b9cc;font-size:.72rem;font-weight:700;">
+      {{ objetos|length }} registro{{ objetos|length|pluralize }}
+    </span>
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-responsive">
+    <table class="table mb-0" style="border-collapse:collapse;">
+      <thead style="background:#f8f9fc;border-bottom:2px solid #eaecf4;">
+        <tr>
+          <th class="px-4 py-3 text-uppercase font-weight-bold text-muted border-0"
+              style="font-size:.7rem;letter-spacing:.08em;">Actividad</th>
+          <th class="px-4 py-3 text-uppercase font-weight-bold text-muted border-0"
+              style="font-size:.7rem;letter-spacing:.08em;">Tipo</th>
+          <th class="px-4 py-3 text-uppercase font-weight-bold text-muted border-0"
+              style="font-size:.7rem;letter-spacing:.08em;">Equipos asignados</th>
+          <th class="px-4 py-3 text-uppercase font-weight-bold text-muted border-0 text-center"
+              style="font-size:.7rem;letter-spacing:.08em;">Estado</th>
+          <th class="px-4 py-3 text-uppercase font-weight-bold text-muted border-0 text-center"
+              style="font-size:.7rem;letter-spacing:.08em;width:120px;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for obj in objetos %}
+        <tr style="border-bottom:1px solid #f0f2fa;transition:background .15s;"
+            onmouseover="this.style.background='#f7f8ff'" onmouseout="this.style.background=''">
+
+          <!-- Nombre -->
+          <td class="px-4 py-3 align-middle">
+            <div class="d-flex align-items-center">
+              <div class="d-flex align-items-center justify-content-center rounded mr-3 flex-shrink-0"
+                   style="width:32px;height:32px;background:#eef0ff;color:#4e73df;font-size:.75rem;">
+                <i class="fas fa-clipboard-list"></i>
+              </div>
+              <span class="font-weight-bold" style="color:#3d3d5c;">{{ obj.nombre }}</span>
+            </div>
+          </td>
+
+          <!-- Tipo -->
+          <td class="px-4 py-3 align-middle">
+            {% if obj.tipo == 'OPERACION' %}
+              <span class="badge rounded px-2 py-1"
+                    style="background:#eef0ff;color:#4e73df;font-size:.72rem;font-weight:700;">
+                <i class="fas fa-cog mr-1" style="font-size:.6rem;"></i>{{ obj.get_tipo_display }}
+              </span>
+            {% elif obj.tipo == 'MANTENIMIENTO' %}
+              <span class="badge rounded px-2 py-1"
+                    style="background:#fff5ec;color:#e07b1a;font-size:.72rem;font-weight:700;">
+                <i class="fas fa-tools mr-1" style="font-size:.6rem;"></i>{{ obj.get_tipo_display }}
+              </span>
+            {% else %}
+              <span class="badge rounded px-2 py-1"
+                    style="background:#f4eeff;color:#9b59b6;font-size:.72rem;font-weight:700;">
+                <i class="fas fa-ellipsis-h mr-1" style="font-size:.6rem;"></i>{{ obj.get_tipo_display }}
+              </span>
+            {% endif %}
+          </td>
+
+          <!-- Equipos -->
+          <td class="px-4 py-3 align-middle">
+            {% for t in obj.tipos_equipo.all %}
+              <span class="badge rounded-pill mr-1 mb-1"
+                    style="background:#e8f4fd;color:#2196f3;font-size:.7rem;font-weight:700;padding:.28rem .7rem;">
+                <i class="fas fa-circle mr-1" style="font-size:4px;vertical-align:middle;"></i>{{ t.nombre }}
+              </span>
+            {% empty %}
+              <span class="font-italic" style="font-size:.78rem;color:#c5c7d4;font-weight:600;">Sin asignar</span>
+            {% endfor %}
+          </td>
+
+          <!-- Estado -->
+          <td class="px-4 py-3 align-middle text-center">
+            {% if obj.activo %}
+              <span class="badge rounded-pill px-3 py-1"
+                    style="background:#e8faf2;color:#1cc88a;font-size:.72rem;font-weight:700;">
+                <i class="fas fa-circle mr-1" style="font-size:5px;vertical-align:middle;"></i>Activo
+              </span>
+            {% else %}
+              <span class="badge rounded-pill px-3 py-1"
+                    style="background:#f5f5f8;color:#b7b9cc;font-size:.72rem;font-weight:700;">
+                <i class="fas fa-circle mr-1" style="font-size:5px;vertical-align:middle;"></i>Inactivo
+              </span>
+            {% endif %}
+          </td>
+
+          <!-- Acciones -->
+          <td class="px-4 py-3 align-middle text-center">
+            <div class="d-flex align-items-center justify-content-center" style="gap:.4rem;">
+              <a href="{% url 'adm:actividad_update' obj.id %}"
+                 class="d-flex align-items-center justify-content-center rounded"
+                 style="width:30px;height:30px;background:#fff8e6;color:#e0a800;
+                        border:1.5px solid #fce8a0;font-size:.75rem;text-decoration:none;transition:all .2s;"
+                 title="Editar">
+                <i class="fas fa-pen"></i>
+              </a>
+              <a href="{% url 'adm:actividad_delete' obj.id %}"
+                 class="d-flex align-items-center justify-content-center rounded"
+                 style="width:30px;height:30px;background:#fdf0f0;color:#e74a3b;
+                        border:1.5px solid #f8c8c5;font-size:.75rem;text-decoration:none;transition:all .2s;"
+                 title="Eliminar">
+                <i class="fas fa-trash"></i>
+              </a>
+            </div>
+          </td>
+
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center py-5">
+            <i class="fas fa-inbox d-block mb-3" style="font-size:2.5rem;color:#dde0f0;"></i>
+            <p class="text-muted font-weight-600 mb-2">No hay actividades registradas</p>
+            <a href="{% url 'adm:actividad_create' %}" class="btn btn-primary btn-sm">
+              <i class="fas fa-plus mr-1"></i> Crear primera actividad
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer -->
+  <div class="d-flex align-items-center justify-content-between px-4 py-3"
+       style="background:#fafbff;border-top:1px solid #eaecf4;">
+    <span class="text-muted" style="font-size:.72rem;font-weight:700;">
+      <i class="fas fa-info-circle mr-1"></i>
+      Mostrando {{ objetos|length }} de {{ objetos|length }} actividade{{ objetos|length|pluralize }}
+    </span>
+  </div>
+
+</div>
+
+{% endblock %}

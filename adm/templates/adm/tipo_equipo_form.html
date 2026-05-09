@@ -1,0 +1,26 @@
+{% extends "base/base.html" %}
+{% block page_content %}
+
+<div class="card">
+    <div class="card-header">
+        <h5>Tipo de Equipo</h5>
+    </div>
+
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>Nombre</label>
+                {{ form.nombre }}
+            </div>
+
+            <br>
+
+            <button type="submit" class="btn btn-success">Guardar</button>
+            <a href="{% url 'adm:tipo_equipo_list' %}" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+
+<div class="card shadow mb-4">
+
+    <div class="card-header py-3 d-flex justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">
+            Actividades de Operadores
+        </h6>
+    </div>
+
+    <div class="card-body">
+
+        <!-- 🔍 FILTROS -->
+        <form method="get" class="mb-3 row g-2">
+
+            <div class="col-md-4">
+                <input type="date" name="fecha" class="form-control"
+                       value="{{ request.GET.fecha }}">
+            </div>
+
+            <div class="col-md-4">
+                <input type="number" name="operador"
+                       placeholder="ID Operador"
+                       class="form-control"
+                       value="{{ request.GET.operador }}">
+            </div>
+
+            <div class="col-md-4">
+                <button class="btn btn-primary w-100">
+                    Filtrar
+                </button>
+            </div>
+
+        </form>
+
+        <!-- 📊 TABLA -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+
+                <thead class="thead-light">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Operador</th>
+                        <th>Actividad</th>
+                        <th>Horas</th>
+                        <th>Observaciones</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for d in datos %}
+                    <tr>
+                        <td>{{ d.creado|date:"d/m/Y H:i" }}</td>
+                        <td>{{ d.usuario.username }}</td>
+                        <td>{{ d.actividad }}</td>
+                        <td>{{ d.horas }}</td>
+                        <td>{{ d.observaciones }}</td>
+
+                        <td>
+                            <a href="{% url 'adm:editar_actividad' d.id %}"
+                               class="btn btn-sm btn-warning">
+                               Editar
+                            </a>
+                        </td>
+
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">
+                            Sin datos
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

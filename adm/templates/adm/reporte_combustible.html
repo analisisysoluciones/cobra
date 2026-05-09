@@ -68,6 +68,7 @@
                             <th>Costo</th>
                             <th>Odómetro</th>
                             <th>Operador</th>
+                            <th>Usuario</th>
                             <th>Hora</th>
                             <th>Observaciones</th>
                         </tr>
@@ -82,6 +83,9 @@
                             <td class="text-right">${{ carga.costo_total }}</td>
                             <td class="text-right">{{ carga.odometro }}</td>
                             <td>{{ carga.operador }}</td>
+                            <td>
+        {{ carga.uc.get_full_name|default:carga.uc.username }}
+    </td>
                             <td>{{ carga.hora }}</td>
                             <td>{{ carga.observaciones|default:"-" }}</td>
                         </tr>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+<style>
+body {
+    font-family: Helvetica;
+    font-size: 11px;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    background: #0A4A8A;
+    color: white;
+    padding: 4px;
+    border: 1px solid #333;
+}
+
+.table td {
+    padding: 4px;
+    border: 1px solid #333;
+}
+
+h1, h3 {
+    margin-bottom: 5px;
+}
+
+.logo {
+    width: 130px;
+}
+</style>
+</head>
+
+<body>
+
+<div align="center">
+    <img class="logo" src="{{ logo_path }}">
+    <h1>Reporte de Equipo</h1>
+    <h3>{{ empresa }}</h3>
+</div>
+
+<br>
+
+<table class="table">
+    <tr>
+        <th>Fecha</th>
+        <th>Proyecto</th>
+        <th>Equipo</th>
+        <th>Operador</th>
+        <th>Actividad</th>
+        <th>Horas</th>
+        <th>Diesel Cargado</th>
+        <th>Diesel Restante</th>
+        <th>Fallas</th>
+        <th>Observaciones</th>
+    </tr>
+
+    {% for r in resultados %}
+    <tr>
+        <td>{{ r.fecha }}</td>
+        <td>{{ r.Proyecto }}</td>
+        <td>{{ r.equipo }}</td>
+        <td>{{ r.operador }}</td>
+        <td>{{ r.actividad }}</td>
+        <td>{{ r.horas }}</td>
+        <td>{{ r.diesel_carga }}</td>
+        <td>{{ r.diesel_resta }}</td>
+        <td>{{ r.fallas }}</td>
+        <td>{{ r.observa }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<br><br>
+
+<h3>Totales</h3>
+<table class="table">
+    <tr><td><b>Total Horas</b></td><td>{{ totales.horas }}</td></tr>
+    <tr><td><b>Total Diesel Cargado</b></td><td>{{ totales.diesel_cargado }}</td></tr>
+    <tr><td><b>Total Diesel Restante</b></td><td>{{ totales.diesel_restante }}</td></tr>
+</table>
+
+<br>
+
+<h3>Promedios</h3>
+<table class="table">
+    <tr><td><b>Promedio Horas</b></td><td>{{ totales.promedio_horas|floatformat:2 }}</td></tr>
+    <tr><td><b>Promedio Diesel</b></td><td>{{ totales.promedio_diesel|floatformat:2 }}</td></tr>
+</table>
+
+</body>
+</html>

@@ -1,0 +1,44 @@
+{% extends "base/base.html" %}
+{% block page_content %}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between">
+        <h4>Órdenes de Servicio</h4>
+        <a href="{% url 'adm:orden_servicio_create' %}" class="btn btn-success btn-sm">
+            Nueva orden
+        </a>
+    </div>
+
+    <div class="card-body">
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Equipo</th>
+                    <th>Proveedor</th>
+                    <th>Tipo</th>
+                    <th>Estatus</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in ordenes %}
+                <tr>
+                    <td>{{ o.id }}</td>
+                    <td>{{ o.fecha }}</td>
+                    <td>{{ o.equipo }}</td>
+                    <td>{{ o.proveedor }}</td>
+                    <td>{{ o.get_tipo_servicio_display }}</td>
+                    <td>{{ o.estatus }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">No hay órdenes registradas</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

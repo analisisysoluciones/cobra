@@ -1,0 +1,173 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+
+<div class="container-fluid text-center" style="padding:10px;">
+
+    <input type="hidden" id="csrfToken" value="{{ csrf_token }}">
+
+    <!-- HEADER -->
+    <h4 class="mb-1">{{ jornada.equipo }}</h4>
+    <h5 class="text-success">Estado: EN JORNADA</h5>
+
+    <hr>
+
+    <!-- ACTIVIDAD ACTUAL -->
+    <div class="mb-3">
+        <h6 class="text-muted">Actividad actual</h6>
+        <h3 id="actividadActual" class="text-primary">
+            Cargando...
+        </h3>
+
+        <h5 id="timer">00:00:00</h5>
+    </div>
+
+    <hr>
+
+    <!-- BOTONES -->
+    <div class="row">
+        {% for act in actividades %}
+        <div class="col-6 mb-3">
+            <button
+                class="btn btn-lg btn-block p-4 font-weight-bold 
+                {% if act.tipo == 'PRODUCTIVO' %}btn-success
+                {% elif act.tipo == 'SOPORTE' %}btn-warning
+                {% else %}btn-danger{% endif %}"
+                onclick="iniciarActividad({{ act.id }})">
+
+                {{ act.nombre }}
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <hr>
+
+    <a href="{% url 'adm:terminar_jornada' %}" 
+       class="btn btn-dark btn-lg btn-block p-3"
+       onclick="return confirm('¿Terminar jornada?')">
+        TERMINAR JORNADA
+    </a>
+
+</div>
+
+{% endblock %}
+
+{% block js_page %}
+
+<script>
+
+let bloqueado = false;
+let inicioActividad = null;
+
+// ===============================
+// FORMATO TIEMPO
+// ===============================
+function formatear(segundos){
+    let h = Math.floor(segundos / 3600);
+    let m = Math.floor((segundos % 3600) / 60);
+    let s = segundos % 60;
+
+    return (
+        String(h).padStart(2, '0') + ":" +
+        String(m).padStart(2, '0') + ":" +
+        String(s).padStart(2, '0')
+    );
+}
+
+// ===============================
+// TIMER
+// ===============================
+function actualizarTimer(){
+
+    if(!inicioActividad){
+        document.getElementById("timer").innerText = "00:00:00";
+        return;
+    }
+
+    let ahora = new Date();
+    let diff = Math.floor((ahora - inicioActividad) / 1000);
+
+    document.getElementById("timer").innerText = formatear(diff);
+}
+
+setInterval(actualizarTimer, 1000);
+
+// ===============================
+// CARGAR ESTADO
+// ===============================
+function cargarEstado(){
+
+    fetch("{% url 'adm:estado_pda' %}")
+    .then(res => res.json())
+    .then(data => {
+
+        if(!data.ok){
+            document.getElementById("actividadActual").innerText = "SIN ACTIVIDAD";
+            return;
+        }
+
+        document.getElementById("actividadActual").innerText =
+            data.actividad_actual || "SIN ACTIVIDAD";
+
+        if(data.actividad_inicio){
+            inicioActividad = new Date(data.actividad_inicio);
+        } else {
+            inicioActividad = null;
+        }
+
+    })
+    .catch(err => {
+        console.error("Error estado:", err);
+    });
+}
+
+// ===============================
+// INICIAR ACTIVIDAD
+// ===============================
+function iniciarActividad(id){
+
+    console.log("ENVIANDO ACTIVIDAD:", id);
+
+    if(bloqueado) return;
+    bloqueado = true;
+
+    const csrftoken = document.getElementById("csrfToken").value;
+
+    fetch("{% url 'adm:iniciar_actividad' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken
+        },
+        body: JSON.stringify({
+            actividad_id: id
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if(!data.ok){
+            alert(data.msg || "Error");
+            bloqueado = false;
+            return;
+        }
+
+        cargarEstado(); // 🔥 SIN RELOAD
+        bloqueado = false;
+    })
+    .catch(err => {
+        console.error(err);
+        bloqueado = false;
+    });
+}
+
+// ===============================
+// INIT
+// ===============================
+cargarEstado();
+setInterval(cargarEstado, 15000);
+
+</script>
+
+{% endblock %}

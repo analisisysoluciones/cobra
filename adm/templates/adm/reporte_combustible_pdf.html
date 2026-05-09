@@ -1,78 +1,163 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <style>
-        body {
-            font-family: DejaVu Sans, sans-serif;
-            font-size: 11px;
+<meta charset="UTF-8">
+
+<style>
+    @page {
+        size: A4;
+        margin: 20mm;
+
+        @bottom-center {
+            content: "Página " counter(page) " de " counter(pages);
+            font-size: 9px;
+            color: #666;
         }
-        h2 {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        th, td {
-            border: 1px solid #444;
-            padding: 4px;
-            text-align: left;
-        }
-        th {
-            background-color: #f0f0f0;
-        }
-        .totales {
-            margin-top: 12px;
-            font-weight: bold;
-        }
-    </style>
+    }
+
+    body {
+        font-family: "DejaVu Sans", Arial, sans-serif;
+        font-size: 11px;
+        color: #222;
+    }
+
+    .logo-container {
+        text-align: left;
+        margin-bottom: 10px;
+    }
+
+    .logo {
+        width: 110px;
+    }
+
+    h2 {
+        text-align: center;
+        margin: 5px 0 15px 0;
+        color: #333;
+        font-size: 18px;
+    }
+
+    /* --- TABLA OPTIMIZADA PARA WEASYPRINT --- */
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-top: 10px;
+        page-break-inside: auto;
+    }
+
+    thead th {
+        background-color: #f0f0f0;
+        border-bottom: 1px solid #444;
+        padding: 4px;
+        font-size: 10px;
+        text-align: left;
+    }
+
+    tbody td {
+        border-bottom: 1px solid #ddd;
+        padding: 4px;
+        font-size: 10px;
+    }
+
+    td.numeric {
+        text-align: right;
+    }
+
+    tr {
+        page-break-inside: avoid;
+    }
+
+    .totales {
+        margin-top: 18px;
+        font-weight: bold;
+        font-size: 13px;
+    }
+</style>
+
 </head>
 <body>
-    <img src="{{ STATIC_ROOT }}/img/logo_empresa.png" width="100">
 
+    <!-- LOGO -->
+    <div class="logo-container">
+        <img class="logo" src="file:///home/creador/cobra/static/base/img/inemo.png">
+    </div>
+
+    <!-- TÍTULO -->
     <h2>Reporte de Carga de Combustible</h2>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Fecha</th>
-                <th>Equipo</th>
-                <th>Tipo</th>
-                <th>Litros</th>
-                <th>Costo</th>
-                <th>Odómetro</th>
-                <th>Operador</th>
-                <th>Hora</th>
-                <th>Observaciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for carga in cargas %}
+    {% comment %}
+    ==========================================================
+    BLOQUES DE 50 FILAS PARA ACELERAR WEASYPRINT (3X–5X)
+    ==========================================================
+    {% endcomment %}
+
+    {% if cargas %}
+        {% for carga in cargas %}
+
+            <!-- ABRIR TABLA AL INICIO O CADA 50 FILAS -->
+            {% if forloop.first or forloop.counter0|divisibleby:50 %}
+                {% if not forloop.first %}
+                        </tbody>
+                    </table>
+                    <div style="page-break-before: always;"></div>
+                {% endif %}
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Equipo</th>
+                            <th>Tipo</th>
+                            <th>Litros</th>
+                            <th>Costo</th>
+                            <th>Odómetro</th>
+                            <th>Operador</th>
+                            <td>
+        {{ carga.uc.get_full_name|default:carga.uc.username }}
+    </td>
+                            <th>Usuario</th>
+                            <th>Hora</th>
+                            <th>Proyecto</th>
+                            <th>Observaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            {% endif %}
+
             <tr>
                 <td>{{ carga.fecha_carga }}</td>
                 <td>{{ carga.equipo }}</td>
                 <td>{{ carga.get_tipo_combustible_display }}</td>
-                <td align="right">{{ carga.cantidad_litros }}</td>
-                <td align="right">${{ carga.costo_total }}</td>
-                <td align="right">{{ carga.odometro }}</td>
+                <td class="numeric">{{ carga.cantidad_litros }}</td>
+                <td class="numeric">${{ carga.costo_total }}</td>
+                <td class="numeric">{{ carga.odometro }}</td>
                 <td>{{ carga.operador }}</td>
                 <td>{{ carga.hora }}</td>
+                <td>{{ carga.proyecto }}</td>
                 <td>{{ carga.observaciones|default:"-" }}</td>
             </tr>
-            {% empty %}
-            <tr>
-                <td colspan="9" align="center">No se encontraron registros.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
 
+            {% if forloop.last %}
+                    </tbody>
+                </table>
+            {% endif %}
+
+        {% endfor %}
+
+    {% else %}
+        <table>
+            <tr>
+                <td colspan="10" style="text-align:center;">No se encontraron registros.</td>
+            </tr>
+        </table>
+    {% endif %}
+
+    <!-- TOTALES -->
     <p class="totales">
-        Total Litros: {{ total_litros|floatformat:2 }} &nbsp;&nbsp;&nbsp;
+        Total Litros: {{ total_litros|floatformat:2 }} &nbsp;&nbsp;
         Total Costo: ${{ total_costo|floatformat:2 }}
     </p>
+
 </body>
 </html>

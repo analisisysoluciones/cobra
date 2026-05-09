@@ -1,0 +1,79 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+
+<div class="card shadow mb-4">
+
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            Editar Actividad
+        </h6>
+    </div>
+
+    <div class="card-body">
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="row">
+
+    <!-- ACTIVIDAD -->
+    <div class="col-md-4 mb-3">
+        <label>Actividad</label>
+        {{ form.actividad }}
+    </div>
+
+    <!-- INICIO -->
+    <div class="col-md-4 mb-3">
+        <label>Inicio</label>
+        {{ form.inicio }}
+    </div>
+
+    <!-- FIN -->
+    <div class="col-md-4 mb-3">
+        <label>Fin</label>
+        {{ form.fin }}
+    </div>
+
+    <!-- HORAS (SOLO LECTURA) -->
+    <div class="col-md-3 mb-3">
+        <label>Horas calculadas</label>
+        <input type="text"
+               class="form-control"
+               value="{{ form.instance.horas }}"
+               readonly>
+    </div>
+
+    <!-- PROYECTO -->
+    <div class="col-md-3 mb-3">
+        <label>Proyecto</label>
+        {{ form.proyecto }}
+    </div>
+
+    <!-- OBSERVACIONES -->
+    <div class="col-md-12 mb-3">
+        <label>Observaciones</label>
+        {{ form.observaciones }}
+    </div>
+
+</div>
+            <div class="d-flex justify-content-between">
+
+                <a href="{% url 'adm:oficina_actividades' %}" 
+                   class="btn btn-secondary">
+                    Cancelar
+                </a>
+
+                <button type="submit" class="btn btn-primary">
+                    Guardar Cambios
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

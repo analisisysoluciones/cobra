@@ -1,164 +1,375 @@
 {% extends 'base/base.html' %}
-
 {% block page_content %}
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    <div class="col-xl-12 mb-4">
-        {% if obj %}
-        <div class="card border-left-warning shadow h-100 py-2">
-        {% else %}
-        <div class="card border-left-success shadow h-100 py-2">
-        {% endif %}
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            {% if obj %} Editar {% else %} Nuevo {% endif %} Proyecto
-                        </div>
-                        <div class="dropdown-divider"></div>
 
-                        <div class="form-group row">
-                            <label for="id_nombre" class="col-sm-3 col-form-label">Nombre:</label>
-                            <div class="col-sm-9">
-                                <input type="text" name="nombre" maxlength="120" class="form-control" required id="id_nombre" placeholder="Nombre" value="{% if obj %}{{ obj.nombre }}{% endif %}">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group row">
-                            <label for="id_ubicacion" class="col-sm-3 col-form-label">Ubicación:</label>
-                            <div class="col-sm-9">
-                                <input type="text" name="ubicacion" maxlength="120" class="form-control" required id="id_ubicacion" placeholder="Ubicación" value="{% if obj %}{{ obj.ubicacion }}{% endif %}">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group row">
-                            <label for="id_latitud" class="col-sm-3 col-form-label">Latitud:</label>
-                            <div class="col-sm-9">
-                                <input type="number" step="0.000001" name="latitud" class="form-control" required id="id_latitud" placeholder="Latitud" value="{% if obj %}{{ obj.latitud }}{% endif %}">
-                            </div>
-                        </div>
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-2">
+  <ol class="breadcrumb" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">
+    <li class="breadcrumb-item"><a href="#">Administración</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'adm:proyecto_list' %}">Proyectos</a></li>
+    <li class="breadcrumb-item active">
+      {% if obj %}Editar Proyecto{% else %}Nuevo Proyecto{% endif %}
+    </li>
+  </ol>
+</nav>
 
-                        <div class="form-group row">
-                            <label for="id_longitud" class="col-sm-3 col-form-label">Longitud:</label>
-                            <div class="col-sm-9">
-                                <input type="number" step="0.000001" name="longitud" class="form-control" required id="id_longitud" placeholder="Longitud" value="{% if obj %}{{ obj.longitud }}{% endif %}">
-                            </div>
-                        </div>
+<!-- Topbar -->
+<div class="d-flex align-items-flex-end justify-content-between mb-4">
+  <div>
+    <h1 class="h4 mb-1 font-weight-bold text-gray-800">
+      {% if obj %}Editar Proyecto{% else %}Nuevo Proyecto{% endif %}
+    </h1>
+    <p class="mb-0 text-muted small">Registro operativo y financiero del proyecto</p>
+  </div>
+</div>
 
+<form method="POST" enctype="multipart/form-data" novalidate>
+{% csrf_token %}
 
-                        <div class="form-group row">
-                            <label for="id_residente" class="col-sm-3 col-form-label">Residente:</label>
-                            <div class="col-sm-9">
-                                <select name="residente" class="form-control" id="id_residente" required>
-                                    <option value="">Seleccione un residente</option>
-                                    {% for residente in residentes %}
-                                        <option value="{{ residente.id }}" {% if obj and obj.residente.id == residente.id %}selected{% endif %}>
-                                            {{ residente.nombre }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
+<div class="card shadow-sm border-0 rounded-lg">
 
-                        <div class="form-group row">
-                            <label for="id_cuenta" class="col-sm-3 col-form-label">Cuenta:</label>
-                            <div class="col-sm-9">
-                                <select name="cuenta" class="form-control" id="id_cuenta" required>
-                                    <option value="">Seleccione una cuenta</option>
-                                    {% for cuenta in cuentas %}
-                                        <option value="{{ cuenta.id }}" {% if obj and obj.cuenta.id == cuenta.id %}selected{% endif %}>
-                                            {{ cuenta.banco.nombre }} - {{ cuenta.cuenta }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Presupuesto -->
-                        <div class="form-group row">
-                            <label for="id_presupuesto" class="col-sm-3 col-form-label">Presupuesto:</label>
-                            <div class="col-sm-9">
-                                <input type="number" step="0.01" name="presupuesto" class="form-control" id="id_presupuesto" placeholder="Monto del presupuesto" value="{% if obj %}{{ obj.presupuesto }}{% endif %}">
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <label for="id_estado" class="col-sm-3 col-form-label">Estado:</label>
-                            <div class="col-sm-9">
-                                <input type="checkbox" name="estado" id="id_estado" {% if obj and obj.estado %}checked{% endif %}>
-                                <label for="id_estado" class="form-check-label">Activo</label>
-                            </div>
-                        </div>
-
-
-                        <div class="form-group row">
-                            <label for="id_mapa" class="col-sm-3 col-form-label">Mapa en PDF:</label>
-                            <div class="col-sm-9">
-                                <input type="file" name="mapa" class="form-control" id="id_mapa" accept="application/pdf">
-                                {% if obj and obj.mapa_pdf %}
-                                    <br>
-                                    <a href="{{ obj.mapa.url }}" target="_blank" class="btn btn-info">Ver Mapa PDF</a>
-                                {% endif %}
-                            </div>
-                        </div>
-
-
-                        
-                        
-
-                        <div class="dropdown-divider"></div>
-                        <div class="row">
-                            <div class="col">
-                                <button type="submit" class="btn btn-success"><span class="fa fa-save"></span> Guardar</button>
-                                <a href="{% url 'adm:proyecto_list' %}" class="btn btn-danger"><span class="fa fa-undo"></span> Cancelar</a>
-                            </div>
-                        </div>    
-                    </div>                            
-                </div>
-            </div>
-        </div>
+  <!-- Header -->
+  <div class="card-header d-flex align-items-center justify-content-between py-3"
+       style="background:linear-gradient(135deg,#1f2937 0%,#111827 100%);border:none;">
+    <div class="d-flex align-items-center">
+      <div class="d-flex align-items-center justify-content-center rounded mr-3"
+           style="width:38px;height:38px;background:rgba(255,255,255,.14);">
+        <i class="fas fa-building text-white"></i>
+      </div>
+      <h6 class="m-0 font-weight-bold text-white">Información del proyecto</h6>
     </div>
+    <span class="badge rounded-pill px-3"
+          style="background:rgba(255,255,255,.18);color:#fff;font-size:.65rem;font-weight:700;letter-spacing:.06em;">
+      {% if obj %}EDICIÓN{% else %}CREACIÓN{% endif %}
+    </span>
+  </div>
+
+  <div class="px-4 py-4">
+
+    <!-- ── Información general ── -->
+    <p class="text-uppercase font-weight-bold mb-3"
+       style="font-size:.68rem;letter-spacing:.1em;color:#c5c7d4;">
+      <i class="fas fa-circle mr-1" style="font-size:5px;color:#4e73df;vertical-align:middle;"></i>
+      Información general
+    </p>
+    <div class="row mb-4">
+      <div class="col-md-6 mb-3">
+        <label class="small font-weight-bold text-gray-700 mb-1">
+          <i class="fas fa-signature text-primary mr-1" style="font-size:.7rem;"></i>
+          Nombre del proyecto <span class="text-danger">*</span>
+        </label>
+        <input type="text" name="nombre" maxlength="120" required class="form-control"
+               placeholder="Nombre del proyecto"
+               value="{% if obj %}{{ obj.nombre }}{% endif %}">
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="small font-weight-bold text-gray-700 mb-1">
+          <i class="fas fa-map-marker-alt text-primary mr-1" style="font-size:.7rem;"></i>
+          Ubicación <span class="text-danger">*</span>
+        </label>
+        <input type="text" name="ubicacion" maxlength="120" required class="form-control"
+               placeholder="Calle, municipio, estado..."
+               value="{% if obj %}{{ obj.ubicacion }}{% endif %}">
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="small font-weight-bold text-gray-700 mb-1">
+          <i class="fas fa-crosshairs text-primary mr-1" style="font-size:.7rem;"></i>
+          Latitud
+        </label>
+        <input type="number" step="0.000001" name="latitud" class="form-control"
+               id="id_latitud" placeholder="19.432600"
+               style="font-family:monospace;"
+               value="{% if obj %}{{ obj.latitud }}{% endif %}">
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="small font-weight-bold text-gray-700 mb-1">
+          <i class="fas fa-crosshairs text-primary mr-1" style="font-size:.7rem;"></i>
+          Longitud
+        </label>
+        <input type="number" step="0.000001" name="longitud" class="form-control"
+               id="id_longitud" placeholder="-99.133200"
+               style="font-family:monospace;"
+               value="{% if obj %}{{ obj.longitud }}{% endif %}">
+      </div>
+    </div>
+
+    <!-- ── Operación y finanzas ── -->
+    <p class="text-uppercase font-weight-bold mb-3"
+       style="font-size:.68rem;letter-spacing:.1em;color:#c5c7d4;">
+      <i class="fas fa-circle mr-1" style="font-size:5px;color:#4e73df;vertical-align:middle;"></i>
+      Operación y finanzas
+    </p>
+    <div class="row mb-3">
+      <div class="col-md-6 mb-3">
+        <label class="small font-weight-bold text-gray-700 mb-1">
+          <i class="fas fa-user-tie text-primary mr-1" style="font-size:.7rem;"></i>
+          Residente <span class="text-danger">*</span>
+        </label>
+        <select name="residente" class="form-control" required>
+          <option value="">— Seleccionar residente —</option>
+          {% for residente in residentes %}
+            <option value="{{ residente.id }}"
+              {% if obj and obj.residente.id == residente.id %}selected{% endif %}>
+              {{ residente.nombre }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="small font-weight-bold text-gray-700 mb-1">
+          <i class="fas fa-dollar-sign text-primary mr-1" style="font-size:.7rem;"></i>
+          Presupuesto
+        </label>
+        <div class="input-group">
+          <div class="input-group-prepend">
+            <span class="input-group-text font-weight-bold text-primary border-right-0"
+                  style="background:#f8f9fc;border:1.5px solid #d1d3e2;border-radius:8px 0 0 8px;">$</span>
+          </div>
+          <input type="number" step="0.01" name="presupuesto" class="form-control"
+                 placeholder="0.00" style="border-radius:0 8px 8px 0;"
+                 value="{% if obj %}{{ obj.presupuesto }}{% endif %}">
+        </div>
+        <small class="text-muted">Monto total aprobado (MXN)</small>
+      </div>
+    </div>
+
+    <!-- Cuenta bancaria -->
+    <div class="mb-4">
+      <label class="small font-weight-bold text-gray-700 mb-1">
+        <i class="fas fa-university text-primary mr-1" style="font-size:.7rem;"></i>
+        Cuenta bancaria <span class="text-danger">*</span>
+      </label>
+      <div class="d-flex" style="gap:.75rem;align-items:center;">
+        <div class="flex-grow-1">
+          <select name="cuenta" class="form-control" id="id_cuenta" required>
+            <option value="">— Seleccionar cuenta —</option>
+            {% for cuenta in cuentas %}
+              <option value="{{ cuenta.id }}"
+                {% if obj and obj.cuenta.id == cuenta.id %}selected{% endif %}>
+                {{ cuenta.banco.nombre }} — {{ cuenta.cuenta }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="button" class="btn btn-primary font-weight-bold shadow-sm"
+                data-toggle="modal" data-target="#modalCuenta"
+                style="white-space:nowrap;border-radius:8px;">
+          <i class="fas fa-plus mr-1"></i> Nueva cuenta
+        </button>
+      </div>
+      <small class="text-muted">Cuenta utilizada para movimientos financieros del proyecto</small>
+    </div>
+
+    <!-- ── Documentación ── -->
+    <p class="text-uppercase font-weight-bold mb-3"
+       style="font-size:.68rem;letter-spacing:.1em;color:#c5c7d4;">
+      <i class="fas fa-circle mr-1" style="font-size:5px;color:#4e73df;vertical-align:middle;"></i>
+      Documentación
+    </p>
+    <div class="mb-4" style="max-width:420px;">
+      <label class="small font-weight-bold text-gray-700 mb-1">
+        <i class="fas fa-file-pdf text-primary mr-1" style="font-size:.7rem;"></i>
+        Mapa en PDF
+      </label>
+      <div onclick="document.getElementById('id_mapa').click()" class="rounded text-center"
+           style="border:2px dashed #d1d3e2;padding:1rem;background:#f8f9fc;cursor:pointer;transition:all .2s;"
+           onmouseover="this.style.borderColor='#4e73df';this.style.background='#f0f3ff'"
+           onmouseout="this.style.borderColor='#d1d3e2';this.style.background='#f8f9fc'">
+        <i class="fas fa-map d-block mb-1" style="font-size:1.4rem;color:#c5c7d4;"></i>
+        <p class="mb-0 small font-weight-600 text-muted">
+          Arrastra o <strong class="text-primary">selecciona</strong> el PDF del mapa
+        </p>
+        <p class="mb-0 text-muted" style="font-size:.7rem;margin-top:.2rem;">Máx. 10 MB · Solo PDF</p>
+      </div>
+      <input type="file" name="mapa" id="id_mapa" accept="application/pdf" style="display:none;">
+      {% if obj and obj.mapa_pdf %}
+        <div class="d-flex align-items-center rounded mt-2 px-3 py-2"
+             style="background:#eef0ff;border:1.5px solid #d1d9ff;gap:.6rem;">
+          <i class="fas fa-file-pdf text-primary"></i>
+          <span class="small font-weight-bold text-primary flex-grow-1">Mapa actual</span>
+          <a href="{{ obj.mapa.url }}" target="_blank"
+             class="btn btn-primary btn-sm font-weight-bold" style="border-radius:6px;">
+            <i class="fas fa-eye mr-1"></i> Ver PDF
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- ── Estado ── -->
+    <p class="text-uppercase font-weight-bold mb-3"
+       style="font-size:.68rem;letter-spacing:.1em;color:#c5c7d4;">
+      <i class="fas fa-circle mr-1" style="font-size:5px;color:#4e73df;vertical-align:middle;"></i>
+      Estado
+    </p>
+    <div class="d-flex align-items-center justify-content-between rounded px-3 py-2"
+         style="background:#f8f9fc;border:1.5px solid #eaecf4;max-width:420px;">
+      <div class="d-flex align-items-center" style="gap:.65rem;">
+        <i class="fas fa-toggle-on" style="color:#1cc88a;font-size:1.1rem;"></i>
+        <div>
+          <div class="small font-weight-bold text-gray-700">Estado del proyecto</div>
+          <div class="text-muted" style="font-size:.7rem;">Desactiva para archivar sin eliminar</div>
+        </div>
+      </div>
+      <select name="estado" id="estado_select" class="form-control"
+              onchange="updateEstado(this)"
+              style="width:auto;border-radius:8px;font-weight:700;font-size:.82rem;cursor:pointer;">
+        <option value="True" {% if obj.estado %}selected{% endif %}>Activo</option>
+        <option value="False" {% if obj and not obj.estado %}selected{% endif %}>Inactivo</option>
+      </select>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="card-footer d-flex justify-content-end align-items-center px-4 py-3"
+       style="background:#f8f9fc;border-top:1px solid #eaecf4;">
+    <a href="{% url 'adm:proyecto_list' %}" class="btn btn-white border font-weight-bold text-gray-600 mr-2">
+      <i class="fas fa-arrow-left mr-1"></i> Cancelar
+    </a>
+    <button type="submit" class="btn btn-primary font-weight-bold shadow-sm">
+      <i class="fas fa-save mr-1"></i> Guardar Proyecto
+    </button>
+  </div>
+
+</div>
 </form>
+
+<!-- ── MODAL NUEVA CUENTA ── -->
+<div class="modal fade" id="modalCuenta" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow rounded-lg overflow-hidden">
+
+      <div class="modal-header py-3"
+           style="background:linear-gradient(135deg,#4e73df 0%,#224abe 100%);border:none;">
+        <div class="d-flex align-items-center" style="gap:.6rem;">
+          <div class="d-flex align-items-center justify-content-center rounded"
+               style="width:32px;height:32px;background:rgba(255,255,255,.18);">
+            <i class="fas fa-university text-white" style="font-size:.85rem;"></i>
+          </div>
+          <h5 class="modal-title font-weight-bold text-white mb-0">Nueva Cuenta Bancaria</h5>
+        </div>
+        <button type="button" class="close text-white" data-dismiss="modal"
+                style="opacity:.8;font-size:1.2rem;">&times;</button>
+      </div>
+
+      <div class="modal-body px-4 py-4">
+
+        <p class="text-uppercase font-weight-bold mb-3"
+           style="font-size:.68rem;letter-spacing:.1em;color:#c5c7d4;">
+          <i class="fas fa-circle mr-1" style="font-size:5px;color:#4e73df;vertical-align:middle;"></i>
+          Datos bancarios
+        </p>
+
+        <div class="form-group">
+          <label class="small font-weight-bold text-gray-700 mb-1">
+            <i class="fas fa-university text-primary mr-1" style="font-size:.7rem;"></i>
+            Banco <span class="text-danger">*</span>
+          </label>
+          <select id="mc_banco" class="form-control">
+            <option value="">— Seleccionar banco —</option>
+            {% for banco in bancos %}
+              <option value="{{ banco.id }}">{{ banco.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="small font-weight-bold text-gray-700 mb-1">
+                <i class="fas fa-hashtag text-primary mr-1" style="font-size:.7rem;"></i>
+                Número de cuenta <span class="text-danger">*</span>
+              </label>
+              <input type="text" id="mc_cuenta" class="form-control" placeholder="10 dígitos">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="small font-weight-bold text-gray-700 mb-1">
+                <i class="fas fa-barcode text-primary mr-1" style="font-size:.7rem;"></i>
+                CLABE <span class="text-danger">*</span>
+              </label>
+              <input type="text" id="mc_clabe" class="form-control" maxlength="18" placeholder="18 dígitos">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group mb-0">
+          <label class="small font-weight-bold text-gray-700 mb-1">
+            <i class="fas fa-dollar-sign text-primary mr-1" style="font-size:.7rem;"></i>
+            Saldo inicial
+          </label>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text font-weight-bold text-primary border-right-0"
+                    style="background:#f8f9fc;border:1.5px solid #d1d3e2;border-radius:8px 0 0 8px;">$</span>
+            </div>
+            <input type="number" step="0.01" value="0" id="mc_saldo" class="form-control"
+                   placeholder="0.00" style="border-radius:0 8px 8px 0;">
+          </div>
+          <small class="text-muted">Puede ser 0 si aún no hay fondos asignados</small>
+        </div>
+
+      </div>
+
+      <div class="modal-footer px-4 py-3" style="background:#f8f9fc;border-top:1px solid #eaecf4;">
+        <button type="button" class="btn btn-white border font-weight-bold text-gray-600 mr-2"
+                data-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-success font-weight-bold shadow-sm" id="btnGuardarCuenta">
+          <i class="fas fa-save mr-1"></i> Guardar Cuenta
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 {% endblock page_content %}
+
 {% block js_page %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // Obtener los valores iniciales de latitud y longitud
-            let latitud = parseFloat(document.getElementById("id_latitud").value) || 19.4326; // Default: CDMX
-            let longitud = parseFloat(document.getElementById("id_longitud").value) || -99.1332;
+// ── Color estado ──
+function updateEstado(sel) {
+  if (sel.value === 'True') {
+    sel.style.cssText = 'width:auto;border-radius:8px;font-weight:700;font-size:.82rem;cursor:pointer;background:#eafaf4;color:#1cc88a;border-color:#c3f0df;';
+  } else {
+    sel.style.cssText = 'width:auto;border-radius:8px;font-weight:700;font-size:.82rem;cursor:pointer;background:#fdf0f0;color:#e74a3b;border-color:#f8c8c5;';
+  }
+}
+const estadoSel = document.getElementById('estado_select');
+if (estadoSel) updateEstado(estadoSel);
 
-            // Crear el mapa
-            var map = L.map('map').setView([latitud, longitud], 13);
-            
-            // Agregar capa base de OpenStreetMap
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
+// ── AJAX Crear cuenta ──
+$("#btnGuardarCuenta").click(function () {
+  let boton = $(this);
+  boton.prop("disabled", true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Guardando...');
+  $.ajax({
+    url: "{% url 'adm:crear_cuenta_ajax' %}",
+    type: "POST",
+    data: {
+      banco:  $("#mc_banco").val(),
+      cuenta: $("#mc_cuenta").val(),
+      clabe:  $("#mc_clabe").val(),
+      saldo:  $("#mc_saldo").val(),
+      csrfmiddlewaretoken: '{{ csrf_token }}'
+    },
+    success: function (resp) {
+      if (resp.ok) {
+        $("#id_cuenta").append(new Option(resp.texto, resp.id, true, true));
+        $("#modalCuenta").modal("hide");
+        $("#mc_cuenta, #mc_clabe").val("");
+        $("#mc_saldo").val("0");
+      } else {
+        alert(resp.error);
+      }
+      boton.prop("disabled", false).html('<i class="fas fa-save mr-1"></i> Guardar Cuenta');
+    },
+    error: function () {
+      alert("Error del servidor");
+      boton.prop("disabled", false).html('<i class="fas fa-save mr-1"></i> Guardar Cuenta');
+    }
+  });
+});
 
-            // Agregar marcador inicial
-            var marker = L.marker([latitud, longitud], { draggable: true }).addTo(map);
-
-            // Actualizar los campos al mover el marcador
-            marker.on("dragend", function (event) {
-                let position = marker.getLatLng();
-                document.getElementById("id_latitud").value = position.lat.toFixed(6);
-                document.getElementById("id_longitud").value = position.lng.toFixed(6);
-            });
-
-            // Cambiar ubicación del marcador al escribir en los campos de lat/lon
-            function updateMarker() {
-                let newLat = parseFloat(document.getElementById("id_latitud").value) || latitud;
-                let newLon = parseFloat(document.getElementById("id_longitud").value) || longitud;
-                marker.setLatLng([newLat, newLon]);
-                map.setView([newLat, newLon], 13);
-            }
-
-            document.getElementById("id_latitud").addEventListener("change", updateMarker);
-            document.getElementById("id_longitud").addEventListener("change", updateMarker);
-        });
-    </script>
-
-{% endblock js_page %}
+</script>
+{% endblock %}

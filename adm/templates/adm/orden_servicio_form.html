@@ -1,0 +1,62 @@
+{% extends "base/base.html" %}
+{% block page_content %}
+
+<div class="card">
+    <div class="card-header">
+        <h4>Nueva Orden de Servicio</h4>
+    </div>
+
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="row">
+                <div class="col-md-3">
+                    <label>Fecha</label>
+                    {{ form.fecha }}
+                </div>
+
+                <div class="col-md-5">
+                    <label>Equipo</label>
+                    {{ form.equipo }}
+                </div>
+
+                <div class="col-md-4">
+                    <label>Proveedor</label>
+                    {{ form.proveedor }}
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md-3">
+                    <label>Tipo de servicio</label>
+                    {{ form.tipo_servicio }}
+                </div>
+
+                <div class="col-md-9">
+                    <label>Descripción de la falla</label>
+                    {{ form.descripcion_falla }}
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <label>Observaciones</label>
+                    {{ form.observaciones }}
+                </div>
+            </div>
+
+            <div class="mt-4 text-end">
+                <button type="submit" class="btn btn-primary">
+                    Guardar orden
+                </button>
+                <a href="{% url 'adm:orden_servicio_list' %}" class="btn btn-secondary">
+                    Cancelar
+                </a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+{% endblock %}

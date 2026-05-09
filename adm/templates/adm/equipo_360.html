@@ -1,0 +1,141 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+
+<div class="container-fluid">
+
+    <h1 class="h3 mb-4 text-gray-800">
+        Reporte 360 - {{ equipo.descripcion }}
+    </h1>
+
+    <!-- KPIs -->
+    <div class="row">
+
+        <div class="col-md-3">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-primary text-uppercase">
+                        Horas de uso
+                    </div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                        {{ total_horas }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-success text-uppercase">
+                        Litros
+                    </div>
+                    {% if total_horas == 0 and total_litros > 0 %}
+<div class="alert alert-danger mt-3">
+    ⚠️ Hay consumo de combustible sin registro de uso
+</div>
+{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-warning text-uppercase">
+                        Costo Combustible
+                    </div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                        $ {{ total_costo_combustible }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-danger text-uppercase">
+                        Servicios
+                    </div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                        {{ total_servicios }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Indicadores -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body">
+                    <strong>Litros por hora:</strong> {{ litros_por_hora }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body">
+                    <strong>Costo por hora:</strong> $ {{ costo_combustible_por_hora }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Últimos movimientos -->
+    <div class="row mt-4">
+
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header">Uso</div>
+                <div class="card-body">
+                    <ul>
+                        {% for u in usos_qs %}
+                            <li>{{ u.fecha }} - {{ u.horas }} hrs</li>
+                        {% empty %}
+                            <li>Sin registros</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header">Combustible</div>
+                <div class="card-body">
+                    <ul>
+                        {% for c in combustible_qs %}
+                            <li>{{ c.fecha_carga }} - {{ c.cantidad_litros }} L</li>
+                        {% empty %}
+                            <li>Sin registros</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header">Servicios</div>
+                <div class="card-body">
+                    <ul>
+                        {% for s in servicios_qs %}
+                            <li>{{ s.fecha }} - {{ s.estatus }}</li>
+                        {% empty %}
+                            <li>Sin registros</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

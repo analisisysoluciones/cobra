@@ -1,0 +1,90 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+
+<div class="card shadow mb-4">
+
+  <div class="card-header d-flex justify-content-between">
+    <h5 class="text-primary">Comparativos de Nómina</h5>
+  </div>
+
+  <div class="card-body">
+
+    <!-- FORMULARIO FILTRO -->
+    <form method="GET" class="mb-4">
+      <div class="row">
+
+        <div class="col-md-2">
+          <label><strong>Comparar por</strong></label>
+          {{ form.tipo }}
+        </div>
+
+        <div class="col-md-2">
+          <label><strong>Año</strong></label>
+          {{ form.anio }}
+        </div>
+
+        <div class="col-md-3">
+          <label><strong>Proyecto</strong></label>
+          {{ form.proyecto }}
+        </div>
+
+        <div class="col-md-3">
+          <label><strong>Semana</strong></label>
+          {{ form.periodo }}
+        </div>
+
+      </div>
+
+      <button class="btn btn-primary btn-sm mt-3">
+        <i class="fas fa-filter"></i> Aplicar
+      </button>
+
+    </form>
+
+    <!-- BOTONES EXPORTACIÓN -->
+    {% if resultados %}
+    <a href="{% url 'nom:comparativo_pdf' %}?{{ request.GET.urlencode }}"
+       class="btn btn-danger btn-sm mb-3">
+      <i class="fas fa-file-pdf"></i> PDF
+    </a>
+
+    <a href="{% url 'nom:comparativo_excel' %}?{{ request.GET.urlencode }}"
+       class="btn btn-success btn-sm mb-3">
+      <i class="fas fa-file-excel"></i> Excel
+    </a>
+    {% endif %}
+
+    <!-- TABLA -->
+    <div class="table-responsive">
+      <table class="table table-border table-sm">
+        <thead class="thead-dark">
+          <tr>
+            <th>Periodo / Proyecto</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for r in resultados %}
+          <tr>
+            <td>
+              {{ r.historial__periodo_inicio|date:"d/m/Y" }}
+              {{ r.mes }}
+              {{ r.proyecto__nombre }}
+            </td>
+            <td>${{ r.total|floatformat:2 }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="2" class="text-center text-muted">Sin información</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

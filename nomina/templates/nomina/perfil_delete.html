@@ -1,0 +1,20 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+
+<div class="card shadow">
+    <div class="card-body text-center">
+
+        <h4>Eliminar Perfil</h4>
+        <p>¿Seguro que deseas eliminar <strong>{{ object.nombre }}</strong>?</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <button class="btn btn-danger">Sí, eliminar</button>
+            <a href="{% url 'nom:perfil_list' %}" class="btn btn-secondary">Cancelar</a>
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}

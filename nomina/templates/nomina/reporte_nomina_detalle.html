@@ -1,0 +1,210 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block page_content %}
+
+<style>
+    .inemo-logo {
+        height: 60px;
+        margin-right: 15px;
+    }
+    .table-conceptos thead th {
+        background-color: #1f4e79;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+    }
+    .empleado-header {
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin-top: 10px;
+        margin-bottom: 4px;
+    }
+    .proyecto-header {
+        font-weight: 700;
+        font-size: 1rem;
+        margin-top: 15px;
+        margin-bottom: 10px;
+        color: #1f4e79;
+    }
+    .badge-tipo {
+        font-size: 0.75rem;
+    }
+</style>
+
+<!-- ENCABEZADO CORPORATIVO -->
+<div class="d-flex align-items-center mb-4">
+    <img src="{% static 'base/inemo.png' %}" class="inemo-logo" alt="INEMO">
+    <div class="ml-2">
+        <h1 class="h3 mb-0 text-gray-800">Reporte Detallado por Concepto</h1>
+        <small class="text-muted">{{ inicio }} al {{ fin }}</small>
+    </div>
+</div>
+
+<!-- FILTROS -->
+<form method="get" class="mb-4">
+    <div class="card p-4 shadow">
+
+        <h5 class="font-weight-bold mb-3">Filtros del Reporte</h5>
+
+        <div class="form-row">
+            <!-- EMPLEADO -->
+            <div class="col-md-4">
+                <label>Empleado</label>
+                <select name="empleado" class="form-control">
+                    <option value="">Todos</option>
+                    {% for e in empleados %}
+                    <option value="{{ e.id }}"
+                        {% if request.GET.empleado == e.id|stringformat:"s" %}selected{% endif %}>
+                        {{ e.nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- PROYECTO -->
+            <div class="col-md-4">
+                <label>Proyecto</label>
+                <select name="proyecto" class="form-control">
+                    <option value="">Todos</option>
+                    {% for p in proyectos %}
+                    <option value="{{ p.id }}"
+                        {% if request.GET.proyecto == p.id|stringformat:"s" %}selected{% endif %}>
+                        {{ p.nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- FECHA DESDE -->
+            <div class="col-md-2">
+                <label>Desde</label>
+                <input type="date" name="fecha_desde" class="form-control"
+                       value="{{ request.GET.fecha_desde }}">
+            </div>
+
+            <!-- FECHA HASTA -->
+            <div class="col-md-2">
+                <label>Hasta</label>
+                <input type="date" name="fecha_hasta" class="form-control"
+                       value="{{ request.GET.fecha_hasta }}">
+            </div>
+        </div>
+
+        <!-- BOTONES -->
+        <div class="form-row mt-4">
+            <div class="col-md-4 d-flex justify-content-start">
+                <button class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i> Consultar
+                </button>
+            </div>
+            <div class="col-md-4 d-flex justify-content-center">
+                <a class="btn btn-danger w-100 text-white"
+                   href="{% url 'nom:nomina_reporte_detalle_pdf' %}?{{ request.GET.urlencode }}">
+                    <i class="fas fa-file-pdf"></i> PDF
+                </a>
+            </div>
+            <div class="col-md-4 d-flex justify-content-end">
+                <a class="btn btn-success w-100 text-white"
+                   href="{% url 'nom:nomina_reporte_detalle_excel' %}?{{ request.GET.urlencode }}">
+                    <i class="fas fa-file-excel"></i> Excel
+                </a>
+            </div>
+        </div>
+
+    </div>
+</form>
+
+<!-- CONTENIDO DEL REPORTE -->
+{% if reporte %}
+    {% for p in reporte %}
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h6 class="m-0 font-weight-bold">
+                PROYECTO: {{ p.proyecto }}
+            </h6>
+        </div>
+        <div class="card-body">
+
+            {% for e in p.empleados %}
+            <div class="mb-3">
+                <div class="empleado-header">
+                    EMPLEADO: {{ e.empleado }}
+                </div>
+
+                <table class="table table-sm table-bordered table-conceptos mb-1">
+                    <thead>
+                        <tr>
+                            <th style="width: 45%;">Concepto</th>
+                            <th style="width: 10%;">Tipo</th>
+                            <th style="width: 10%;">Cantidad</th>
+                            <th style="width: 15%;">Monto Unitario</th>
+                            <th style="width: 20%;">Importe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if e.conceptos_per %}
+                        <tr>
+                            <td colspan="5"><strong>PERCEPCIONES</strong></td>
+                        </tr>
+                        {% for c in e.conceptos_per %}
+                        <tr>
+                            <td>{{ c.concepto }}</td>
+                            <td><span class="badge badge-success badge-tipo">PERCEPCIÓN</span></td>
+                            <td class="text-right">{{ c.cantidad }}</td>
+                            <td class="text-right">${{ c.monto_unitario|floatformat:2 }}</td>
+                            <td class="text-right">${{ c.importe|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+
+                        {% if e.conceptos_ded %}
+                        <tr>
+                            <td colspan="5"><strong>DEDUCCIONES</strong></td>
+                        </tr>
+                        {% for c in e.conceptos_ded %}
+                        <tr>
+                            <td>{{ c.concepto }}</td>
+                            <td><span class="badge badge-danger badge-tipo">DEDUCCIÓN</span></td>
+                            <td class="text-right">{{ c.cantidad }}</td>
+                            <td class="text-right">${{ c.monto_unitario|floatformat:2 }}</td>
+                            <td class="text-right">${{ c.importe|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="2" class="text-right font-weight-bold">Subtotal empleado:</td>
+                            <td></td>
+                            <td class="text-right font-weight-bold">
+                                P: ${{ e.percepciones|floatformat:2 }}<br>
+                                D: ${{ e.deducciones|floatformat:2 }}
+                            </td>
+                            <td class="text-right font-weight-bold">
+                                Neto: ${{ e.neto|floatformat:2 }}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            {% endfor %}
+
+            <hr>
+            <div class="text-right">
+                <strong>Subtotal proyecto {{ p.proyecto }}:</strong><br>
+                Percepciones: ${{ p.total_percepciones|floatformat:2 }}<br>
+                Deducciones: ${{ p.total_deducciones|floatformat:2 }}<br>
+                Neto: ${{ p.total_neto|floatformat:2 }}
+            </div>
+
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+<div class="alert alert-info">
+    No hay información para los filtros seleccionados.
+</div>
+{% endif %}
+
+{% endblock page_content %}

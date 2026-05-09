@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="{% static 'base/css/sb-admin-2.min.css' %}" rel="stylesheet">
+<title>Cobra Operador</title>
+</head>
+
+<body style="background:#f8f9fc;">
+
+<div class="container py-4">
+
+    <div class="text-center mb-4">
+        <h3 class="font-weight-bold text-primary">COBRA PDA</h3>
+        <div class="text-muted">{{ request.user.username }}</div>
+    </div>
+
+    <a href="{% url 'adm:pda_inicio' %}" class="btn btn-success btn-lg btn-block mb-3 p-4">
+        ⚙️ Actividades
+    </a>
+
+    <a href="{% url 'adm:captura_combustible' %}" class="btn btn-warning btn-lg btn-block mb-3 p-4">
+        ⛽ Combustible
+    </a>
+
+    <a href="{% url 'adm:mis_movimientos' %}" class="btn btn-info btn-lg btn-block mb-3 p-4">
+        📋 Mis movimientos
+    </a>
+
+    <form method="post" action="{% url 'bases:logout' %}">
+    {% csrf_token %}
+    <button type="submit"
+            class="btn btn-dark btn-lg btn-block p-4 rounded-pill">
+        🔒 Salir
+    </button>
+</form>
+
+</div>
+
+</body>
+</html>

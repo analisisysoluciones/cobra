@@ -39,19 +39,33 @@
                         <th>Litros</th>
                         <th>Costo</th>
                         <th>Kilometraje</th>
+                        <th>Proyecto</th>
+                        <th>Foto</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for carga in cargas %}
                     <tr>
-                        <td>{{ carga.fecha_carga|date:"d/m/Y" }}</td>
+                        <td data-order="{{ carga.fecha_carga|date:'Y-m-d' }}">
+    {{ carga.fecha_carga|date:"d/m/Y" }}
+</td>
                         <td>{{ carga.equipo }}</td>
                         <td>{{ carga.get_tipo_combustible_display|default:"-" }}</td>
                         <td>{{ carga.folio|default_if_none:"-" }}</td>
                         <td>{{ carga.cantidad_litros }}</td>
                         <td>${{ carga.costo_total }}</td>
                         <td>{{ carga.odometro|default_if_none:"-" }}</td>
+                        <td>{{ carga.proyecto }}</td>
+                        <td class="text-center">
+    {% if carga.foto %}
+        <a href="{{ carga.foto.url }}" target="_blank" class="text-success">
+            <i class="fas fa-camera fa-lg"></i>
+        </a>
+    {% else %}
+        <i class="fas fa-camera text-muted"></i>
+    {% endif %}
+</td>
                         <td>
                             <a href="{% url 'adm:cargacombustible_edit' carga.id %}" class="btn btn-warning btn-circle btn-sm">
                                 <i class="far fa-edit"></i>

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Categoria, Material, Unidad, Requisicion, ItemRequisicion, Firma
+from .models import Categoria, Material, Unidad, Requisicion, ItemRequisicion, Firma, SalidaAlmacen, SalidaAlmacenD
 from adm.models import Proyecto
 from nomina.models import Empleado
 from django.forms import inlineformset_factory
@@ -47,20 +47,34 @@ class UnidadForm(forms.ModelForm):
 
 
 class MaterialForm(forms.ModelForm):
+
     class Meta:
         model = Material
-        fields = ['clave', 'descripcion', 'unidad_medida', 'existencia', 'maximo', 'minimo']  # Elimina 'estado' si no existe
+        fields = [
+            'clave',
+            'descripcion',
+            'unidad_medida',
+            'tipo_insumo',   # 👈 NUEVO CAMPO
+            'existencia',
+            'maximo',
+            'minimo',
+        ]
+
         labels = {
             'clave': 'Clave:',
             'descripcion': 'Descripción:',
             'unidad_medida': 'Unidad de Medida:',
+            'tipo_insumo': 'Tipo de Insumo:',   # 👈 NUEVO
             'existencia': 'Existencia:',
             'maximo': 'Máximo:',
             'minimo': 'Mínimo:',
         }
+
         widgets = {
+            'clave': forms.TextInput(attrs={'class': 'form-control'}),
             'descripcion': forms.TextInput(attrs={'class': 'form-control'}),
-            'unidad_medida': forms.Select(attrs={'class': 'form-control'}),
+            'unidad_medida': forms.Select(attrs={'class': 'form-select'}),
+            'tipo_insumo': forms.Select(attrs={'class': 'form-select'}),  # 👈 NUEVO
             'existencia': forms.NumberInput(attrs={'class': 'form-control'}),
             'maximo': forms.NumberInput(attrs={'class': 'form-control'}),
             'minimo': forms.NumberInput(attrs={'class': 'form-control'}),
@@ -158,3 +172,26 @@ class RequisicionFilterForm(forms.Form):
         required=False,
         empty_label="--- Todos ---"
     )
+
+
+class SalidaAlmacenForm(forms.ModelForm):
+
+    class Meta:
+        model = SalidaAlmacen
+        fields = ['fecha', 'equipo',  'observaciones']
+        widgets = {
+            'fecha': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'equipo': forms.Select(attrs={'class': 'form-control'}),
+            'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+
+class SalidaAlmacenDetalleForm(forms.ModelForm):
+
+    class Meta:
+        model = SalidaAlmacenD
+        fields = ['material', 'cantidad']
+        widgets = {
+            'material': forms.Select(attrs={'class': 'form-control'}),
+            'cantidad': forms.NumberInput(attrs={'class': 'form-control'}),
+        }

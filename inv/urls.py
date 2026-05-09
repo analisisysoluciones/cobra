@@ -3,7 +3,8 @@ from .views import ( CategoriaView, CategoriaNew, CategoriaEdit, CategoriaDel, M
                     UnidadNew, UnidadView, UnidadEdit, UnidadDel, MaterialEdit, MaterialDel, generar_reporte_materiales,
                     RequisicionListView, RequisicionPDFView, Requisicion, requisicion_list, requisicion_pdf, ItemRequisicionDelete,
                     requisiciones, requisiciones_add_detalle_view, requisicion_entregar, reporte_requisiciones,
-                    reporte_requisiciones_pdf
+                    reporte_requisiciones_pdf,
+                    SalidaAlmacenCreateView, SalidaAlmacenDetalleView, SalidaAlmacenListView
                     )
 
 
@@ -38,7 +39,10 @@ urlpatterns = [
     path('requisiciones/<int:requisicion_id>/entregar/', requisicion_entregar, name='requisicion_entregar'),
     path('reporte/requisiciones/', reporte_requisiciones, name='reporte_requisiciones'),
     path('reporte/requisiciones/pdf/', reporte_requisiciones_pdf, name='reporte_requisiciones_pdf'),
-    
+
+    path('salida-almacen/nueva/', SalidaAlmacenCreateView.as_view(), name='salida_almacen_create'),
+    path('salida-almacen/<int:pk>/', SalidaAlmacenDetalleView.as_view(), name='salida_almacen_detalle'),
+    path('salida-almacen/', SalidaAlmacenListView.as_view(), name='salida_almacen_list'),
 
 
 

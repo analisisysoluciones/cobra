@@ -9,6 +9,17 @@
     <a href="{% url 'nom:reiniciar_nomina' %}" class="btn btn-light btn-sm shadow-sm">
       <i class="fas fa-sync-alt"></i> Recalcular
     </a>
+    <!-- Botón para ir al Reporte de Nómina -->
+
+
+            <a href="{% url 'nom:nomina_reporte_detalle' %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-file-invoice-dollar"></i> Nómina detallada
+            </a>
+
+            <a href="{% url 'nom:nomina_reporte' %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-file-invoice-dollar"></i> Reporte de Nómina
+            </a>
+
     <a href="{% url 'nom:empleado_create' %}" class="btn btn-primary btn-sm shadow-sm">
       <i class="fas fa-user-plus"></i> Nuevo Empleado
     </a>
@@ -30,7 +41,7 @@
         <table class="table table-bordered table-hover align-middle" id="empleadoTable">
           <thead class="bg-dark text-white text-center">
             <tr>
-              <th>ID</th>
+              
               <th>Código</th>
               <th>Nombre</th>
               <th>Ingreso</th>
@@ -43,7 +54,7 @@
           <tbody>
             {% for empleado in empleados %}
             <tr {% if empleado.sueldo_diario < 278.80 %} class="table-danger" {% endif %}>
-              <td class="text-center">{{ empleado.id }}</td>
+              
               <td>{{ empleado.codigo }}</td>
               <td>{{ empleado.nombre }}</td>
               <td class="text-center">{{ empleado.ingreso|date:"d/m/Y" }}</td>

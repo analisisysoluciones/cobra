@@ -18,6 +18,9 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+#from adm.api import api_equipos_activos
+#from adm.views_flotilla import flotilla_captura
+
 
 
 
@@ -30,7 +33,11 @@ urlpatterns = [
     path('ven/',include(('ventas.urls','ventas'), namespace='ven')),
     path('cxp/',include(('cxp.urls','cxp'), namespace='cxp')),
     path('finanzas/',include(('finanzas.urls','cxp'), namespace='finanzas')),
+    path('renta/',include(('renta.urls','renta'), namespace='renta')),
     path('admin/', admin.site.urls),
+    #path('api/equipos-activos/', api_equipos_activos, name='api_equipos_activos'),
+    #path('flotilla/captura/', flotilla_captura, name='flotilla_captura'),
+    
     
     
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

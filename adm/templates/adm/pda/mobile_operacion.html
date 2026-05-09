@@ -1,0 +1,372 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PDA Móvil - Operación</title>
+
+    <link href="{% static 'base/vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+    <link href="{% static 'base/css/sb-admin-2.min.css' %}" rel="stylesheet">
+
+    <style>
+        body{
+            background:#eef2f7;
+        }
+
+        .mobile-wrap{
+            max-width:620px;
+            margin:0 auto;
+            padding:12px;
+        }
+
+        .panel{
+            background:#fff;
+            border-radius:18px;
+            box-shadow:0 0.25rem 1rem rgba(0,0,0,.08);
+            padding:16px;
+            margin-bottom:14px;
+        }
+
+        .equipo-title{
+            font-size:1.15rem;
+            font-weight:800;
+            color:#24324a;
+            line-height:1.25;
+        }
+
+        .estado-chip{
+            display:inline-block;
+            padding:6px 12px;
+            border-radius:999px;
+            font-size:.85rem;
+            font-weight:700;
+        }
+
+        .chip-ok{
+            background:#d4edda;
+            color:#155724;
+        }
+
+        .actividad-actual{
+            font-size:1.2rem;
+            font-weight:800;
+            color:#2f4f4f;
+        }
+
+        .timer{
+            font-size:1rem;
+            font-weight:700;
+            color:#4e73df;
+        }
+
+        .actividad-btn{
+            min-height:76px;
+            border-radius:16px;
+            font-size:1rem;
+            font-weight:800;
+            width:100%;
+            margin-bottom:10px;
+            white-space:normal;
+            box-shadow:0 0.15rem 0.5rem rgba(0,0,0,.08);
+            border:none;
+        }
+
+        .actividad-tipo-productivo{
+            background:#1cc88a;
+            color:#fff;
+        }
+
+        .actividad-tipo-soporte{
+            background:#36b9cc;
+            color:#fff;
+        }
+
+        .actividad-tipo-muerto{
+            background:#e74a3b;
+            color:#fff;
+        }
+
+        .btn-finalizar{
+            min-height:64px;
+            border-radius:16px;
+            font-size:1.1rem;
+            font-weight:800;
+        }
+
+        .hist-item{
+            border-bottom:1px solid #edf2f7;
+            padding:10px 0;
+        }
+
+        .hist-item:last-child{
+            border-bottom:none;
+        }
+
+        .small-muted{
+            color:#858796;
+            font-size:.92rem;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="mobile-wrap">
+
+    <!-- ENCABEZADO -->
+    <div class="panel">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <div class="equipo-title">
+                    {{ jornada.equipo }}
+                </div>
+
+                <div class="small-muted mt-1">
+                    Jornada iniciada:
+                    {{ jornada.inicio|date:"d/m/Y H:i" }}
+                </div>
+            </div>
+
+            <span class="estado-chip chip-ok">
+                {{ jornada.estatus }}
+            </span>
+        </div>
+    </div>
+
+    <div style="background:#fff3cd; padding:8px; border-radius:8px; margin-bottom:10px;">
+        Último proyecto: {{ ultimo_proyecto.nombre }}
+    </div>
+
+    <div class="mb-3">
+    <label class="font-weight-bold">Proyecto</label>
+
+    <input type="text"
+           id="buscadorProyecto"
+           class="form-control mb-2"
+           placeholder="Buscar proyecto...">
+
+    <select id="proyectoSelect" class="form-control">
+        <option value="">Seleccionar proyecto</option>
+
+        {% for p in proyectos %}
+            <option value="{{ p.id }}">
+                {{ p.nombre }}
+            </option>
+        {% endfor %}
+    </select>
+</div>
+    <!-- ACTIVIDAD ACTUAL -->
+    <div class="panel">
+        <div class="font-weight-bold text-dark mb-2">
+            Actividad actual
+        </div>
+
+        {% if actividad_actual %}
+            <div class="actividad-actual" id="actividadActualNombre">
+                {{ actividad_actual.actividad.nombre }}
+            </div>
+
+            <div class="timer mt-2">
+                Desde:
+                <span id="actividadActualInicio">
+                    {{ actividad_actual.inicio|time:"H:i" }}
+                </span>
+            </div>
+        {% else %}
+            <div class="actividad-actual text-muted" id="actividadActualNombre">
+                Sin actividad activa
+            </div>
+
+            <div class="timer mt-2">
+                Desde:
+                <span id="actividadActualInicio">-</span>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- REGISTRAR ACTIVIDAD -->
+    <div class="panel">
+
+        <div class="font-weight-bold text-dark mb-3">
+            Registrar actividad
+        </div>
+
+        <div class="row">
+
+            {% for act in actividades %}
+            <div class="col-12">
+
+                <button
+                    type="button"
+                    class="actividad-btn
+                    {% if act.tipo == 'PRODUCTIVO' %}
+                        actividad-tipo-productivo
+                    {% elif act.tipo == 'SOPORTE' %}
+                        actividad-tipo-soporte
+                    {% else %}
+                        actividad-tipo-muerto
+                    {% endif %}"
+                    onclick="iniciarActividad('{{ act.id }}','{{ act.nombre|escapejs }}')">
+
+                    {{ act.nombre }}
+
+                </button>
+
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-warning mb-0">
+                    No hay actividades configuradas para este tipo de equipo.
+                </div>
+            </div>
+            {% endfor %}
+
+        </div>
+
+        <!-- CERRAR JORNADA PRO -->
+        <form method="post" action="{% url 'adm:terminar_jornada' %}" class="mt-3">
+            {% csrf_token %}
+
+            <button
+                type="submit"
+                class="btn btn-danger btn-block btn-finalizar"
+                onclick="return confirm('¿Deseas finalizar la jornada?');">
+
+                <i class="fas fa-stop-circle mr-2"></i>
+                Finalizar jornada
+
+            </button>
+        </form>
+
+    </div>
+
+    <!-- HISTORIAL -->
+    <div class="panel">
+
+        <div class="font-weight-bold text-dark mb-3">
+            Últimos movimientos
+        </div>
+
+        {% for d in detalles_hoy %}
+
+        <div class="hist-item">
+
+            <div class="font-weight-bold">
+                {{ d.actividad.nombre }}
+            </div>
+
+            <div class="small-muted">
+                Inicio:
+                {{ d.inicio|time:"H:i" }}
+                |
+
+                Fin:
+
+                {% if d.fin %}
+                    {{ d.fin|time:"H:i" }}
+                {% else %}
+                    En curso
+                {% endif %}
+            </div>
+
+            <div class="small-muted">
+                Horas: {{ d.horas }}
+            </div>
+
+        </div>
+
+        {% empty %}
+
+        <div class="text-muted">
+            Sin movimientos todavía.
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+<script>
+function getCookie(name){
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== ''){
+        const cookies = document.cookie.split(';');
+
+        for (let i = 0; i < cookies.length; i++){
+            const cookie = cookies[i].trim();
+
+            if (cookie.substring(0, name.length + 1) === (name + '=')){
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+
+    return cookieValue;
+}
+
+function iniciarActividad(actividadId, actividadNombre){
+
+    const proyecto = document.getElementById("proyectoSelect").value;
+
+    if(!proyecto){
+        alert("Debes seleccionar un proyecto");
+        return;
+    }
+
+    fetch("{% url 'adm:iniciar_actividad' %}", {
+        method: "POST",
+        headers:{
+            "Content-Type":"application/json",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: JSON.stringify({
+            actividad_id: actividadId,
+            proyecto_id: proyecto
+        })
+    })
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        if(!data.ok){
+            alert(data.msg || "No se pudo iniciar la actividad");
+            return;
+        }
+
+        location.reload();
+
+    })
+
+    .catch(() => {
+        alert("Error de comunicación con servidor");
+    });
+}
+
+
+
+document.getElementById("buscadorProyecto").addEventListener("keyup", function(){
+
+    let filtro = this.value.toLowerCase();
+    let opciones = document.getElementById("proyectoSelect").options;
+
+    for (let i = 0; i < opciones.length; i++) {
+
+        let texto = opciones[i].text.toLowerCase();
+
+        if (texto.includes(filtro)) {
+            opciones[i].style.display = "";
+        } else {
+            opciones[i].style.display = "none";
+        }
+    }
+});
+
+</script>
+
+</body>
+</html>

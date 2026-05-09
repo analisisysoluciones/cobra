@@ -1,0 +1,202 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% load nomina_extras %}
+{% block page_content %}
+
+<style>
+    .inemo-logo {
+        height: 60px;
+        margin-right: 15px;
+    }
+    .table thead th {
+        background-color: #1f4e79;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+    }
+    .table tfoot td {
+        font-weight: bold;
+        background-color: #f1f1f1;
+    }
+</style>
+
+<!-- ENCABEZADO CORPORATIVO -->
+<div class="d-flex align-items-center mb-4">
+    <img src="{% static 'base/inemo.png' %}" class="inemo-logo" alt="INEMO">
+    <div class="ml-2">
+        <h1 class="h3 mb-0 text-gray-800">Reporte de Nómina Resumida</h1>
+        <small class="text-muted">{{ inicio }} al {{ fin }}</small>
+    </div>
+    <div class="ml-auto text-right">
+        <small class="text-muted">
+            Generado: {{ now|date:"d/m/Y" }} – {{ now|date:"H:i" }}
+        </small>
+    </div>
+</div>
+
+<!-- FORMULARIO DE FILTROS -->
+<form method="get" class="mb-4">
+
+<div class="card p-4 shadow">
+
+    <h5 class="font-weight-bold mb-3">Filtros del Reporte</h5>
+
+    <div class="form-row">
+
+        <!-- EMPLEADO -->
+        <div class="col-md-4">
+            <label>Empleado</label>
+            <select name="empleado" class="form-control">
+                <option value="">Todos</option>
+                {% for e in empleados %}
+                <option value="{{ e.id }}"
+                    {% if request.GET.empleado == e.id|stringformat:"s" %}selected{% endif %}>
+                    {{ e.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- PROYECTO -->
+        <div class="col-md-4">
+            <label>Proyecto</label>
+            <select name="proyecto" class="form-control">
+                <option value="">Todos</option>
+                {% for p in proyectos %}
+                <option value="{{ p.id }}"
+                    {% if request.GET.proyecto == p.id|stringformat:"s" %}selected{% endif %}>
+                    {{ p.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- FECHA DESDE -->
+        <div class="col-md-2">
+            <label>Desde</label>
+            <input type="date" name="fecha_desde" class="form-control"
+                   value="{{ request.GET.fecha_desde }}">
+        </div>
+
+        <!-- FECHA HASTA -->
+        <div class="col-md-2">
+            <label>Hasta</label>
+            <input type="date" name="fecha_hasta" class="form-control"
+                   value="{{ request.GET.fecha_hasta }}">
+        </div>
+    </div>
+
+    <div class="form-row mt-4">
+
+    <div class="col-md-4 d-flex justify-content-start">
+        <button class="btn btn-primary btn-md w-100">
+            <i class="fas fa-search"></i> Consultar
+        </button>
+    </div>
+
+    <div class="col-md-4 d-flex justify-content-center">
+        <a class="btn btn-danger btn-md w-100 text-white"
+           href="{% url 'nom:nomina_reporte_pdf' %}?{{ request.GET.urlencode }}">
+            <i class="fas fa-file-pdf"></i> PDF
+        </a>
+    </div>
+
+    <div class="col-md-4 d-flex justify-content-end">
+        <a class="btn btn-success btn-md w-100 text-white"
+           href="{% url 'nom:nomina_reporte_excel' %}?{{ request.GET.urlencode }}">
+            <i class="fas fa-file-excel"></i> Excel
+        </a>
+    </div>
+
+</div>
+
+
+
+</div>
+</form>
+
+
+<!-- TABLA DE RESULTADOS -->
+<div class="card shadow mb-4">
+    
+    <div class="card-header bg-primary text-white">
+        <h6 class="m-0 font-weight-bold">Resultados</h6>
+    </div>
+
+    <div class="card-body">
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Empleado</th>
+                    <th>Proyecto</th>
+                    <th>Percepciones</th>
+                    <th>Deducciones</th>
+                    <th>Destajos</th>
+                    <th>Horas Extra</th>
+                    <th>Compensaciones</th>
+                    <th>Faltas</th>
+                    <th>Total Neto</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for r in resumen %}
+                <tr>
+                    <td>{{ r.empleado }}</td>
+                    <td>{{ r.proyecto }}</td>
+                    <td class="text-right">${{ r.percepciones|floatformat:2 }}</td>
+                    <td class="text-right">${{ r.deducciones|floatformat:2 }}</td>
+                    <td class="text-right">${{ r.destajos|floatformat:2 }}</td>
+                    <td class="text-right">${{ r.horas_extra|floatformat:2 }}</td>
+                    <td class="text-right">${{ r.compensaciones|floatformat:2 }}</td>
+                    <td class="text-center">{{ r.faltas }}</td>
+                    <td class="text-right font-weight-bold">${{ r.total_neto|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center">No hay datos para mostrar.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+            <!-- TOTALES FINALES -->
+            <tfoot>
+                <tr>
+                    <td colspan="2" class="text-right font-weight-bold">Totales:</td>
+
+                    <td class="text-right font-weight-bold">
+                        ${{ resumen|total_field:'percepciones'|floatformat:2 }}
+                    </td>
+
+                    <td class="text-right font-weight-bold">
+                        ${{ resumen|total_field:'deducciones'|floatformat:2 }}
+                    </td>
+
+                    <td class="text-right font-weight-bold">
+                        ${{ resumen|total_field:'destajos'|floatformat:2 }}
+                    </td>
+
+                    <td class="text-right font-weight-bold">
+                        ${{ resumen|total_field:'horas_extra'|floatformat:2 }}
+                    </td>
+
+                    <td class="text-right font-weight-bold">
+                        ${{ resumen|total_field:'compensaciones'|floatformat:2 }}
+                    </td>
+
+                    <td class="text-center font-weight-bold">
+                        {{ resumen|total_field:'faltas' }}
+                    </td>
+
+                    <td class="text-right font-weight-bold">
+                        ${{ resumen|total_field:'total_neto'|floatformat:2 }}
+                    </td>
+                </tr>
+            </tfoot>
+
+        </table>
+    </div>
+
+</div>
+
+{% endblock page_content %}

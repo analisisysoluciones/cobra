@@ -1,0 +1,108 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block page_content %}
+
+<div class="container-fluid">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                Proyecto 360
+            </h1>
+
+            <p class="mb-0 text-muted">
+                {{ proyecto.nombre }}
+            </p>
+        </div>
+
+         <div>
+
+            <a href="{% url 'adm:proyecto_list' %}"
+            class="btn btn-secondary shadow-sm">
+
+                <i class="fas fa-arrow-left"></i>
+                Regresar
+
+            </a>
+
+    </div>
+
+    </div>
+
+    <input type="hidden" id="proyecto-id" value="{{ proyecto.id }}">
+
+    <div class="row">
+
+        <div class="col-12 mb-4">
+
+            <div id="bloque-finanzas" class="card shadow h-100">
+
+                <div class="card-body text-center text-muted">
+                    Cargando finanzas...
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="row">
+
+    <div class="col-12 mb-4">
+
+        <div id="bloque-compras" class="card shadow h-100">
+
+            <div class="card-body text-center text-muted">
+                Cargando compras...
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="row">
+
+    <div class="col-12 mb-4">
+
+        <div id="bloque-nomina" class="card shadow h-100">
+
+            <div class="card-body text-center text-muted">
+                Cargando nómina...
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+
+    </div>
+
+</div>
+
+<script src="{% static 'proyectos/js/proyecto_360.js' %}"></script>
+
+{% endblock %}
+
+
+{% block js_page %}
+
+<script>
+
+window.proyecto360Urls = {
+
+    finanzas: "{% url 'adm:proyecto_360_finanzas' proyecto.id %}",
+    compras: "{% url 'adm:proyecto_360_compras' proyecto.id %}",
+    nomina: "{% url 'adm:proyecto_360_nomina' proyecto.id %}"
+    
+
+};
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,69 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mis movimientos</title>
+
+    <link href="{% static 'base/vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+    <link href="{% static 'base/css/sb-admin-2.min.css' %}" rel="stylesheet">
+</head>
+
+<body style="background:#f8f9fc;">
+
+<div class="container py-4">
+
+    <div class="mb-4">
+        <h4 class="font-weight-bold text-primary mb-1">Mis movimientos</h4>
+        <div class="text-muted">{{ request.user.username }}</div>
+    </div>
+
+    {% for j in datos %}
+        <div class="card shadow-sm border-0 mb-3">
+            <div class="card-body">
+                <div class="font-weight-bold text-dark">
+                    {{ j.equipo }}
+                </div>
+
+                <div class="small text-muted mt-1">
+                    Inicio: {{ j.inicio|date:"d/m/Y H:i" }}
+                </div>
+
+                <div class="small text-muted">
+                    Fin:
+                    {% if j.fin %}
+                        {{ j.fin|date:"d/m/Y H:i" }}
+                    {% else %}
+                        En curso
+                    {% endif %}
+                </div>
+
+                <div class="mt-2">
+                    {% if j.estatus == "ABIERTA" %}
+                        <span class="badge badge-success">ABIERTA</span>
+                    {% else %}
+                        <span class="badge badge-secondary">CERRADA</span>
+                    {% endif %}
+
+                    <span class="badge badge-info">
+                        {{ j.horas }} hrs
+                    </span>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="alert alert-light shadow-sm">
+            No tienes movimientos registrados.
+        </div>
+    {% endfor %}
+
+    <a href="{% url 'adm:pda_menu' %}" class="btn btn-light btn-lg btn-block rounded-pill mt-4">
+        <i class="fas fa-arrow-left mr-2"></i>
+        Volver al menú
+    </a>
+
+</div>
+
+</body>
+</html>

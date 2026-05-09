@@ -216,3 +216,34 @@ def recalcular_totales_nomina(nomina_historial):
 
 
 
+def comparativo_proyecto(proyecto_id):
+
+    ejecucion = EjecucionActividad.objects.filter(proyecto_id=proyecto_id)
+
+    resultado = {}
+
+    for e in ejecucion:
+        key = e.actividad.nombre
+
+        if key not in resultado:
+            resultado[key] = {
+                "real": 0,
+                "estimado": 0
+            }
+
+        resultado[key]["real"] += float(e.costo_real)
+
+    presupuestos = PresupuestoActividad.objects.filter(proyecto_id=proyecto_id)
+
+    for p in presupuestos:
+        key = p.actividad.nombre
+
+        if key not in resultado:
+            resultado[key] = {
+                "real": 0,
+                "estimado": 0
+            }
+
+        resultado[key]["estimado"] += float(p.costo_estimado)
+
+    return resultado
