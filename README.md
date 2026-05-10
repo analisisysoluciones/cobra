@@ -1,2 +1,0 @@
-# cobra
-cobra proyecto inmobiliario

@@ -1,19 +1,24 @@
-# Archivos de Python
+# 1. Ignorar absolutamente todo por defecto
+*
+
+# 2. Permitir carpetas (necesario para que Git pueda entrar a buscar archivos)
+!*/
+
+# 3. LISTA BLANCA: Solo permitir estos archivos
+!*.py
+!*.html
+!*.js
+!*.css
+!*.json
+!.gitignore
+
+# 4. EXCEPCIONES EXPLÍCITAS (Asegurar que esto nunca suba)
+.env
+.env.*
 __pycache__/
 *.pyc
-*.pyo
-
-# Configuración de entorno
-.env
-*.sqlite3
-
-# Archivos de logs
-*.log
-
-# Archivos de migraciones de Django
-*/migrations/*.py
-*/migrations/*.pyc
-
-# Archivos de dependencias
+migrations/
 venv/
-*.egg-info/
+env/
+.vscode/
+.idea/
