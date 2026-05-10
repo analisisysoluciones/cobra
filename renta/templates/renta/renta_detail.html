@@ -1,0 +1,372 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+
+<div class="container-fluid">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+
+        <h1 class="h3 mb-0 text-gray-800">
+
+            Renta #{{ renta.folio }}
+
+        </h1>
+
+        <a href="{% url 'renta:renta_list' %}"
+           class="btn btn-secondary shadow-sm">
+
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i>
+            Regresar
+
+        </a>
+
+        {% if renta.estatus == "ACTIVA" %}
+
+    <a href="{% url 'renta:renta_update' renta.id %}"
+       class="btn btn-warning shadow-sm">
+
+        <i class="fas fa-edit"></i>
+
+        Editar
+
+    </a>
+
+    <a href="{% url 'renta:renta_finalizar' renta.id %}"
+       class="btn btn-success shadow-sm">
+
+        <i class="fas fa-check"></i>
+
+        Finalizar
+
+    </a>
+
+    <a href="{% url 'renta:renta_cancelar' renta.id %}"
+       class="btn btn-danger shadow-sm">
+
+        <i class="fas fa-times"></i>
+
+        Cancelar
+
+    </a>
+
+    <a href="{% url 'renta:renta_pdf' renta.id %}"
+   target="_blank"
+   class="btn btn-dark shadow-sm">
+
+    <i class="fas fa-file-pdf"></i>
+
+    PDF
+
+</a>
+
+
+{% endif %}
+
+{% if renta.estatus == "FINALIZADA" %}
+
+<a href="{% url 'renta:pago_create' renta.id %}"
+   class="btn btn-success shadow-sm">
+
+    <i class="fas fa-dollar-sign"></i>
+
+    Registrar Pago
+
+</a>
+
+{% endif %}
+
+    </div>
+
+
+    <!-- RESUMEN -->
+    <div class="row">
+
+        <div class="col-lg-8">
+
+            <div class="card shadow mb-4">
+
+                <div class="card-header py-3">
+
+                    <h6 class="m-0 font-weight-bold text-primary">
+
+                        Información de la renta
+
+                    </h6>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row mb-3">
+
+                        <div class="col-md-6">
+
+                            <strong>Cliente:</strong><br>
+                            {{ renta.cliente }}
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <strong>Equipo:</strong><br>
+                            {{ renta.equipo }}
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="row mb-3">
+
+                        <div class="col-md-4">
+
+                            <strong>Tarifa:</strong><br>
+                            {{ renta.tarifa.tipo_cobro }}
+
+                        </div>
+
+                        <div class="col-md-4">
+
+                            <strong>Inicio:</strong><br>
+                            {{ renta.fecha_inicio|date:"d/m/Y H:i" }}
+
+                        </div>
+
+                        <div class="col-md-4">
+
+                            <strong>Fin:</strong><br>
+
+                            {% if renta.fecha_fin %}
+
+                                {{ renta.fecha_fin|date:"d/m/Y H:i" }}
+
+                            {% else %}
+
+                                <span class="text-success">
+                                    Activa
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="row">
+
+                        <div class="col-md-4">
+
+                            <strong>Cantidad:</strong><br>
+                            {{ renta.cantidad }}
+
+                        </div>
+
+                        <div class="col-md-4">
+
+                            <strong>Importe base:</strong><br>
+
+                            ${{ renta.importe }}
+
+                        </div>
+
+                        <div class="col-md-4">
+
+                            <strong>Estatus:</strong><br>
+
+                            <span class="badge badge-{% if renta.estatus == 'ACTIVA' %}success{% elif renta.estatus == 'FINALIZADA' %}secondary{% else %}danger{% endif %}">
+
+                                {{ renta.estatus }}
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- CONCEPTOS -->
+            <div class="card shadow mb-4">
+
+                <div class="card-header py-3">
+
+                    <h6 class="m-0 font-weight-bold text-primary">
+
+                        Conceptos adicionales
+
+                    </h6>
+
+                </div>
+
+                <div class="card-body p-0">
+
+                    <table class="table table-hover mb-0">
+
+                        <thead class="bg-light">
+
+                            <tr>
+
+                                <th>
+                                    Concepto
+                                </th>
+
+                                <th>
+                                    Cantidad
+                                </th>
+
+                                <th>
+                                    Precio
+                                </th>
+
+                                <th>
+                                    Importe
+                                </th>
+
+                                <th>
+                                    Observaciones
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for c in renta.conceptos.all %}
+
+                            <tr>
+
+                                <td>
+
+                                    {{ c.concepto }}
+
+                                </td>
+
+                                <td>
+
+                                    {{ c.cantidad }}
+
+                                </td>
+
+                                <td>
+
+                                    ${{ c.precio }}
+
+                                </td>
+
+                                <td>
+
+                                    ${{ c.importe }}
+
+                                </td>
+
+                                <td>
+
+                                    {{ c.observaciones }}
+
+                                </td>
+
+                            </tr>
+
+                            {% empty %}
+
+                            <tr>
+
+                                <td colspan="5"
+                                    class="text-center text-muted py-4">
+
+                                    Sin conceptos adicionales
+
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOTALES -->
+        <div class="col-lg-4">
+
+            <div class="card shadow mb-4 border-left-success">
+
+                <div class="card-body">
+
+                    <div class="text-xs font-weight-bold text-success text-uppercase mb-2">
+
+                        Resumen financiero
+
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between mb-2">
+
+                        <span>
+                            Renta base
+                        </span>
+
+                        <strong>
+
+                            ${{ renta.importe }}
+
+                        </strong>
+
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+
+                        <span>
+                            Conceptos
+                        </span>
+
+                        <strong>
+
+                            ${{ renta.subtotal_conceptos }}
+
+                        </strong>
+
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between">
+
+                        <span class="font-weight-bold">
+
+                            TOTAL
+
+                        </span>
+
+                        <span class="h5 font-weight-bold text-success">
+
+                            ${{ renta.total }}
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

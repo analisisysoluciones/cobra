@@ -1,7 +1,7 @@
 from django import forms
 import datetime
 from django.core.exceptions import ValidationError
-from .models import(RentaEquipo, Cliente, TarifaEquipo)
+from .models import(RentaEquipo, Cliente, TarifaEquipo, RentaConcepto, ConceptoRentaCatalogo, PagoRenta)
 
 from django_select2.forms import Select2Widget
 from django.shortcuts import render, redirect
@@ -10,12 +10,21 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from datetime import timedelta
+from django.forms import inlineformset_factory
 
+
+#──────
+# forms.py  — sección RentaEquipoForm
+# ─────────────────────────────────────────────
 
 class RentaEquipoForm(forms.ModelForm):
 
     class Meta:
         model = RentaEquipo
+
+        # FIX: listar SOLO los campos que aparecen en el template.
+        # Con fields="__all__" Django incluye cantidad/importe/subtotal_conceptos/
+        # total/estatus que no están en el form → el POST falla silenciosamente.
         fields = [
             "cliente",
             "equipo",
@@ -25,21 +34,63 @@ class RentaEquipoForm(forms.ModelForm):
             "observaciones",
         ]
 
-        widgets = {   # 🔥 AQUÍ DENTRO
-            "fecha_inicio": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "form-control"}),
-            "fecha_fin": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "form-control"}),
-
-            "tarifa": forms.Select(attrs={
-                "class": "form-control",
-                "id": "id_tarifa"
-            }),
-
-            "cantidad": forms.NumberInput(attrs={
-                "class": "form-control",
-                "id": "id_cantidad"
-            }),
+        widgets = {
+           "cliente": forms.Select(
+                attrs={
+                    "class": "form-control select2"
+                }
+            ),
+            "equipo": forms.Select(
+                attrs={
+                    "class": "form-control select2"
+                }
+            ),
+            "tarifa": forms.Select(
+                attrs={"class": "form-control"}
+            ),
+            "fecha_inicio": forms.DateTimeInput(
+                attrs={
+                    "class": "form-control",
+                    "type": "datetime-local",
+                },
+                format="%Y-%m-%dT%H:%M",
+            ),
+            "fecha_fin": forms.DateTimeInput(
+                attrs={
+                    "class": "form-control",
+                    "type": "datetime-local",
+                },
+                format="%Y-%m-%dT%H:%M",
+            ),
+            "observaciones": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                }
+            ),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.instance.pk:
+            if self.instance.fecha_inicio:
+                self.initial["fecha_inicio"] = (
+                    self.instance.fecha_inicio.strftime("%Y-%m-%dT%H:%M")
+                )
+            if self.instance.fecha_fin:
+                self.initial["fecha_fin"] = (
+                    self.instance.fecha_fin.strftime("%Y-%m-%dT%H:%M")
+                )
+
+
+# ─────────────────────────────────────────────
+# forms.py  — formset con prefijo explícito
+# ─────────────────────────────────────────────
+
+                
+                
+                
 class ClienteForm(forms.ModelForm):
 
     class Meta:
@@ -157,3 +208,102 @@ class TarifaEquipoForm(forms.ModelForm):
                 )
 
         return cleaned        
+
+
+class RentaConceptoForm(forms.ModelForm):
+
+    class Meta:
+
+        model = RentaConcepto
+
+        fields = [
+            "concepto",
+            "cantidad",
+            "precio",
+            "observaciones",
+        ]
+
+        widgets = {
+
+            "concepto": forms.Select(
+                attrs={
+                    "class": "form-control concepto-select"
+                }
+            ),
+
+            "cantidad": forms.NumberInput(
+                attrs={
+                    "class": "form-control cantidad-input",
+                    "step": "0.01"
+                }
+            ),
+
+            "precio": forms.NumberInput(
+                attrs={
+                    "class": "form-control precio-input",
+                    "step": "0.01"
+                }
+            ),
+
+            "observaciones": forms.TextInput(
+                attrs={
+                    "class": "form-control"
+                }
+            ),
+
+        }
+RentaConceptoFormSet = inlineformset_factory(
+    RentaEquipo,
+    RentaConcepto,
+    form=RentaConceptoForm,
+    extra=1,
+    can_delete=True,
+)
+
+# FIX: prefijo fijo para que el template y el JS lo conozcan siempre
+
+class PagoRentaForm(forms.ModelForm):
+
+    class Meta:
+
+        model = PagoRenta
+
+        fields = [
+
+            "metodo_pago",
+            "referencia",
+            "importe",
+            "observaciones"
+
+        ]
+
+        widgets = {
+
+            "metodo_pago": forms.Select(
+                attrs={
+                    "class": "form-control"
+                }
+            ),
+
+            "referencia": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Referencia"
+                }
+            ),
+
+            "importe": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.01"
+                }
+            ),
+
+            "observaciones": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3
+                }
+            ),
+
+        }

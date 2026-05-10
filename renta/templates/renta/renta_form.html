@@ -1,7 +1,7 @@
 {% extends "base/base.html" %}
 
 {% block page_content %}
-<div class="container-fluid">
+<div class="container-fluid py-3">
 
   <!-- Breadcrumb -->
   <nav aria-label="breadcrumb" class="mb-2">
@@ -15,7 +15,7 @@
   </nav>
 
   <!-- Topbar -->
-  <div class="d-flex align-items-flex-end justify-content-between mb-4">
+  <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
       <h1 class="h4 mb-1 font-weight-bold text-gray-800">
         {% if form.instance.pk %}Editar Renta{% else %}Nueva Renta de Equipo{% endif %}
@@ -27,55 +27,78 @@
     </a>
   </div>
 
-  <div class="row">
+  <form method="post" autocomplete="off" novalidate>
+    {% csrf_token %}
 
-    <!-- ── FORMULARIO PRINCIPAL ── -->
-    <div class="col-lg-8">
-      <div class="card shadow-sm border-0 rounded-lg mb-4">
+    <div class="row">
 
-        <!-- Header -->
-        <div class="card-header d-flex align-items-center justify-content-between py-3"
-             style="background:linear-gradient(135deg,#4e73df 0%,#224abe 100%);border:none;">
-          <div class="d-flex align-items-center">
-            <div class="d-flex align-items-center justify-content-center rounded mr-3"
-                 style="width:34px;height:34px;background:rgba(255,255,255,.18);">
-              <i class="fas fa-file-contract text-white"></i>
+      <!-- ── FORMULARIO PRINCIPAL ── -->
+      <div class="col-lg-8">
+        <div class="card shadow-sm border-0 rounded-lg mb-4">
+
+          <!-- Header azul -->
+          <div class="card-header d-flex align-items-center justify-content-between py-3"
+               style="background:linear-gradient(135deg,#4e73df 0%,#224abe 100%);border:none;">
+            <div class="d-flex align-items-center">
+              <div class="d-flex align-items-center justify-content-center rounded mr-3"
+                   style="width:34px;height:34px;background:rgba(255,255,255,.18);">
+                <i class="fas fa-file-contract text-white"></i>
+              </div>
+              <h6 class="m-0 font-weight-bold text-white">Datos de la renta</h6>
             </div>
-            <h6 class="m-0 font-weight-bold text-white">Datos de la renta</h6>
+            <span class="badge rounded-pill px-3"
+                  style="background:rgba(255,255,255,.2);color:#fff;font-size:.65rem;letter-spacing:.06em;">
+              {% if form.instance.pk %}EDICIÓN{% else %}CREACIÓN{% endif %}
+            </span>
           </div>
-          <span class="badge rounded-pill px-3"
-                style="background:rgba(255,255,255,.2);color:#fff;font-size:.65rem;letter-spacing:.06em;">
-            {% if form.instance.pk %}EDICIÓN{% else %}CREACIÓN{% endif %}
-          </span>
-        </div>
 
-        <div class="card-body px-4 py-4">
-          <form method="post" autocomplete="off" novalidate>
-            {% csrf_token %}
+          <div class="card-body px-4 py-4">
 
-            <!-- Sección: Partes -->
+            <!-- Sección: Partes involucradas -->
             <p class="text-uppercase font-weight-bold mb-3"
                style="font-size:.68rem;letter-spacing:.1em;color:#c5c7d4;">
               <i class="fas fa-circle mr-1" style="font-size:5px;color:#4e73df;vertical-align:middle;"></i>
               Partes involucradas
             </p>
+
             <div class="row mb-3">
+
+              <!-- CLIENTE -->
               <div class="col-md-6 mb-3">
                 <label class="small font-weight-bold text-gray-700 mb-1">
                   <i class="fas fa-user text-primary mr-1" style="font-size:.7rem;"></i>
                   Cliente <span class="text-danger">*</span>
                 </label>
-                {{ form.cliente }}
-                {% for e in form.cliente.errors %}<div class="invalid-feedback d-block small">{{ e }}</div>{% endfor %}
+                <div class="input-group">
+                  {{ form.cliente }}
+                  <div class="input-group-append">
+                    <button type="button"
+                            class="btn btn-success"
+                            data-toggle="modal"
+                            data-target="#modalCliente"
+                            title="Agregar nuevo cliente"
+                            style="border-top-left-radius:0;border-bottom-left-radius:0;">
+                      <i class="fas fa-plus"></i>
+                    </button>
+                  </div>
+                </div>
+                {% for e in form.cliente.errors %}
+                  <div class="invalid-feedback d-block small">{{ e }}</div>
+                {% endfor %}
               </div>
+
+              <!-- EQUIPO -->
               <div class="col-md-6 mb-3">
                 <label class="small font-weight-bold text-gray-700 mb-1">
                   <i class="fas fa-truck-monster text-primary mr-1" style="font-size:.7rem;"></i>
                   Equipo <span class="text-danger">*</span>
                 </label>
                 {{ form.equipo }}
-                {% for e in form.equipo.errors %}<div class="invalid-feedback d-block small">{{ e }}</div>{% endfor %}
+                {% for e in form.equipo.errors %}
+                  <div class="invalid-feedback d-block small">{{ e }}</div>
+                {% endfor %}
               </div>
+
             </div>
 
             <!-- Sección: Tarifa y periodo -->
@@ -84,7 +107,10 @@
               <i class="fas fa-circle mr-1" style="font-size:5px;color:#4e73df;vertical-align:middle;"></i>
               Tarifa y periodo
             </p>
+
             <div class="row mb-3">
+
+              <!-- TARIFA -->
               <div class="col-md-6 mb-3">
                 <label class="small font-weight-bold text-gray-700 mb-1">
                   <i class="fas fa-tag text-primary mr-1" style="font-size:.7rem;"></i>
@@ -96,24 +122,27 @@
                     <option value="{{ t.id }}"
                             data-precio="{{ t.precio }}"
                             data-tipo="{{ t.tipo_cobro }}"
-                            {% if form.tarifa.value == t.id|stringformat:"s" %}selected{% endif %}>
+                            {# FIX: comparar con form.instance.tarifa_id para modo update #}
+                            {% if form.instance.tarifa_id == t.id %}selected
+                            {% elif form.tarifa.value|stringformat:"s" == t.id|stringformat:"s" %}selected
+                            {% endif %}>
                       {{ t.equipo }} — {{ t.tipo_cobro }} (${{ t.precio }})
                     </option>
                   {% endfor %}
                 </select>
                 <small class="text-muted">El importe se recalcula automáticamente</small>
-                {% for e in form.tarifa.errors %}<div class="invalid-feedback d-block small">{{ e }}</div>{% endfor %}
               </div>
 
+              <!-- FECHA INICIO -->
               <div class="col-md-3 mb-3">
                 <label class="small font-weight-bold text-gray-700 mb-1">
                   <i class="fas fa-calendar-plus text-primary mr-1" style="font-size:.7rem;"></i>
                   Fecha Inicio <span class="text-danger">*</span>
                 </label>
                 {{ form.fecha_inicio }}
-                {% for e in form.fecha_inicio.errors %}<div class="invalid-feedback d-block small">{{ e }}</div>{% endfor %}
               </div>
 
+              <!-- FECHA FIN -->
               <div class="col-md-3 mb-3">
                 <label class="small font-weight-bold text-gray-700 mb-1">
                   <i class="fas fa-calendar-check text-primary mr-1" style="font-size:.7rem;"></i>
@@ -121,16 +150,106 @@
                 </label>
                 {{ form.fecha_fin }}
                 <small class="text-muted">Opcional</small>
-                {% for e in form.fecha_fin.errors %}<div class="invalid-feedback d-block small">{{ e }}</div>{% endfor %}
               </div>
+
             </div>
 
-            <!-- Sección: Notas -->
+            <!-- CONCEPTOS ADICIONALES -->
+            <p class="text-uppercase font-weight-bold mb-3 mt-4"
+               style="font-size:.68rem;letter-spacing:.1em;color:#c5c7d4;">
+              <i class="fas fa-circle mr-1" style="font-size:5px;color:#4e73df;vertical-align:middle;"></i>
+              Conceptos adicionales
+            </p>
+
+            <div class="d-flex justify-content-end mb-2">
+              <button type="button" class="btn btn-success btn-sm shadow-sm" id="btnAgregarConcepto">
+                <i class="fas fa-plus mr-1"></i> Agregar concepto
+              </button>
+            </div>
+
+            <div class="table-responsive">
+
+              {{ conceptos_formset.management_form }}
+
+              <table class="table table-sm table-hover align-middle">
+                <thead style="background:#f8f9fc;border-top:1px solid #eaecf4;border-bottom:1px solid #eaecf4;">
+                  <tr>
+                    <th style="width:28%;">Concepto</th>
+                    <th style="width:12%;">Cantidad</th>
+                    <th style="width:15%;">Precio</th>
+                    <th style="width:15%;">Importe</th>
+                    <th style="width:20%;">Observaciones</th>
+                    <th style="width:10%;">Eliminar</th>
+                  </tr>
+                </thead>
+
+                <tbody id="tablaConceptosBody">
+                  {% for f in conceptos_formset %}
+                  <tr>
+                    <td>
+                      {{ f.id }}
+                      {# FIX: usar el widget renderizado por Django directamente para preservar el selected #}
+                      {{ f.concepto }}
+                    </td>
+                    <td>{{ f.cantidad }}</td>
+                    <td>{{ f.precio }}</td>
+                    <td>
+                      <input type="text" class="form-control importe-view bg-light" readonly>
+                    </td>
+                    <td>{{ f.observaciones }}</td>
+                    <td class="text-center">
+                      {# FIX: mostrar DELETE siempre para filas existentes Y nuevas (con clase distinta) #}
+                      {% if f.instance.pk %}
+                        <div class="d-flex align-items-center justify-content-center">
+                          <label class="mb-0 d-flex align-items-center" title="Marcar para eliminar">
+                            {{ f.DELETE }}
+                            <span class="ml-1 small text-danger">Eliminar</span>
+                          </label>
+                        </div>
+                      {% else %}
+                        <button type="button" class="btn btn-danger btn-sm btnEliminarFila">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+
+              </table>
+
+              {# Plantilla oculta para filas nuevas #}
+              <table class="d-none">
+                <tbody id="concepto-empty-form">
+                  <tr>
+                    <td>
+                      {{ conceptos_formset.empty_form.id }}
+                      {{ conceptos_formset.empty_form.concepto }}
+                    </td>
+                    <td>{{ conceptos_formset.empty_form.cantidad }}</td>
+                    <td>{{ conceptos_formset.empty_form.precio }}</td>
+                    <td>
+                      <input type="text" class="form-control importe-view bg-light" readonly>
+                    </td>
+                    <td>{{ conceptos_formset.empty_form.observaciones }}</td>
+                    <td class="text-center">
+                      <button type="button" class="btn btn-danger btn-sm btnEliminarFila">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+            </div>
+
+            <!-- Sección: Notas adicionales -->
             <p class="text-uppercase font-weight-bold mb-3"
                style="font-size:.68rem;letter-spacing:.1em;color:#c5c7d4;">
               <i class="fas fa-circle mr-1" style="font-size:5px;color:#4e73df;vertical-align:middle;"></i>
               Notas adicionales
             </p>
+
             <div class="mb-2">
               <label class="small font-weight-bold text-gray-700 mb-1">
                 <i class="fas fa-comment-alt text-primary mr-1" style="font-size:.7rem;"></i>
@@ -139,155 +258,526 @@
               {{ form.observaciones }}
             </div>
 
-          </form>
-        </div>
-
-        <!-- Footer -->
-        <div class="card-footer d-flex justify-content-end align-items-center px-4 py-3"
-             style="background:#f8f9fc;border-top:1px solid #eaecf4;">
-          <a href="{% url 'renta:renta_list' %}" class="btn btn-white border font-weight-bold text-gray-600 mr-2">
-            <i class="fas fa-arrow-left mr-1"></i> Cancelar
-          </a>
-          <button type="submit" class="btn btn-primary font-weight-bold shadow-sm">
-            <i class="fas fa-save mr-1"></i> Guardar Renta
-          </button>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ── PANEL LATERAL ── -->
-    <div class="col-lg-4">
-      <div class="card shadow-sm border-0 rounded-lg">
-
-        <div class="card-header py-3"
-             style="background:linear-gradient(135deg,#1cc88a 0%,#13855c 100%);border:none;">
-          <div class="d-flex align-items-center">
-            <div class="d-flex align-items-center justify-content-center rounded mr-3"
-                 style="width:34px;height:34px;background:rgba(255,255,255,.18);">
-              <i class="fas fa-calculator text-white"></i>
-            </div>
-            <h6 class="m-0 font-weight-bold text-white">Resumen</h6>
-          </div>
-        </div>
-
-        <div class="card-body px-4 py-3">
-
-          <!-- Unidades -->
-          <div class="d-flex align-items-center py-3 border-bottom">
-            <div class="d-flex align-items-center justify-content-center rounded mr-3"
-                 style="width:34px;height:34px;background:#f4eeff;flex-shrink:0;">
-              <i class="fas fa-clock" style="color:#9b59b6;font-size:.82rem;"></i>
-            </div>
-            <div>
-              <div class="text-uppercase font-weight-bold text-muted"
-                   style="font-size:.68rem;letter-spacing:.06em;">Unidades calculadas</div>
-              <div class="font-weight-bold text-gray-800" id="horas_vista">—</div>
-            </div>
           </div>
 
-          <!-- Tipo tarifa -->
-          <div class="d-flex align-items-center py-3 border-bottom">
-            <div class="d-flex align-items-center justify-content-center rounded mr-3"
-                 style="width:34px;height:34px;background:#fff5ec;flex-shrink:0;">
-              <i class="fas fa-tag" style="color:#f6a821;font-size:.82rem;"></i>
-            </div>
-            <div>
-              <div class="text-uppercase font-weight-bold text-muted"
-                   style="font-size:.68rem;letter-spacing:.06em;">Tipo de tarifa</div>
-              <div class="font-weight-bold text-gray-800" id="tipo_vista">—</div>
-            </div>
-          </div>
-
-          <!-- Estado -->
-          <div class="d-flex align-items-center py-3 border-bottom">
-            <div class="d-flex align-items-center justify-content-center rounded mr-3"
-                 style="width:34px;height:34px;background:#eef0ff;flex-shrink:0;">
-              <i class="fas fa-info-circle" style="color:#4e73df;font-size:.82rem;"></i>
-            </div>
-            <div>
-              <div class="text-uppercase font-weight-bold text-muted"
-                   style="font-size:.68rem;letter-spacing:.06em;">Estado</div>
-              <span class="badge badge-success px-2 py-1">
-                <i class="fas fa-circle mr-1" style="font-size:5px;vertical-align:middle;"></i>
-                Captura
-              </span>
-            </div>
-          </div>
-
-          <!-- Importe -->
-          <div class="d-flex align-items-center py-3">
-            <div class="d-flex align-items-center justify-content-center rounded mr-3"
-                 style="width:34px;height:34px;background:#eafaf4;flex-shrink:0;">
-              <i class="fas fa-dollar-sign" style="color:#1cc88a;font-size:.82rem;"></i>
-            </div>
-            <div>
-              <div class="text-uppercase font-weight-bold text-muted"
-                   style="font-size:.68rem;letter-spacing:.06em;">Importe estimado</div>
-              <div class="font-weight-bold" id="importe_vista"
-                   style="font-size:1.3rem;color:#224abe;">$ 0.00</div>
-            </div>
-          </div>
-
-          <!-- Nota -->
-          <div class="rounded p-3 d-flex" style="background:#f8f9fc;gap:.6rem;">
-            <i class="fas fa-info-circle text-primary mt-1" style="font-size:.8rem;flex-shrink:0;"></i>
-            <p class="small text-muted mb-0" style="line-height:1.5;">
-              El importe final se calcula al guardar según tarifa, tipo de cobro y periodo seleccionado.
-            </p>
+          <!-- Footer del formulario -->
+          <div class="card-footer d-flex justify-content-end align-items-center px-4 py-3"
+               style="background:#f8f9fc;border-top:1px solid #eaecf4;">
+            <a href="{% url 'renta:renta_list' %}"
+               class="btn btn-white border font-weight-bold text-gray-600 mr-2">
+              <i class="fas fa-arrow-left mr-1"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary font-weight-bold shadow-sm">
+              <i class="fas fa-save mr-1"></i> Guardar Renta
+            </button>
           </div>
 
         </div>
       </div>
-    </div>
 
+      <!-- ── PANEL LATERAL DE RESUMEN ── -->
+      <div class="col-lg-4">
+        <div class="card shadow-sm border-0 rounded-lg">
+
+          <div class="card-header py-3"
+               style="background:linear-gradient(135deg,#1cc88a 0%,#13855c 100%);border:none;">
+            <div class="d-flex align-items-center">
+              <div class="d-flex align-items-center justify-content-center rounded mr-3"
+                   style="width:34px;height:34px;background:rgba(255,255,255,.18);">
+                <i class="fas fa-calculator text-white"></i>
+              </div>
+              <h6 class="m-0 font-weight-bold text-white">Resumen</h6>
+            </div>
+          </div>
+
+          <div class="card-body px-4 py-3">
+
+            <!-- Unidades -->
+            <div class="d-flex align-items-center py-3 border-bottom">
+              <div class="d-flex align-items-center justify-content-center rounded mr-3"
+                   style="width:34px;height:34px;background:#f4eeff;flex-shrink:0;">
+                <i class="fas fa-clock" style="color:#9b59b6;font-size:.82rem;"></i>
+              </div>
+              <div>
+                <div class="text-uppercase font-weight-bold text-muted"
+                     style="font-size:.68rem;letter-spacing:.06em;">Unidades calculadas</div>
+                <div class="font-weight-bold text-gray-800" id="horas_vista">—</div>
+              </div>
+            </div>
+
+            <!-- Tipo tarifa -->
+            <div class="d-flex align-items-center py-3 border-bottom">
+              <div class="d-flex align-items-center justify-content-center rounded mr-3"
+                   style="width:34px;height:34px;background:#fff5ec;flex-shrink:0;">
+                <i class="fas fa-tag" style="color:#f6a821;font-size:.82rem;"></i>
+              </div>
+              <div>
+                <div class="text-uppercase font-weight-bold text-muted"
+                     style="font-size:.68rem;letter-spacing:.06em;">Tipo de tarifa</div>
+                <div class="font-weight-bold text-gray-800" id="tipo_vista">—</div>
+              </div>
+            </div>
+
+            <!-- Estado -->
+            <div class="d-flex align-items-center py-3 border-bottom">
+              <div class="d-flex align-items-center justify-content-center rounded mr-3"
+                   style="width:34px;height:34px;background:#eef0ff;flex-shrink:0;">
+                <i class="fas fa-info-circle" style="color:#4e73df;font-size:.82rem;"></i>
+              </div>
+              <div>
+                <div class="text-uppercase font-weight-bold text-muted"
+                     style="font-size:.68rem;letter-spacing:.06em;">Estado</div>
+                <span class="badge badge-success px-2 py-1">
+                  <i class="fas fa-circle mr-1" style="font-size:5px;vertical-align:middle;"></i>
+                  Captura
+                </span>
+              </div>
+            </div>
+
+            <!-- Subtotal renta -->
+            <div class="d-flex align-items-center py-3 border-bottom">
+              <div class="d-flex align-items-center justify-content-center rounded mr-3"
+                   style="width:34px;height:34px;background:#eafaf4;flex-shrink:0;">
+                <i class="fas fa-file-invoice-dollar" style="color:#1cc88a;font-size:.82rem;"></i>
+              </div>
+              <div>
+                <div class="text-uppercase font-weight-bold text-muted"
+                     style="font-size:.68rem;letter-spacing:.06em;">Subtotal renta</div>
+                {# FIX: nuevo elemento para subtotal de tarifa por separado #}
+                <div class="font-weight-bold text-gray-800" id="subtotal_renta_vista"
+                     style="font-size:1rem;">$ 0.00</div>
+              </div>
+            </div>
+
+            <!-- Subtotal conceptos -->
+            <div class="d-flex align-items-center py-3 border-bottom">
+              <div class="d-flex align-items-center justify-content-center rounded mr-3"
+                   style="width:34px;height:34px;background:#fff5ec;flex-shrink:0;">
+                <i class="fas fa-list-ul" style="color:#f6a821;font-size:.82rem;"></i>
+              </div>
+              <div>
+                <div class="text-uppercase font-weight-bold text-muted"
+                     style="font-size:.68rem;letter-spacing:.06em;">Subtotal conceptos</div>
+                {# FIX: nuevo elemento para suma de conceptos adicionales #}
+                <div class="font-weight-bold text-gray-800" id="subtotal_conceptos_vista"
+                     style="font-size:1rem;">$ 0.00</div>
+              </div>
+            </div>
+
+            <!-- Total -->
+            <div class="d-flex align-items-center py-3">
+              <div class="d-flex align-items-center justify-content-center rounded mr-3"
+                   style="width:34px;height:34px;background:#eafaf4;flex-shrink:0;">
+                <i class="fas fa-dollar-sign" style="color:#1cc88a;font-size:.82rem;"></i>
+              </div>
+              <div>
+                <div class="text-uppercase font-weight-bold text-muted"
+                     style="font-size:.68rem;letter-spacing:.06em;">Total estimado</div>
+                <div class="font-weight-bold" id="importe_vista"
+                     style="font-size:1.3rem;color:#224abe;">$ 0.00</div>
+              </div>
+            </div>
+
+            <!-- Nota informativa -->
+            <div class="rounded p-3 d-flex" style="background:#f8f9fc;gap:.6rem;">
+              <i class="fas fa-info-circle text-primary mt-1" style="font-size:.8rem;flex-shrink:0;"></i>
+              <p class="small text-muted mb-0" style="line-height:1.5;">
+                El importe final se calcula al guardar según tarifa, tipo de cobro y periodo seleccionado.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.row -->
+  </form>
+
+</div><!-- /.container-fluid -->
+
+
+<!-- ── MODAL: NUEVO CLIENTE ── -->
+<div class="modal fade" id="modalCliente" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content border-0 shadow">
+
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title font-weight-bold">
+          <i class="fas fa-user-plus mr-2"></i> Nuevo Cliente
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="small font-weight-bold text-gray-700">Nombre</label>
+          <input type="text" id="cliente_nombre" class="form-control"
+                 placeholder="Nombre completo o razón social">
+        </div>
+        <div class="form-group mb-0">
+          <label class="small font-weight-bold text-gray-700">Teléfono</label>
+          <input type="text" id="cliente_telefono" class="form-control"
+                 placeholder="10 dígitos">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light border" data-dismiss="modal">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-success" id="btnGuardarCliente">
+          <i class="fas fa-save mr-1"></i> Guardar Cliente
+        </button>
+      </div>
+
+    </div>
   </div>
 </div>
 {% endblock %}
 
+
 {% block js_page %}
 <script>
-document.addEventListener("DOMContentLoaded", function(){
-  const tarifa   = document.getElementById("id_tarifa");
-  const inicio   = document.getElementById("id_fecha_inicio");
-  const fin      = document.getElementById("id_fecha_fin");
-  const horasV   = document.getElementById("horas_vista");
-  const importeV = document.getElementById("importe_vista");
-  const tipoV    = document.getElementById("tipo_vista");
 
-  const tipoLabels = { HORA:"Por hora", JORNADA:"Por jornada", DIA:"Por día", EVENTO:"Por evento" };
+$(document).ready(function(){
 
-  function calcular(){
-    const opt    = tarifa.options[tarifa.selectedIndex];
-    const precio = parseFloat(opt?.dataset.precio || 0);
-    const tipo   = opt?.dataset.tipo || "";
+    $(".select2").select2({
 
-    tipoV.textContent = tipoLabels[tipo] || "—";
+        width: "100%",
 
-    if(!inicio.value || !fin.value || !precio){
-      horasV.textContent = "—"; importeV.textContent = "$ 0.00"; return;
-    }
+        placeholder: "Buscar...",
 
-    const f1 = new Date(inicio.value);
-    const f2 = new Date(fin.value);
-    let horas = (f2 - f1) / 3600000;
-    if(horas <= 0){ horasV.textContent = "—"; importeV.textContent = "$ 0.00"; return; }
+        allowClear: true
 
-    let total = 0, cant = 0;
-    if(tipo === "HORA"){ cant = horas; total = horas * precio; }
-    else if(tipo === "JORNADA"){
-      if(horas <= 8){ cant = 1; total = precio; }
-      else { let e = horas - 8; total = precio + (e * (precio / 8)); cant = horas; }
-    }
-    else if(tipo === "DIA" || tipo === "EVENTO"){ cant = 1; total = precio; }
+    });
 
-    horasV.textContent  = cant.toFixed(2);
-    importeV.textContent = "$ " + total.toLocaleString("es-MX", {minimumFractionDigits: 2});
+});
+
+</script>
+<script>
+
+const URL_CREAR_CLIENTE = "{% url 'renta:cliente_ajax_crear' %}";
+
+/* ======================================================
+   PREFIJO REAL DEL FORMSET
+   Django genera el management_form con el prefijo que
+   se haya definido. Lo leemos del DOM para no hardcodear.
+====================================================== */
+// FIX: leer el prefijo real desde el input que Django ya renderizó
+// en lugar de asumir "conceptos"
+const TOTAL_FORMS_INPUT = document.querySelector(
+  "input[name$='-TOTAL_FORMS']"
+);
+const FORMSET_PREFIX = TOTAL_FORMS_INPUT
+  ? TOTAL_FORMS_INPUT.name.replace("-TOTAL_FORMS", "")
+  : "conceptos";  // fallback
+
+document.addEventListener("DOMContentLoaded", function () {
+  initCalculoRenta();
+  initClienteAjax();
+  initConceptos();
+  // Recálculo inicial: modo update ya tiene valores cargados
+  calcularResumen();
+});
+
+/* ======================================================
+   RESUMEN — variable global de subtotal de tarifa
+====================================================== */
+let subtotalRenta = 0;
+
+/* ======================================================
+   CÁLCULO DE RENTA (tarifa × periodo)
+====================================================== */
+function initCalculoRenta() {
+  const tarifa = document.getElementById("id_tarifa");
+  const inicio = document.getElementById("id_fecha_inicio");
+  const fin    = document.getElementById("id_fecha_fin");
+  if (!tarifa) return;
+
+  tarifa.addEventListener("change", calcularResumen);
+  if (inicio) inicio.addEventListener("change", calcularResumen);
+  if (fin)    fin.addEventListener("change",    calcularResumen);
+}
+
+// Devuelve el subtotal de la tarifa y actualiza los labels del panel.
+// FIX: separado de calcularResumen() para evitar recursión.
+function calcularSubtotalTarifa() {
+  const tarifa = document.getElementById("id_tarifa");
+  const inicio = document.getElementById("id_fecha_inicio");
+  const fin    = document.getElementById("id_fecha_fin");
+  const tipoV  = document.getElementById("tipo_vista");
+  const horasV = document.getElementById("horas_vista");
+
+  const tipoLabels = {
+    HORA:    "Por hora",
+    JORNADA: "Por jornada",
+    DIA:     "Por día",
+    EVENTO:  "Por evento"
+  };
+
+  if (!tarifa) return 0;
+
+  const opt    = tarifa.options[tarifa.selectedIndex];
+  const precio = parseFloat(opt?.dataset.precio || 0);
+  const tipo   = opt?.dataset.tipo  || "";
+
+  if (tipoV) tipoV.textContent = tipoLabels[tipo] || "—";
+
+  if (!precio) {
+    if (horasV) horasV.textContent = "—";
+    return 0;
   }
 
-  tarifa.addEventListener("change", calcular);
-  inicio.addEventListener("change", calcular);
-  fin.addEventListener("change", calcular);
-});
+  // EVENTO no necesita fecha fin
+  if (tipo === "EVENTO") {
+    if (horasV) horasV.textContent = "1";
+    return precio;
+  }
+
+  const inicioVal = inicio?.value || "";
+  const finVal    = fin?.value    || "";
+
+  if (!inicioVal || !finVal) {
+    if (horasV) horasV.textContent = "—";
+    return 0;
+  }
+
+  const f1    = new Date(inicioVal);
+  const f2    = new Date(finVal);
+  const horas = (f2 - f1) / 3600000;
+
+  if (horas <= 0) {
+    if (horasV) horasV.textContent = "—";
+    return 0;
+  }
+
+  let total = 0;
+  let cant  = 0;
+
+  if (tipo === "HORA") {
+    cant  = horas;
+    total = horas * precio;
+
+  } else if (tipo === "JORNADA") {
+    if (horas <= 8) {
+      cant  = 1;
+      total = precio;
+    } else {
+      const extra = horas - 8;
+      total = precio + extra * (precio / 8);
+      cant  = horas;
+    }
+
+  } else if (tipo === "DIA") {
+    cant  = Math.ceil(horas / 24);
+    total = cant * precio;
+  }
+
+  if (horasV) horasV.textContent = parseFloat(cant.toFixed(2)).toString();
+  return total;
+}
+
+/* ======================================================
+   RESUMEN CENTRAL — única función que toca los 3 totales
+   FIX: no llama a recalcularFila() → sin recursión
+====================================================== */
+function calcularResumen() {
+  subtotalRenta = calcularSubtotalTarifa();
+
+  let subtotalConceptos = 0;
+  document.querySelectorAll("#tablaConceptosBody tr").forEach(function (row) {
+    // Saltar filas marcadas para eliminar
+    const deleteChk = row.querySelector("input[type=checkbox][name$='-DELETE']");
+    if (deleteChk && deleteChk.checked) return;
+
+    const importeInput = row.querySelector(".importe-view");
+    if (importeInput) {
+      // Limpiar separador de miles antes de parsear
+      const val = parseFloat((importeInput.value || "0").replace(/,/g, ""));
+      if (!isNaN(val)) subtotalConceptos += val;
+    }
+  });
+
+  const total = subtotalRenta + subtotalConceptos;
+  const fmt   = n => "$ " + n.toLocaleString("es-MX", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  const elSubRenta = document.getElementById("subtotal_renta_vista");
+  const elSubConc  = document.getElementById("subtotal_conceptos_vista");
+  const elTotal    = document.getElementById("importe_vista");
+
+  if (elSubRenta) elSubRenta.textContent = fmt(subtotalRenta);
+  if (elSubConc)  elSubConc.textContent  = fmt(subtotalConceptos);
+  if (elTotal)    elTotal.textContent    = fmt(total);
+}
+
+/* ======================================================
+   CSRF
+====================================================== */
+function getCookie(name) {
+  let value = null;
+  if (document.cookie && document.cookie !== "") {
+    document.cookie.split(";").forEach(function (c) {
+      const trimmed = c.trim();
+      if (trimmed.startsWith(name + "=")) {
+        value = decodeURIComponent(trimmed.substring(name.length + 1));
+      }
+    });
+  }
+  return value;
+}
+
+/* ======================================================
+   CLIENTE AJAX
+====================================================== */
+function initClienteAjax() {
+  const btn = document.getElementById("btnGuardarCliente");
+  if (!btn) return;
+
+  btn.addEventListener("click", function () {
+    const nombre   = document.getElementById("cliente_nombre").value.trim();
+    const telefono = document.getElementById("cliente_telefono").value.trim();
+    if (!nombre) { document.getElementById("cliente_nombre").focus(); return; }
+
+    fetch(URL_CREAR_CLIENTE, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-CSRFToken": getCookie("csrftoken")
+      },
+      body: new URLSearchParams({ nombre, telefono })
+    })
+    .then(r => r.json())
+    .then(function (data) {
+      if (data.ok) {
+        const select = document.getElementById("id_cliente");
+        select.add(new Option(data.nombre, data.id, true, true));
+        select.value = data.id;
+        if (window.jQuery && $(select).hasClass("select2-hidden-accessible")) {
+          $(select).trigger("change");
+        }
+        $("#modalCliente").modal("hide");
+        document.getElementById("cliente_nombre").value   = "";
+        document.getElementById("cliente_telefono").value = "";
+      } else {
+        alert(data.error);
+      }
+    })
+    .catch(function (err) { console.error(err); alert("Error al guardar cliente"); });
+  });
+}
+
+/* ======================================================
+   CONCEPTOS — inicialización principal
+====================================================== */
+function initConceptos() {
+  // Filas existentes (modo update): inicializar listeners y recalcular importe
+  document.querySelectorAll("#tablaConceptosBody tr").forEach(function (row) {
+    initConceptosFila(row);
+    // FIX: recalcularFilaSilencioso para no disparar calcularResumen N veces
+    recalcularFilaSilencioso(row);
+  });
+
+  // Checkbox DELETE actualiza el resumen
+  document.querySelectorAll("input[type=checkbox][name$='-DELETE']").forEach(function (chk) {
+    chk.addEventListener("change", calcularResumen);
+  });
+
+  initAgregarConceptos();
+  // Un solo calcularResumen al final de la inicialización
+  calcularResumen();
+}
+
+/* ======================================================
+   Recalcular importe de una fila SIN disparar calcularResumen
+   FIX: evita la recursión fila→resumen→fila
+====================================================== */
+function recalcularFilaSilencioso(row) {
+  const cantidadInput = row.querySelector(".cantidad-input");
+  const precioInput   = row.querySelector(".precio-input");
+  const importeView   = row.querySelector(".importe-view");
+  if (!cantidadInput || !precioInput || !importeView) return;
+
+  const cantidad = parseFloat(cantidadInput.value || 0);
+  const precio   = parseFloat(precioInput.value   || 0);
+  const importe  = cantidad * precio;
+
+  importeView.value = importe.toLocaleString("es-MX", { minimumFractionDigits: 2 });
+}
+
+/* ======================================================
+   Recalcular fila Y actualizar resumen (para eventos de usuario)
+====================================================== */
+function recalcularFila(row) {
+  recalcularFilaSilencioso(row);
+  calcularResumen(); // solo UNA llamada al resumen
+}
+
+/* ======================================================
+   Listeners de una sola fila
+====================================================== */
+function initConceptosFila(row) {
+  const select   = row.querySelector(".concepto-select");
+  const cantidad = row.querySelector(".cantidad-input");
+  const precio   = row.querySelector(".precio-input");
+
+  if (select) {
+    select.addEventListener("change", function () {
+      const opt = select.options[select.selectedIndex];
+      if (precio) precio.value = parseFloat(opt.dataset.precio || 0).toFixed(2);
+      recalcularFila(row);
+    });
+  }
+
+  if (cantidad) cantidad.addEventListener("input", function () { recalcularFila(row); });
+  if (precio)   precio.addEventListener("input",   function () { recalcularFila(row); });
+
+  // Botón eliminar (filas nuevas sin pk)
+  const btnEliminar = row.querySelector(".btnEliminarFila");
+  if (btnEliminar) {
+    btnEliminar.addEventListener("click", function () {
+      row.remove();
+      calcularResumen();
+    });
+  }
+}
+
+/* ======================================================
+   Agregar nueva fila de concepto
+   FIX: usa FORMSET_PREFIX detectado dinámicamente
+====================================================== */
+function initAgregarConceptos() {
+  const btn = document.getElementById("btnAgregarConcepto");
+  if (!btn) return;
+
+  btn.addEventListener("click", function () {
+    const tbody      = document.getElementById("tablaConceptosBody");
+    const template   = document.getElementById("concepto-empty-form").innerHTML;
+    // FIX: usar el prefijo real, no "conceptos" hardcodeado
+    const totalForms = document.querySelector(
+      "input[name='" + FORMSET_PREFIX + "-TOTAL_FORMS']"
+    );
+
+    if (!totalForms) {
+      console.error("No se encontró TOTAL_FORMS para el prefijo:", FORMSET_PREFIX);
+      return;
+    }
+
+    const index  = parseInt(totalForms.value);
+    const newRow = template.replace(/__prefix__/g, index);
+
+    tbody.insertAdjacentHTML("beforeend", newRow);
+    totalForms.value = index + 1;
+
+    initConceptosFila(tbody.lastElementChild);
+    // No llamar calcularResumen aquí: la fila nueva tiene importe 0,
+    // el resumen cambiará cuando el usuario llene cantidad/precio.
+  });
+}
+
 </script>
 {% endblock %}
