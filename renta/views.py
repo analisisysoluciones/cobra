@@ -1,12 +1,14 @@
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
+from django.views import View
 from django.shortcuts import (
     render,
     redirect, get_object_or_404
 )
-from .models import RentaEquipo, Cliente, TarifaEquipo, PagoRenta
+from .models import RentaEquipo, Cliente, TarifaEquipo, PagoRenta, RentaConcepto, ConceptoRentaCatalogo
 from .forms import (RentaEquipoForm, ClienteForm, TarifaEquipoForm, RentaConceptoForm, 
-                    RentaConceptoFormSet, PagoRentaForm)
+                    RentaConceptoFormSet, PagoRentaForm, ConceptoRentaCatalogoForm)
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 import json
@@ -20,6 +22,7 @@ from reportlab.platypus import Image
 from django.conf import settings
 import os
 from django.http import HttpResponse
+from .constants import ESTATUS_EDITABLES, TRANSICIONES_VALIDAS
 
 from reportlab.platypus import (
     SimpleDocTemplate,
@@ -36,6 +39,8 @@ from reportlab.lib.styles import (
 )
 
 from reportlab.lib.pagesizes import letter    
+
+
 
 CONCEPTOS_PREFIX = "conceptos"
 
@@ -60,6 +65,12 @@ class RentaEquipoCreateView(CreateView):
             context["conceptos_formset"] = RentaConceptoFormSet(
                 prefix=CONCEPTOS_PREFIX,   # FIX: prefijo explícito
             )
+            
+        context["conceptos_catalogo"] = (
+            ConceptoRentaCatalogo.objects
+            .filter(activo=True)
+            .order_by("nombre")
+        )
 
         return context
 
@@ -205,12 +216,33 @@ def reporte_rentas(request):
     })        
 
 
+# Estatus permitidos para editar
+ESTATUS_EDITABLES = {"ACTIVA", "COTIZACION", "APROBADA"}
+
+# Transiciones válidas por estatus actual
+TRANSICIONES_VALIDAS = {
+    "COTIZACION": ["COTIZACION", "APROBADA", "CANCELADA"],
+    "APROBADA":   ["APROBADA", "ACTIVA", "CANCELADA"],
+    "ACTIVA":     ["ACTIVA", "FINALIZADA", "CANCELADA"],
+    "RENTADA":    ["RENTADA", "FINALIZADA", "CANCELADA"],
+    # FINALIZADA y CANCELADA no se editan
+}
+
 
 class RentaEquipoUpdateView(UpdateView):
     model = RentaEquipo
     form_class = RentaEquipoForm
     template_name = "renta/renta_form.html"
     success_url = reverse_lazy("renta:renta_list")
+
+    def dispatch(self, request, *args, **kwargs):
+        self.object = self.get_object()
+
+        if self.object.estatus not in ESTATUS_EDITABLES:
+            messages.error(request, "Esta renta no puede editarse.")
+            return redirect("renta:renta_detail", pk=self.object.pk)
+
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -219,58 +251,53 @@ class RentaEquipoUpdateView(UpdateView):
             context["conceptos_formset"] = RentaConceptoFormSet(
                 self.request.POST,
                 instance=self.object,
-                prefix=CONCEPTOS_PREFIX,   # FIX: prefijo explícito
+                prefix="conceptos"
             )
         else:
             context["conceptos_formset"] = RentaConceptoFormSet(
                 instance=self.object,
-                prefix=CONCEPTOS_PREFIX,   # FIX: prefijo explícito
+                prefix="conceptos"
             )
 
+        context["conceptos_catalogo"] = (
+            ConceptoRentaCatalogo.objects
+            .filter(activo=True)
+            .order_by("nombre")
+        )
         return context
 
+    ESTATUS_EDITABLES = {"COTIZACION", "ACTIVA"}
     @transaction.atomic
-    def form_valid(self, form):
-        context = self.get_context_data()
-        conceptos_formset = context["conceptos_formset"]
-
-        # FIX: validar formset ANTES de guardar; si falla vuelve al form
-        if not conceptos_formset.is_valid():
-            return self.form_invalid(form)
-
-        form.instance.calcular_importe()
-        self.object = form.save()
-
-        conceptos_formset.instance = self.object
-        conceptos_formset.save()
-
-        self.object.refresh_from_db()
-        self.object.actualizar_totales()
-        self.object.save()
-
-        return redirect(self.success_url)
-    
     def dispatch(self, request, *args, **kwargs):
-
         self.object = self.get_object()
 
-        if self.object.estatus != "ACTIVA":
+        if self.object.estatus not in ESTATUS_EDITABLES:
+            messages.error(request, "Este documento no puede editarse.")
+            return redirect("renta:renta_detail", pk=self.object.pk)
 
-            messages.error(
+        return super().dispatch(request, *args, **kwargs)
+        
+        def dispatch(self, request, *args, **kwargs):
+
+            self.object = self.get_object()
+
+            if self.object.estatus != "ACTIVA":
+
+                messages.error(
+                    request,
+                    "La renta no puede editarse."
+                )
+
+                return redirect(
+                    "renta:renta_detail",
+                    pk=self.object.pk
+                )
+
+            return super().dispatch(
                 request,
-                "La renta no puede editarse."
+                *args,
+                **kwargs
             )
-
-            return redirect(
-                "renta:renta_detail",
-                pk=self.object.pk
-            )
-
-        return super().dispatch(
-            request,
-            *args,
-            **kwargs
-        )
         
     
     
@@ -633,7 +660,7 @@ def renta_pdf(request, pk):
 
     tabla_renta = Table(
         datos_renta,
-        colWidths=[170, 330]
+        colWidths=[120, 380]
     )
 
     tabla_renta.setStyle(TableStyle([
@@ -1110,3 +1137,215 @@ class PagoRentaCreateView(CreateView):
     def get_success_url(self):
 
         return reverse_lazy("renta:renta_detail",kwargs={"pk": self.renta.pk})
+    
+    
+class ConceptoRentaCatalogoListView(
+    LoginRequiredMixin,
+    ListView
+):
+
+    model = ConceptoRentaCatalogo
+
+    template_name = (
+        "renta/catalogos/concepto_list.html"
+    )
+
+    context_object_name = (
+        "conceptos"
+    )
+
+
+class ConceptoRentaCatalogoCreateView(
+    LoginRequiredMixin,
+    CreateView
+):
+
+    model = ConceptoRentaCatalogo
+
+    form_class = (
+        ConceptoRentaCatalogoForm
+    )
+
+    template_name = (
+        "renta/catalogos/concepto_form.html"
+    )
+
+    success_url = reverse_lazy(
+        "renta:concepto_list"
+    )
+
+    def form_valid(self, form):
+
+        messages.success(self.request,"Concepto creado correctamente.")
+
+        return super().form_valid(form)
+
+
+class ConceptoRentaCatalogoUpdateView(
+    LoginRequiredMixin,
+    UpdateView
+):
+
+    model = ConceptoRentaCatalogo
+
+    form_class = (
+        ConceptoRentaCatalogoForm
+    )
+
+    template_name = (
+        "renta/catalogos/concepto_form.html"
+    )
+
+    success_url = reverse_lazy(
+        "renta:concepto_list"
+    )
+
+    def form_valid(self, form):
+
+        messages.success(self.request,"Concepto actualizado correctamente.")
+
+        return super().form_valid(form)
+    
+    
+
+
+@login_required
+def concepto_precio_ajax(request, pk):
+
+    concepto = get_object_or_404(
+        ConceptoRentaCatalogo,
+        pk=pk
+    )
+
+    return JsonResponse({
+        "precio": float(concepto.precio_default)
+    })
+    
+    
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect
+
+from renta.models import RentaEquipo
+
+
+# views.py
+
+class ConvertirRentaView(View):
+
+    def get(self, request, pk):
+        # Si alguien entra por GET, redirige al editor
+        return redirect("renta:renta_update", pk=pk)
+
+    def post(self, request, pk):
+        renta = get_object_or_404(RentaEquipo, pk=pk)
+
+        if renta.estatus != "COTIZACION":
+            messages.error(request, "Solo se puede convertir una cotización.")
+            return redirect("renta:renta_detail", pk=pk)
+
+        renta.estatus = "ACTIVA"
+        renta.save()
+
+        messages.success(
+            request,
+            f"Cotización {renta.folio} convertida. Folio de renta: {renta.folio_renta}"
+        )
+        return redirect("renta:renta_detail", pk=pk)
+    
+    
+    
+from django.views import View
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+
+ESTATUS_NO_COBRABLES = {"CANCELADA", "FINALIZADA", "COTIZACION"}
+
+class PagoRapidoView(View):
+
+    def get(self, request, pk):
+        """Devuelve el HTML del modal con datos de la renta."""
+        renta = get_object_or_404(RentaEquipo, pk=pk)
+
+        if renta.estatus in ESTATUS_NO_COBRABLES:
+            return JsonResponse({"ok": False, "error": "Esta renta no puede cobrarse."})
+
+        return JsonResponse({
+            "ok": True,
+            "folio": renta.folio_renta or renta.folio,
+            "cliente": str(renta.cliente),
+            "total": str(renta.total),
+            "pagado": str(renta.total_pagado),
+            "saldo": str(renta.saldo),
+            "estatus_financiero": renta.estatus_financiero,
+        })
+
+    @transaction.atomic
+    def post(self, request, pk):
+        renta = get_object_or_404(RentaEquipo, pk=pk)
+
+        if renta.estatus in ESTATUS_NO_COBRABLES:
+            return JsonResponse({"ok": False, "error": "Esta renta no puede cobrarse."})
+
+        form = PagoRentaForm(request.POST)
+
+        if not form.is_valid():
+            errores = {f: e.get_json_data() for f, e in form.errors.items()}
+            return JsonResponse({"ok": False, "errores": errores})
+
+        pago = form.save(commit=False)
+        pago.renta = renta
+        pago.save()
+
+        # Actualiza estatus financiero
+        renta.actualizar_estado_financiero()
+
+        # Si el saldo queda en 0, finaliza automáticamente
+        renta.refresh_from_db()
+        if renta.estatus_financiero == "PAGADA":
+            renta.estatus = "FINALIZADA"
+            renta.save()
+
+        return JsonResponse({
+            "ok": True,
+            "saldo_nuevo": str(renta.saldo),
+            "estatus_financiero": renta.estatus_financiero,
+            "estatus": renta.estatus,
+            "pago_id": pago.pk,
+        })
+
+
+class FinalizarRentaView(View):
+    """Finalización manual."""
+
+    def post(self, request, pk):
+        renta = get_object_or_404(RentaEquipo, pk=pk)
+
+        if renta.estatus in ESTATUS_NO_COBRABLES:
+            messages.error(request, "Esta renta no puede finalizarse.")
+            return redirect("renta:renta_list")
+
+        renta.estatus = "FINALIZADA"
+        renta.save()
+        messages.success(request, f"Renta {renta.folio_renta or renta.folio} finalizada.")
+        return redirect("renta:renta_list")
+
+
+class ReciboPagoView(View):
+    """Genera PDF del recibo de pago."""
+
+    def get(self, request, pago_pk):
+        from django.http import HttpResponse
+        import io
+
+        pago = get_object_or_404(PagoRenta, pk=pago_pk)
+        renta = pago.renta
+
+        # Genera PDF — ver sección 3
+        pdf_buffer = generar_recibo_pdf(pago, renta)
+
+        response = HttpResponse(pdf_buffer, content_type="application/pdf")
+        response["Content-Disposition"] = (
+            f'inline; filename="recibo-{pago.pk}.pdf"'
+        )
+        return response    

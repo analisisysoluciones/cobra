@@ -5,6 +5,9 @@ from decimal import Decimal
 from django.utils import timezone
 from django.conf import settings
 from django.db.models import Sum
+from bases.models import Folios
+
+
 # Create your models here.
 class TarifaEquipo(models.Model):
 
@@ -13,6 +16,8 @@ class TarifaEquipo(models.Model):
         ("DIA", "Por día"),
         ("JORNADA", "Por jornada"),
         ("EVENTO", "Por evento"),
+        ("SEMANA", "Por Semana"),
+        ("MES", "Por Mes"),
     ]
 
     equipo = models.ForeignKey("adm.Equipo", on_delete=models.PROTECT)
@@ -71,8 +76,19 @@ class RentaEquipo(models.Model):
         ("ACTIVA", "Activa"),
         ("FINALIZADA", "Finalizada"),
         ("CANCELADA", "Cancelada"),
+        ("COTIZACION", "Cotizacion"),
+        ("APROBADA", "Aprobada"),
+        ("RENTADA", "Rentada"),    
+        
     ]
+    
     folio = models.CharField(max_length=30,blank=True,null=True)
+    
+    folio_renta = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True
+    )
 
     cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT)
 
@@ -115,25 +131,95 @@ class RentaEquipo(models.Model):
 
     creado = models.DateTimeField(auto_now_add=True)
     
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Guarda el estatus original al carga'r el objeto
+        self._estatus_original = self.estatus
+    
     def save(self, *args, **kwargs):
+        
 
         creando = self.pk is None
-
         super().save(*args, **kwargs)
 
         if creando and not self.folio:
-
             anio = self.creado.year
 
-            self.folio = (
-                f"REN-{anio}-{str(self.pk).zfill(6)}"
+            if self.estatus == "COTIZACION":
+                tipo = "COTIZACION"
+                campo = "folio"
+            else:
+                tipo = "RENTA"
+                campo = "folio"
+
+            registro, _ = Folios.objects.get_or_create(
+                tipo_documento=tipo,
+                defaults={"anio": anio, "consecutivo": 0}
             )
+            if registro.anio != anio:
+                registro.anio = anio
+                registro.consecutivo = 0
+                registro.save()
 
-            super().save(
-                update_fields=["folio"]
+            self.folio = registro.next_folio(
+                modelo=RentaEquipo,
+                campo_folio=campo
             )
+            super().save(update_fields=["folio"])
 
+        # Cotización convertida a renta → genera folio_renta
+        if (
+            not creando
+            and self._estatus_original == "COTIZACION"
+            and self.estatus != "COTIZACION"
+            and not self.folio_renta
+        ):
+            anio = self.creado.year
 
+            registro, _ = Folios.objects.get_or_create(
+                tipo_documento="RENTA",
+                defaults={"anio": anio, "consecutivo": 0}
+            )
+            if registro.anio != anio:
+                registro.anio = anio
+                registro.consecutivo = 0
+                registro.save()
+
+            self.folio_renta = registro.next_folio(
+                modelo=RentaEquipo,
+                campo_folio="folio_renta"
+            )
+            super().save(update_fields=["folio_renta"])
+
+        self._estatus_original = self.estatus  # ← al final, siempre                
+            
+    # FIX: sacar estos métodos fuera de calcular_importe
+    def actualizar_totales(self):
+        subtotal = (
+            self.conceptos.aggregate(total=Sum("importe"))["total"]
+            or Decimal("0.00")
+        )
+        self.subtotal_conceptos = subtotal
+        self.total = self.importe + subtotal
+
+    def actualizar_estado_financiero(self):
+        total_pagado = sum(
+            (p.importe for p in self.pagos.all()),
+            Decimal("0.00")
+        )
+        saldo = (Decimal(str(self.total)) - total_pagado).quantize(Decimal("0.01"))
+
+        if saldo == Decimal("0.00"):
+            self.estatus_financiero = "PAGADA"
+        elif total_pagado > Decimal("0.00"):
+            self.estatus_financiero = "ABONO"
+        else:
+            self.estatus_financiero = "PENDIENTE"
+
+        self.save(update_fields=["estatus_financiero"])
+        
+        
+        
     def calcular_importe(self):
 
         if not (
@@ -146,9 +232,11 @@ class RentaEquipo(models.Model):
         delta = self.fecha_fin - self.fecha_inicio
 
         horas = Decimal(
-            str(
-                delta.total_seconds() / 3600
-            )
+            str(delta.total_seconds() / 3600)
+        )
+
+        dias = Decimal(
+            str(delta.total_seconds() / 86400)
         )
 
         tipo = self.tarifa.tipo_cobro
@@ -181,12 +269,12 @@ class RentaEquipo(models.Model):
 
                 extra = horas - horas_base
 
-                self.cantidad = horas.quantize(
-                    Decimal("0.01")
-                )
-
                 valor_hora = (
                     precio / horas_base
+                )
+
+                self.cantidad = horas.quantize(
+                    Decimal("0.01")
                 )
 
                 self.importe = (
@@ -196,9 +284,46 @@ class RentaEquipo(models.Model):
 
         elif tipo == "DIA":
 
-            self.cantidad = Decimal("1")
+            cantidad = max(
+                1,
+                int(dias.to_integral_value(rounding="ROUND_CEILING"))
+            )
 
-            self.importe = precio
+            self.cantidad = Decimal(str(cantidad))
+
+            self.importe = (
+                self.cantidad * precio
+            )
+
+        elif tipo == "SEMANA":
+
+            semanas = dias / Decimal("7")
+
+            cantidad = max(
+                1,
+                int(semanas.to_integral_value(rounding="ROUND_CEILING"))
+            )
+
+            self.cantidad = Decimal(str(cantidad))
+
+            self.importe = (
+                self.cantidad * precio
+            )
+
+        elif tipo == "MES":
+
+            meses = dias / Decimal("30")
+
+            cantidad = max(
+                1,
+                int(meses.to_integral_value(rounding="ROUND_CEILING"))
+            )
+
+            self.cantidad = Decimal(str(cantidad))
+
+            self.importe = (
+                self.cantidad * precio
+            )
 
         elif tipo == "EVENTO":
 
@@ -206,74 +331,12 @@ class RentaEquipo(models.Model):
 
             self.importe = precio
 
-
         self.importe = self.importe.quantize(
             Decimal("0.01")
         )
 
 
-
-    def actualizar_totales(self):
-
-        subtotal = (
-            self.conceptos.aggregate(
-                total=Sum("importe")
-            )["total"]
-            or Decimal("0.00")
-        )
-
-        self.subtotal_conceptos = subtotal
-
-        self.total = (
-            self.importe +
-            subtotal
-        )
         
-
-    def actualizar_estado_financiero(self):
-
-        total_pagado = sum(
-
-            (
-                p.importe
-                for p in self.pagos.all()
-            ),
-
-            Decimal("0.00")
-
-        )
-
-        saldo = (
-            Decimal(str(self.total)) -
-            total_pagado
-        ).quantize(
-            Decimal("0.01")
-        )
-
-        if saldo == Decimal("0.00"):
-
-            self.estatus_financiero = (
-                "PAGADA"
-            )
-
-        elif total_pagado > Decimal("0.00"):
-
-            self.estatus_financiero = (
-                "ABONO"
-            )
-
-        else:
-
-            self.estatus_financiero = (
-                "PENDIENTE"
-            )
-
-        self.save(
-            update_fields=[
-                "estatus_financiero"
-            ]
-        )
-
     @property
     def total_conceptos(self):
 
@@ -291,6 +354,31 @@ class RentaEquipo(models.Model):
             self.total_conceptos
         )
 
+    
+    @property
+    def total_pagado(self):
+
+        return sum(
+
+            (
+                p.importe
+                for p in self.pagos.all()
+            ),
+
+            Decimal("0.00")
+
+        )
+
+
+    @property
+    def saldo(self):
+
+        return (
+            Decimal(str(self.total)) -
+            self.total_pagado
+        ).quantize(
+            Decimal("0.01")
+        )
 
 class ConceptoRentaCatalogo(models.Model):
     nombre = models.CharField(max_length=100, unique=True)

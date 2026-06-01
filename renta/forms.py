@@ -2,7 +2,7 @@ from django import forms
 import datetime
 from django.core.exceptions import ValidationError
 from .models import(RentaEquipo, Cliente, TarifaEquipo, RentaConcepto, ConceptoRentaCatalogo, PagoRenta)
-
+from .constants import TRANSICIONES_VALIDAS
 from django_select2.forms import Select2Widget
 from django.shortcuts import render, redirect
 import re
@@ -17,73 +17,69 @@ from django.forms import inlineformset_factory
 # forms.py  — sección RentaEquipoForm
 # ─────────────────────────────────────────────
 
-class RentaEquipoForm(forms.ModelForm):
+from django import forms
+# Elimina: from django_select2.forms import Select2Widget
 
+class RentaEquipoForm(forms.ModelForm):
     class Meta:
         model = RentaEquipo
-
-        # FIX: listar SOLO los campos que aparecen en el template.
-        # Con fields="__all__" Django incluye cantidad/importe/subtotal_conceptos/
-        # total/estatus que no están en el form → el POST falla silenciosamente.
         fields = [
-            "cliente",
-            "equipo",
-            "tarifa",
-            "fecha_inicio",
-            "fecha_fin",
-            "observaciones",
+            "cliente", "equipo", "tarifa",
+            "fecha_inicio", "fecha_fin", "observaciones","estatus",
         ]
-
         widgets = {
-           "cliente": forms.Select(
-                attrs={
-                    "class": "form-control select2"
-                }
-            ),
-            "equipo": forms.Select(
-                attrs={
-                    "class": "form-control select2"
-                }
-            ),
-            "tarifa": forms.Select(
-                attrs={"class": "form-control"}
-            ),
-            "fecha_inicio": forms.DateTimeInput(
-                attrs={
-                    "class": "form-control",
-                    "type": "datetime-local",
-                },
-                format="%Y-%m-%dT%H:%M",
-            ),
-            "fecha_fin": forms.DateTimeInput(
-                attrs={
-                    "class": "form-control",
-                    "type": "datetime-local",
-                },
-                format="%Y-%m-%dT%H:%M",
-            ),
-            "observaciones": forms.Textarea(
-                attrs={
-                    "class": "form-control",
-                    "rows": 3,
-                }
-            ),
+            "cliente": forms.Select(attrs={
+                "class": "form-control select2",
+                "data-placeholder": "Buscar cliente...",
+            }),
+            "equipo": forms.Select(attrs={
+                "class": "form-control select2",
+                "data-placeholder": "Buscar equipo...",
+            }),
+            "estatus": forms.Select(attrs={
+                "class": "form-control",
+            }),
+            "tarifa": forms.Select(attrs={
+                "class": "form-control select2",
+                "data-placeholder": "Buscar tarifa...",
+            }),
+            "fecha_inicio": forms.DateTimeInput(attrs={
+                "class": "form-control",
+                "type": "datetime-local",
+            }, format="%Y-%m-%dT%H:%M"),
+            "fecha_fin": forms.DateTimeInput(attrs={
+                "class": "form-control",
+                "type": "datetime-local",
+            }, format="%Y-%m-%dT%H:%M"),
+            "observaciones": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3,
+            }),
         }
-
+        
+        
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         if self.instance.pk:
-            if self.instance.fecha_inicio:
-                self.initial["fecha_inicio"] = (
-                    self.instance.fecha_inicio.strftime("%Y-%m-%dT%H:%M")
-                )
-            if self.instance.fecha_fin:
-                self.initial["fecha_fin"] = (
-                    self.instance.fecha_fin.strftime("%Y-%m-%dT%H:%M")
-                )
+            # EDICIÓN: quita estatus del form, se maneja con botón
+            self.fields.pop("estatus")
+        else:
+            # CREACIÓN: solo permite elegir COTIZACION o ACTIVA
+            self.fields["estatus"].choices = [
+                ("COTIZACION", "Cotización"),
+                ("ACTIVA",     "Renta directa"),
+            ]
 
-
+        # Fechas
+        if self.instance.fecha_inicio:
+            self.initial["fecha_inicio"] = (
+                self.instance.fecha_inicio.strftime("%Y-%m-%dT%H:%M")
+            )
+        if self.instance.fecha_fin:
+            self.initial["fecha_fin"] = (
+                self.instance.fecha_fin.strftime("%Y-%m-%dT%H:%M")
+            )
 # ─────────────────────────────────────────────
 # forms.py  — formset con prefijo explícito
 # ─────────────────────────────────────────────
@@ -166,9 +162,11 @@ class TarifaEquipoForm(forms.ModelForm):
         ]
 
         widgets = {
-            "equipo": forms.Select(attrs={
-                "class": "form-control"
-            }),
+            "equipo": forms.Select(
+                attrs={
+                    "class": "form-control select2"
+                }
+            ),
 
             "tipo_cobro": forms.Select(attrs={
                 "class": "form-control"
@@ -258,7 +256,10 @@ RentaConceptoFormSet = inlineformset_factory(
     form=RentaConceptoForm,
     extra=1,
     can_delete=True,
+    
+    
 )
+
 
 # FIX: prefijo fijo para que el template y el JS lo conozcan siempre
 
@@ -303,6 +304,44 @@ class PagoRentaForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "rows": 3
+                }
+            ),
+
+        }
+        
+        
+class ConceptoRentaCatalogoForm(forms.ModelForm):
+
+    class Meta:
+
+        model = ConceptoRentaCatalogo
+
+        fields = [
+
+            "nombre",
+            "precio_default",
+            "activo"
+
+        ]
+
+        widgets = {
+
+            "nombre": forms.TextInput(
+                attrs={
+                    "class": "form-control"
+                }
+            ),
+
+            "precio_default": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.01"
+                }
+            ),
+
+            "activo": forms.CheckboxInput(
+                attrs={
+                    "class": "form-check-input"
                 }
             ),
 

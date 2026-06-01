@@ -1,0 +1,124 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+
+<div class="card shadow mb-4">
+
+    <div class="card-header py-3 d-flex justify-content-between">
+
+        <h6 class="m-0 font-weight-bold text-primary">
+
+            Conceptos de renta
+
+        </h6>
+
+        <a href="{% url 'renta:concepto_create' %}"
+           class="btn btn-primary">
+
+            Nuevo concepto
+
+        </a>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-hover">
+
+                <thead class="thead-light">
+
+                    <tr>
+
+                        <th>Nombre</th>
+
+                        <th>Precio default</th>
+
+                        <th>Activo</th>
+
+                        <th></th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for c in conceptos %}
+
+                    <tr>
+
+                        <td>
+
+                            {{ c.nombre }}
+
+                        </td>
+
+                        <td class="font-weight-bold">
+
+                            ${{ c.precio_default }}
+
+                        </td>
+
+                        <td>
+
+                            {% if c.activo %}
+
+                                <span class="badge badge-success">
+
+                                    Activo
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge badge-danger">
+
+                                    Inactivo
+
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            <a href="{% url 'renta:concepto_update' c.id %}"
+                               class="btn btn-sm btn-warning">
+
+                                Editar
+
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="4"
+                            class="text-center text-muted">
+
+                            Sin conceptos
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

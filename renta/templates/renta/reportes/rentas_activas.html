@@ -1,0 +1,238 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+
+<div class="card shadow mb-4">
+
+    <div class="card-header py-3 d-flex justify-content-between">
+
+        <h6 class="m-0 font-weight-bold text-success">
+
+            Reporte - Rentas Activas
+
+        </h6>
+
+    </div>
+
+    <div class="card-body">
+
+        <!-- FILTROS -->
+
+        <form method="GET"
+              class="mb-4">
+
+            <div class="row align-items-end">
+
+                <div class="col-md-4">
+
+                    <label class="small font-weight-bold">
+
+                        Cliente
+
+                    </label>
+
+                    <select name="cliente"
+                            class="form-control select2">
+
+                        <option value="">
+                            Todos
+                        </option>
+
+                        {% for c in clientes %}
+
+                        <option value="{{ c.id }}"
+                            {% if request.GET.cliente == c.id|stringformat:"s" %}
+                                selected
+                            {% endif %}>
+
+                            {{ c.nombre }}
+
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <label class="small font-weight-bold">
+
+                        Equipo
+
+                    </label>
+
+                    <select name="equipo"
+                            class="form-control select2">
+
+                        <option value="">
+                            Todos
+                        </option>
+
+                        {% for e in equipos %}
+
+                        <option value="{{ e.id }}"
+                            {% if request.GET.equipo == e.id|stringformat:"s" %}
+                                selected
+                            {% endif %}>
+
+                            {{ e.descripcion }}
+
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <button type="submit"
+                            class="btn btn-success">
+
+                        <i class="fas fa-search"></i>
+
+                        Filtrar
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+
+        <!-- TABLA -->
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-hover">
+
+                <thead class="thead-light">
+
+                    <tr>
+
+                        <th>Folio</th>
+
+                        <th>Cliente</th>
+
+                        <th>Equipo</th>
+
+                        <th>Inicio</th>
+
+                        <th>Tarifa</th>
+
+                        <th>Total</th>
+
+                        <th>Saldo</th>
+
+                        <th></th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for r in rentas %}
+
+                    <tr>
+
+                        <td>
+
+                            {{ r.folio }}
+
+                        </td>
+
+                        <td>
+
+                            {{ r.cliente.nombre }}
+
+                        </td>
+
+                        <td>
+
+                            {{ r.equipo.descripcion }}
+
+                        </td>
+
+                        <td>
+
+                            {{ r.fecha_inicio|date:"d/m/Y H:i" }}
+
+                        </td>
+
+                        <td>
+
+                            {{ r.tarifa.tipo_cobro }}
+
+                        </td>
+
+                        <td class="font-weight-bold">
+
+                            ${{ r.total }}
+
+                        </td>
+
+                        <td class="text-danger font-weight-bold">
+
+                            ${{ r.saldo }}
+
+                        </td>
+
+                        <td>
+
+                            <a href="{% url 'renta:renta_detail' r.id %}"
+                               class="btn btn-sm btn-primary">
+
+                                Ver
+
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="8"
+                            class="text-center text-muted">
+
+                            Sin registros
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+$(document).ready(function(){
+
+    $(".select2").select2({
+        width: "100%"
+    });
+
+});
+
+</script>
+
+{% endblock %}

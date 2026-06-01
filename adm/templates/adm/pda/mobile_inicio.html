@@ -10,9 +10,8 @@
     <link href="{% static 'base/css/sb-admin-2.min.css' %}" rel="stylesheet">
 
     <style>
-        body {
-            background: #f4f6f9;
-        }
+        body { background: #f4f6f9; }
+
         .mobile-wrap {
             max-width: 520px;
             margin: 0 auto;
@@ -42,10 +41,111 @@
             text-align: center;
             margin-bottom: 1rem;
         }
-        .select-mobile {
+
+        /* ── Buscador de equipo ── */
+        .equipo-search-wrap {
+            position: relative;
+        }
+        .equipo-search-input {
             min-height: 54px;
             font-size: 1rem;
             border-radius: 12px;
+            border: 1.5px solid #d1d3e2;
+            padding: 0 16px 0 44px;
+            width: 100%;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color .15s;
+            background: #fff;
+        }
+        .equipo-search-input:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 3px rgba(78,115,223,.15);
+        }
+        .equipo-search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #adb5bd;
+            font-size: 1rem;
+            pointer-events: none;
+        }
+
+        /* ── Lista de resultados ── */
+        .equipo-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0; right: 0;
+            background: #fff;
+            border: 1.5px solid #d1d3e2;
+            border-radius: 12px;
+            max-height: 260px;
+            overflow-y: auto;
+            z-index: 999;
+            box-shadow: 0 4px 16px rgba(0,0,0,.1);
+        }
+        .equipo-dropdown.open { display: block; }
+
+        .equipo-item {
+            padding: 14px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f2fa;
+            font-size: .97rem;
+            color: #3a3b45;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background .1s;
+        }
+        .equipo-item:last-child { border-bottom: none; }
+        .equipo-item:hover,
+        .equipo-item.selected { background: #eef0ff; color: #4e73df; font-weight: 600; }
+        .equipo-item .equipo-icon {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            background: #eef0ff;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            font-size: .8rem;
+            color: #4e73df;
+        }
+        .equipo-item .equipo-placas {
+            font-size: .78rem;
+            color: #858796;
+            font-weight: 400;
+        }
+
+        /* Seleccionado */
+        .equipo-selected-badge {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: #eafaf4;
+            border: 1.5px solid #1cc88a;
+            border-radius: 12px;
+            margin-top: 8px;
+            font-weight: 700;
+            color: #13855c;
+            font-size: .95rem;
+        }
+        .equipo-selected-badge.show { display: flex; }
+        .equipo-selected-badge .badge-clear {
+            margin-left: auto;
+            cursor: pointer;
+            color: #adb5bd;
+            font-size: .9rem;
+        }
+        .badge-clear:hover { color: #e74a3b; }
+
+        /* Sin resultados */
+        .equipo-empty {
+            padding: 16px;
+            text-align: center;
+            color: #adb5bd;
+            font-size: .9rem;
         }
     </style>
 </head>
@@ -66,22 +166,46 @@
                 <div class="text-muted">{{ request.user.username }}</div>
             </div>
 
-            <form method="post" action="{% url 'adm:iniciar_jornada' %}">
+            <form method="post" action="{% url 'adm:iniciar_jornada' %}" id="formJornada">
                 {% csrf_token %}
 
-                <div class="form-group">
-                    <label class="font-weight-bold">Selecciona el equipo</label>
-                    <select name="equipo" class="form-control select-mobile" required>
-                        <option value="">Seleccione...</option>
-                        {% for e in equipos %}
-                            <option value="{{ e.id }}">
-                                {{ e.descripcion }} {% if e.placas %} - {{ e.placas }}{% endif %}
-                            </option>
-                        {% endfor %}
-                    </select>
+                <!-- Campo oculto que se envía al servidor -->
+                <input type="hidden" name="equipo" id="equipo_id_hidden">
+
+                <div class="form-group mb-1">
+                    <label class="font-weight-bold mb-2">
+                        <i class="fas fa-truck-monster mr-1 text-primary"></i>
+                        Selecciona el equipo
+                    </label>
+
+                    <!-- Buscador -->
+                    <div class="equipo-search-wrap" id="searchWrap">
+                        <i class="fas fa-search equipo-search-icon"></i>
+                        <input type="text"
+                               id="equipoBuscar"
+                               class="equipo-search-input"
+                               placeholder="Buscar equipo o placas..."
+                               autocomplete="off"
+                               autocorrect="off"
+                               spellcheck="false">
+
+                        <!-- Dropdown de resultados -->
+                        <div class="equipo-dropdown" id="equipoDropdown">
+                            <!-- Se llena con JS -->
+                        </div>
+                    </div>
+
+                    <!-- Badge del equipo seleccionado -->
+                    <div class="equipo-selected-badge" id="equipoSelBadge">
+                        <i class="fas fa-check-circle"></i>
+                        <span id="equipoSelNombre"></span>
+                        <span class="badge-clear" id="btnLimpiarEquipo" title="Cambiar equipo">
+                            <i class="fas fa-times-circle"></i>
+                        </span>
+                    </div>
                 </div>
 
-                <button type="submit" class="btn btn-success btn-block btn-mobile mt-4">
+                <button type="submit" class="btn btn-success btn-block btn-mobile mt-4" id="btnIniciar" disabled>
                     <i class="fas fa-play-circle mr-2"></i> Iniciar jornada
                 </button>
             </form>
@@ -94,6 +218,121 @@
     </div>
 
 </div>
+
+<script>
+// ── Catálogo de equipos desde Django ──────────────────────────────────
+const EQUIPOS = [
+    {% for e in equipos %}
+    {
+        id: "{{ e.id }}",
+        nombre: "{{ e.descripcion }}",
+        placas: "{{ e.placas|default:'' }}",
+        texto: "{{ e.descripcion|lower }} {{ e.placas|default:''|lower }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
+// ── Referencias DOM ───────────────────────────────────────────────────
+const inputBuscar    = document.getElementById("equipoBuscar");
+const dropdown       = document.getElementById("equipoDropdown");
+const hiddenId       = document.getElementById("equipo_id_hidden");
+const badge          = document.getElementById("equipoSelBadge");
+const badgeNombre    = document.getElementById("equipoSelNombre");
+const btnLimpiar     = document.getElementById("btnLimpiarEquipo");
+const btnIniciar     = document.getElementById("btnIniciar");
+const searchWrap     = document.getElementById("searchWrap");
+
+// ── Renderiza la lista filtrada ───────────────────────────────────────
+function renderDropdown(filtro) {
+    const q = filtro.toLowerCase().trim();
+    const resultados = q
+        ? EQUIPOS.filter(e => e.texto.includes(q))
+        : EQUIPOS;
+
+    if (!resultados.length) {
+        dropdown.innerHTML = `<div class="equipo-empty">
+            <i class="fas fa-search-minus d-block mb-1" style="font-size:1.4rem;"></i>
+            Sin resultados para "${filtro}"
+        </div>`;
+    } else {
+        dropdown.innerHTML = resultados.map(e => `
+            <div class="equipo-item" data-id="${e.id}" data-nombre="${e.nombre} ${e.placas ? '- ' + e.placas : ''}">
+                <div class="equipo-icon"><i class="fas fa-truck-monster"></i></div>
+                <div>
+                    <div>${e.nombre}</div>
+                    ${e.placas ? `<div class="equipo-placas"><i class="fas fa-id-card mr-1"></i>${e.placas}</div>` : ''}
+                </div>
+            </div>
+        `).join("");
+    }
+
+    dropdown.classList.add("open");
+}
+
+// ── Seleccionar un equipo ─────────────────────────────────────────────
+function seleccionarEquipo(id, nombre) {
+    hiddenId.value  = id;
+    badgeNombre.textContent = nombre;
+    badge.classList.add("show");
+    dropdown.classList.remove("open");
+    inputBuscar.value = "";
+    searchWrap.style.display = "none";
+    btnIniciar.disabled = false;
+}
+
+// ── Limpiar selección ─────────────────────────────────────────────────
+function limpiarSeleccion() {
+    hiddenId.value  = "";
+    badge.classList.remove("show");
+    searchWrap.style.display = "block";
+    inputBuscar.value = "";
+    dropdown.classList.remove("open");
+    btnIniciar.disabled = true;
+    inputBuscar.focus();
+}
+
+// ── Eventos ───────────────────────────────────────────────────────────
+
+// Escribir en el buscador
+inputBuscar.addEventListener("input", function() {
+    if (this.value.length === 0) {
+        renderDropdown("");
+    } else {
+        renderDropdown(this.value);
+    }
+});
+
+// Abrir dropdown al hacer foco
+inputBuscar.addEventListener("focus", function() {
+    renderDropdown(this.value);
+});
+
+// Clic en un equipo del dropdown (delegación)
+dropdown.addEventListener("click", function(e) {
+    const item = e.target.closest(".equipo-item");
+    if (!item) return;
+    seleccionarEquipo(item.dataset.id, item.dataset.nombre);
+});
+
+// Limpiar selección
+btnLimpiar.addEventListener("click", limpiarSeleccion);
+
+// Cerrar dropdown al tocar fuera
+document.addEventListener("click", function(e) {
+    if (!searchWrap.contains(e.target)) {
+        dropdown.classList.remove("open");
+    }
+});
+
+// Validar antes de enviar
+document.getElementById("formJornada").addEventListener("submit", function(e) {
+    if (!hiddenId.value) {
+        e.preventDefault();
+        alert("Selecciona un equipo antes de iniciar.");
+        limpiarSeleccion();
+    }
+});
+</script>
 
 </body>
 </html>

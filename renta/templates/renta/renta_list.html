@@ -5,6 +5,7 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 
 <style>
+/* ── Filtros ── */
 .filter-bar {
     display: flex;
     align-items: flex-end;
@@ -16,35 +17,22 @@
     border-radius: 8px;
     margin-bottom: 1.25rem;
 }
-.filter-field {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
+.filter-field { display: flex; flex-direction: column; gap: 4px; }
 .filter-field label {
-    font-size: 10px;
-    font-weight: 700;
-    color: #858796;
-    white-space: nowrap;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    margin: 0;
+    font-size: 10px; font-weight: 700; color: #858796;
+    white-space: nowrap; text-transform: uppercase;
+    letter-spacing: .05em; margin: 0;
 }
 .filter-field input,
 .filter-field select {
-    height: 36px;
-    padding: 0 10px;
-    border: 1px solid #d1d3e2;
-    border-radius: 6px;
-    font-size: 13px;
-    color: #3a3b45;
-    box-sizing: border-box;
-    background: #fff;
+    height: 36px; padding: 0 10px;
+    border: 1px solid #d1d3e2; border-radius: 6px;
+    font-size: 13px; color: #3a3b45;
+    box-sizing: border-box; background: #fff;
 }
 .filter-field input:focus,
 .filter-field select:focus {
-    border-color: #4e73df;
-    outline: none;
+    border-color: #4e73df; outline: none;
     box-shadow: 0 0 0 2px rgba(78,115,223,.15);
 }
 .f-folio   { flex: 0 0 150px; }
@@ -53,44 +41,47 @@
 .f-fecha   { flex: 0 0 138px; }
 .filter-btns { display: flex; gap: 8px; flex-shrink: 0; }
 
-/* Select2 — igualar altura y estilo */
+/* ── Select2 ── */
 .select2-container .select2-selection--single {
-    height: 36px !important;
-    border: 1px solid #d1d3e2 !important;
-    border-radius: 6px !important;
+    height: 36px !important; border: 1px solid #d1d3e2 !important; border-radius: 6px !important;
 }
 .select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: 36px !important;
-    font-size: 13px;
-    color: #3a3b45;
-    padding-left: 10px;
+    line-height: 36px !important; font-size: 13px; color: #3a3b45; padding-left: 10px;
 }
-.select2-container--default .select2-selection--single .select2-selection__arrow {
-    height: 34px !important;
-}
+.select2-container--default .select2-selection--single .select2-selection__arrow { height: 34px !important; }
 .select2-container--default.select2-container--focus .select2-selection--single {
-    border-color: #4e73df !important;
-    box-shadow: 0 0 0 2px rgba(78,115,223,.15) !important;
+    border-color: #4e73df !important; box-shadow: 0 0 0 2px rgba(78,115,223,.15) !important;
 }
-.select2-dropdown {
-    border: 1px solid #d1d3e2 !important;
-    border-radius: 6px !important;
-    font-size: 13px;
-}
+.select2-dropdown { border: 1px solid #d1d3e2 !important; border-radius: 6px !important; font-size: 13px; }
 .select2-search--dropdown .select2-search__field {
-    border: 1px solid #d1d3e2 !important;
-    border-radius: 4px !important;
-    font-size: 13px;
-    padding: 5px 8px;
+    border: 1px solid #d1d3e2 !important; border-radius: 4px !important;
+    font-size: 13px; padding: 5px 8px;
 }
 .select2-container { width: 100% !important; }
+
+/* ── Resumen financiero modal pago ── */
+.pago-resumen-box {
+    background: #f8f9fc;
+    border: 1px solid #e3e6f0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+}
+.pago-resumen-box .item { text-align: center; }
+.pago-resumen-box .item .label {
+    font-size: 10px; font-weight: 700; color: #858796;
+    text-transform: uppercase; letter-spacing: .05em;
+}
+.pago-resumen-box .item .valor {
+    font-size: 1.1rem; font-weight: 700; margin-top: 2px;
+}
 </style>
 
 <div class="card shadow mb-4">
 
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <h6 class="m-0 font-weight-bold text-primary">
-            Rentas de Equipo
+            <i class="fas fa-file-contract mr-2"></i> Rentas de Equipo
         </h6>
         <a href="{% url 'renta:renta_new' %}" class="btn btn-primary btn-sm">
             <i class="fas fa-plus fa-sm"></i> Nueva Renta
@@ -99,14 +90,13 @@
 
     <div class="card-body">
 
-        <!-- FILTRO -->
+        <!-- ── FILTROS ── -->
         <form method="GET">
             <div class="filter-bar">
 
                 <div class="filter-field f-folio">
                     <label>Folio / Equipo</label>
-                    <input type="text" name="q"
-                           placeholder="Buscar..."
+                    <input type="text" name="q" placeholder="Buscar..."
                            value="{{ request.GET.q }}">
                 </div>
 
@@ -127,7 +117,10 @@
                     <label>Estatus</label>
                     <select name="estatus">
                         <option value="">Todos</option>
+                        <option value="COTIZACION" {% if request.GET.estatus == "COTIZACION" %}selected{% endif %}>Cotización</option>
                         <option value="ACTIVA"     {% if request.GET.estatus == "ACTIVA"     %}selected{% endif %}>Activa</option>
+                        <option value="APROBADA"   {% if request.GET.estatus == "APROBADA"   %}selected{% endif %}>Aprobada</option>
+                        <option value="RENTADA"    {% if request.GET.estatus == "RENTADA"    %}selected{% endif %}>Rentada</option>
                         <option value="FINALIZADA" {% if request.GET.estatus == "FINALIZADA" %}selected{% endif %}>Finalizada</option>
                         <option value="CANCELADA"  {% if request.GET.estatus == "CANCELADA"  %}selected{% endif %}>Cancelada</option>
                     </select>
@@ -135,14 +128,12 @@
 
                 <div class="filter-field f-fecha">
                     <label>Desde</label>
-                    <input type="date" name="fecha_inicio"
-                           value="{{ request.GET.fecha_inicio }}">
+                    <input type="date" name="fecha_inicio" value="{{ request.GET.fecha_inicio }}">
                 </div>
 
                 <div class="filter-field f-fecha">
                     <label>Hasta</label>
-                    <input type="date" name="fecha_fin"
-                           value="{{ request.GET.fecha_fin }}">
+                    <input type="date" name="fecha_fin" value="{{ request.GET.fecha_fin }}">
                 </div>
 
                 <div class="filter-btns">
@@ -157,82 +148,482 @@
             </div>
         </form>
 
-        <!-- TABLA -->
-        <table class="table table-striped table-hover">
+        <!-- ── TABLA ── -->
+        <div class="table-responsive">
+        <table class="table table-striped table-hover" style="font-size:.88rem;">
             <thead>
                 <tr>
-                    <th width="140">Folio</th>
+                    <th style="width:150px;">Folio</th>
                     <th>Cliente</th>
                     <th>Equipo</th>
                     <th>Tarifa</th>
                     <th>Inicio</th>
                     <th>Fin</th>
-                    <th>Cantidad</th>
                     <th>Total</th>
                     <th>Estatus</th>
                     <th>Financiero</th>
-                    <th width="120">Acciones</th>
+                    <th style="width:160px;">Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 {% for r in rentas %}
                 <tr>
+                    <!-- Folio -->
                     <td class="text-nowrap">
                         <span class="font-weight-bold text-primary">{{ r.folio }}</span>
+                        {% if r.folio_renta %}
+                            <br><small class="text-success font-weight-bold">{{ r.folio_renta }}</small>
+                        {% endif %}
                     </td>
+
                     <td>{{ r.cliente }}</td>
                     <td>{{ r.equipo }}</td>
                     <td>{{ r.tarifa.tipo_cobro }}</td>
-                    <td>{{ r.fecha_inicio|date:"d/m/Y H:i" }}</td>
-                    <td>
+
+                    <td class="text-nowrap">{{ r.fecha_inicio|date:"d/m/Y H:i" }}</td>
+                    <td class="text-nowrap">
                         {% if r.fecha_fin %}
                             {{ r.fecha_fin|date:"d/m/Y H:i" }}
                         {% else %}
-                            <span class="text-success">Activa</span>
+                            <span class="text-success small">En curso</span>
                         {% endif %}
                     </td>
-                    <td>{{ r.cantidad }}</td>
-                    <td>${{ r.total }}</td>
+
+                    <td class="text-nowrap font-weight-bold">${{ r.total|floatformat:2 }}</td>
+
+                    <!-- Estatus operativo -->
                     <td>
-                        <span class="badge badge-{% if r.estatus == 'ACTIVA' %}success{% elif r.estatus == 'FINALIZADA' %}secondary{% else %}danger{% endif %}">
-                            {{ r.estatus }}
+                        <span class="badge
+                            {% if r.estatus == 'COTIZACION' %}badge-warning
+                            {% elif r.estatus == 'ACTIVA' or r.estatus == 'RENTADA' %}badge-success
+                            {% elif r.estatus == 'APROBADA' %}badge-info
+                            {% elif r.estatus == 'FINALIZADA' %}badge-secondary
+                            {% elif r.estatus == 'CANCELADA' %}badge-danger
+                            {% else %}badge-light{% endif %} px-2">
+                            {{ r.get_estatus_display }}
                         </span>
                     </td>
-                    <td>{{ r.estatus_financiero }}</td>
+
+                    <!-- Estatus financiero -->
                     <td>
+                        <span class="badge
+                            {% if r.estatus_financiero == 'PAGADA' %}badge-success
+                            {% elif r.estatus_financiero == 'ABONO' %}badge-warning
+                            {% else %}badge-light text-muted{% endif %} px-2">
+                            {{ r.get_estatus_financiero_display }}
+                        </span>
+                        {% if r.estatus not in "CANCELADA,FINALIZADA,COTIZACION" and r.saldo > 0 %}
+                            <br><small class="text-danger">Saldo: ${{ r.saldo|floatformat:2 }}</small>
+                        {% endif %}
+                    </td>
+
+                    <!-- Acciones -->
+                    <td class="text-nowrap">
+
+                        <!-- Ver detalle -->
                         <a href="{% url 'renta:renta_detail' r.id %}"
-                           class="btn btn-sm btn-info shadow-sm">
+                           class="btn btn-sm btn-info shadow-sm" title="Ver detalle">
                             <i class="fas fa-eye"></i>
                         </a>
+
+                        <!-- Editar (solo si no está finalizada/cancelada) -->
+                        {% if r.estatus not in "FINALIZADA,CANCELADA" %}
                         <a href="{% url 'renta:renta_update' r.id %}"
-                           class="btn btn-sm btn-warning shadow-sm">
+                           class="btn btn-sm btn-warning shadow-sm" title="Editar">
                             <i class="fas fa-edit"></i>
                         </a>
+                        {% endif %}
+
+                        <!-- Convertir a Renta — solo COTIZACION -->
+                        {% if r.estatus == "COTIZACION" %}
+                        <button type="button"
+                                class="btn btn-sm btn-success shadow-sm"
+                                title="Convertir a Renta"
+                                data-toggle="modal"
+                                data-target="#modalConvertir-{{ r.id }}">
+                            <i class="fas fa-check-circle"></i>
+                        </button>
+                        {% endif %}
+
+                        <!-- Registrar pago — rentas cobrables con saldo -->
+                        {% if r.estatus not in "CANCELADA,FINALIZADA,COTIZACION" and r.saldo > 0 %}
+                        <button type="button"
+                                class="btn btn-sm btn-primary shadow-sm btnPagoRapido"
+                                title="Registrar pago"
+                                data-id="{{ r.id }}"
+                                data-folio="{{ r.folio_renta|default:r.folio }}"
+                                data-cliente="{{ r.cliente }}"
+                                data-equipo="{{ r.equipo }}"
+                                data-total="{{ r.total }}"
+                                data-pagado="{{ r.total_pagado }}"
+                                data-saldo="{{ r.saldo }}">
+                            <i class="fas fa-dollar-sign"></i>
+                        </button>
+                        {% endif %}
+
+                        <!-- Finalizar manualmente — rentas activas sin saldo o manualmente -->
+                        {% if r.estatus not in "CANCELADA,FINALIZADA,COTIZACION" %}
+                        <button type="button"
+                                class="btn btn-sm btn-secondary shadow-sm btnFinalizar"
+                                title="Finalizar renta"
+                                data-id="{{ r.id }}"
+                                data-folio="{{ r.folio_renta|default:r.folio }}">
+                            <i class="fas fa-flag-checkered"></i>
+                        </button>
+                        {% endif %}
+
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="10" class="text-center text-muted py-3">Sin rentas registradas</td>
+                    <td colspan="10" class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-2x mb-2 d-block text-gray-300"></i>
+                        Sin rentas registradas
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+        </div>
 
     </div>
 </div>
 
+
+{# ══════════════════════════════════════════════════════════════════
+   MODALES DE CONVERSIÓN — uno por cada cotización, fuera de la tabla
+══════════════════════════════════════════════════════════════════ #}
+{% for r in rentas %}
+{% if r.estatus == "COTIZACION" %}
+<div class="modal fade" id="modalConvertir-{{ r.id }}" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title font-weight-bold">
+          <i class="fas fa-check-circle mr-2"></i> Convertir a Renta
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-2">¿Confirmas convertir esta cotización en renta efectiva?</p>
+        <table class="table table-sm table-borderless mb-0">
+          <tr>
+            <td class="text-muted small font-weight-bold pl-0" style="width:130px;">Folio cotización:</td>
+            <td class="font-weight-bold text-primary">{{ r.folio }}</td>
+          </tr>
+          <tr>
+            <td class="text-muted small font-weight-bold pl-0">Cliente:</td>
+            <td>{{ r.cliente }}</td>
+          </tr>
+          <tr>
+            <td class="text-muted small font-weight-bold pl-0">Equipo:</td>
+            <td>{{ r.equipo }}</td>
+          </tr>
+        </table>
+        <div class="alert alert-warning mt-3 mb-0 py-2 small">
+          <i class="fas fa-exclamation-triangle mr-1"></i>
+          Se generará un folio de renta y el documento quedará como <strong>ACTIVA</strong>.
+          Esta acción <strong>no se puede deshacer</strong>.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light border" data-dismiss="modal">
+          <i class="fas fa-times mr-1"></i> Cancelar
+        </button>
+        <form method="post" action="{% url 'renta:convertir_renta' r.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-success font-weight-bold">
+            <i class="fas fa-check-circle mr-1"></i> Sí, convertir a Renta
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endfor %}
+
+
+{# ══════════════════════════════════════════════════════════════════
+   MODAL ÚNICO: REGISTRAR PAGO RÁPIDO
+   Se rellena vía JS al hacer clic en el botón de cada fila
+══════════════════════════════════════════════════════════════════ #}
+<div class="modal fade" id="modalPago" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content border-0 shadow">
+
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title font-weight-bold">
+          <i class="fas fa-dollar-sign mr-2"></i>
+          Registrar Pago &mdash; <span id="pagoFolio" class="font-weight-light"></span>
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- Resumen financiero -->
+        <div class="pago-resumen-box">
+          <div class="row">
+            <div class="col-4 item">
+              <div class="label">Total renta</div>
+              <div class="valor text-gray-800" id="pagoTotal">—</div>
+            </div>
+            <div class="col-4 item border-left border-right">
+              <div class="label">Ya pagado</div>
+              <div class="valor text-success" id="pagoPagado">—</div>
+            </div>
+            <div class="col-4 item">
+              <div class="label">Saldo pendiente</div>
+              <div class="valor text-danger" id="pagoSaldo">—</div>
+            </div>
+          </div>
+        </div>
+
+        <p class="small text-muted mb-3" id="pagoClienteEquipo"></p>
+
+        <!-- Formulario de pago -->
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label class="small font-weight-bold">Método de pago <span class="text-danger">*</span></label>
+            <select id="pagoMetodo" class="form-control">
+              <option value="EFECTIVO">Efectivo</option>
+              <option value="TRANSFERENCIA">Transferencia</option>
+              <option value="CHEQUE">Cheque</option>
+            </select>
+          </div>
+          <div class="form-group col-md-6">
+            <label class="small font-weight-bold">Importe <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text">$</span>
+              </div>
+              <input type="number" id="pagoImporte" class="form-control"
+                     step="0.01" min="0.01" placeholder="0.00">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="small font-weight-bold">Referencia</label>
+          <input type="text" id="pagoReferencia" class="form-control"
+                 placeholder="Núm. transferencia, folio cheque, etc.">
+        </div>
+
+        <div class="form-group mb-0">
+          <label class="small font-weight-bold">Observaciones</label>
+          <textarea id="pagoObservaciones" class="form-control" rows="2"
+                    placeholder="Notas adicionales del pago..."></textarea>
+        </div>
+
+        <div id="pagoError" class="alert alert-danger mt-3 mb-0 d-none small"></div>
+        <div id="pagoExito" class="alert alert-success mt-3 mb-0 d-none small"></div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light border" data-dismiss="modal">
+          <i class="fas fa-times mr-1"></i> Cerrar
+        </button>
+        <a href="#" id="btnVerRecibo" class="btn btn-outline-secondary d-none" target="_blank">
+          <i class="fas fa-file-pdf mr-1"></i> Ver Recibo
+        </a>
+        <button type="button" class="btn btn-primary font-weight-bold" id="btnGuardarPago">
+          <i class="fas fa-save mr-1"></i> Guardar Pago
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+{# ══════════════════════════════════════════════════════════════════
+   MODAL ÚNICO: FINALIZAR RENTA MANUALMENTE
+══════════════════════════════════════════════════════════════════ #}
+<div class="modal fade" id="modalFinalizar" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-secondary text-white">
+        <h5 class="modal-title font-weight-bold">
+          <i class="fas fa-flag-checkered mr-2"></i> Finalizar Renta
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-1">¿Confirmas finalizar la renta?</p>
+        <p class="font-weight-bold text-primary mb-0" id="finalizarFolio"></p>
+        <p class="small text-muted mt-2 mb-0">
+          El estatus cambiará a <strong>FINALIZADA</strong>. Esta acción no se puede deshacer.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light border" data-dismiss="modal">Cancelar</button>
+        <form method="post" id="formFinalizar" action="">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-secondary font-weight-bold">
+            <i class="fas fa-flag-checkered mr-1"></i> Finalizar
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+
+{% block js_page %}
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-    $(document).ready(function(){
-        $('#select-cliente').select2({
-            placeholder: 'Buscar cliente...',
-            allowClear: true,
-            language: {
-                noResults: function(){ return 'Sin resultados'; },
-                searching: function(){ return 'Buscando...'; }
+$(document).ready(function () {
+
+    /* ══════════════════════════════
+       SELECT2 — filtro de clientes
+    ══════════════════════════════ */
+    $('#select-cliente').select2({
+        placeholder: 'Buscar cliente...',
+        allowClear: true,
+        language: {
+            noResults:  function () { return 'Sin resultados'; },
+            searching:  function () { return 'Buscando...'; }
+        }
+    });
+
+    /* ══════════════════════════════
+       HELPERS
+    ══════════════════════════════ */
+    function fmt(n) {
+        return "$ " + parseFloat(n || 0).toLocaleString("es-MX", {
+            minimumFractionDigits: 2, maximumFractionDigits: 2
+        });
+    }
+
+    function getCsrf() {
+        const c = document.cookie.split(";").find(c => c.trim().startsWith("csrftoken="));
+        return c ? c.split("=")[1] : "";
+    }
+
+    /* ══════════════════════════════
+       PAGO RÁPIDO — abrir modal
+    ══════════════════════════════ */
+    let rentaActivaId = null;
+
+    $(document).on("click", ".btnPagoRapido", function () {
+        const $btn = $(this);
+        rentaActivaId = $btn.data("id");
+
+        const total   = parseFloat($btn.data("total")  || 0);
+        const pagado  = parseFloat($btn.data("pagado") || 0);
+        const saldo   = parseFloat($btn.data("saldo")  || 0);
+
+        $("#pagoFolio").text($btn.data("folio"));
+        $("#pagoClienteEquipo").text(
+            $btn.data("cliente") + " — " + $btn.data("equipo")
+        );
+        $("#pagoTotal").text(fmt(total));
+        $("#pagoPagado").text(fmt(pagado));
+        $("#pagoSaldo").text(fmt(saldo));
+
+        // Sugiere el saldo como importe por defecto
+        $("#pagoImporte").val(saldo.toFixed(2));
+        $("#pagoMetodo").val("EFECTIVO");
+        $("#pagoReferencia").val("");
+        $("#pagoObservaciones").val("");
+        $("#pagoError").addClass("d-none").text("");
+        $("#pagoExito").addClass("d-none").text("");
+        $("#btnVerRecibo").addClass("d-none").attr("href", "#");
+        $("#btnGuardarPago").prop("disabled", false)
+            .html('<i class="fas fa-save mr-1"></i> Guardar Pago');
+
+        $("#modalPago").modal("show");
+    });
+
+    /* ══════════════════════════════
+       PAGO RÁPIDO — guardar
+    ══════════════════════════════ */
+    $("#btnGuardarPago").on("click", function () {
+        const $btn = $(this);
+        const importe = parseFloat($("#pagoImporte").val());
+
+        if (!importe || importe <= 0) {
+            $("#pagoError").removeClass("d-none").text("El importe debe ser mayor a cero.");
+            return;
+        }
+
+        $btn.prop("disabled", true)
+            .html('<i class="fas fa-spinner fa-spin mr-1"></i> Guardando...');
+        $("#pagoError").addClass("d-none");
+        $("#pagoExito").addClass("d-none");
+
+        $.ajax({
+            url: "/renta/rentas/" + rentaActivaId + "/pago/",
+            method: "POST",
+            headers: { "X-CSRFToken": getCsrf() },
+            data: {
+                metodo_pago:   $("#pagoMetodo").val(),
+                importe:       importe,
+                referencia:    $("#pagoReferencia").val(),
+                observaciones: $("#pagoObservaciones").val(),
+            },
+            success: function (data) {
+                if (!data.ok) {
+                    $("#pagoError").removeClass("d-none")
+                        .text(data.error || "No se pudo registrar el pago.");
+                    $btn.prop("disabled", false)
+                        .html('<i class="fas fa-save mr-1"></i> Guardar Pago');
+                    return;
+                }
+
+                // Actualiza saldo visible en el modal
+                const nuevoSaldo = parseFloat(data.saldo_nuevo || 0);
+                $("#pagoSaldo").text(fmt(nuevoSaldo));
+                $("#pagoPagado").text(fmt(
+                    parseFloat($("#pagoTotal").text().replace(/[^0-9.]/g, "")) - nuevoSaldo
+                ));
+
+                // Muestra botón de recibo
+                $("#btnVerRecibo")
+                    .attr("href", "/renta/pagos/" + data.pago_id + "/recibo/")
+                    .removeClass("d-none");
+
+                // Mensaje de éxito
+                const msg = data.estatus === "FINALIZADA"
+                    ? "¡Pago completo! La renta ha sido FINALIZADA automáticamente."
+                    : "Pago registrado correctamente. Saldo restante: " + fmt(nuevoSaldo);
+
+                $("#pagoExito").removeClass("d-none").text(msg);
+                $btn.prop("disabled", false)
+                    .html('<i class="fas fa-save mr-1"></i> Guardar Pago');
+
+                // Si quedó finalizada, recarga la tabla tras 2 seg
+                if (data.estatus === "FINALIZADA") {
+                    setTimeout(function () {
+                        location.reload();
+                    }, 2000);
+                }
+            },
+            error: function () {
+                $("#pagoError").removeClass("d-none")
+                    .text("Error de conexión. Intenta de nuevo.");
+                $btn.prop("disabled", false)
+                    .html('<i class="fas fa-save mr-1"></i> Guardar Pago');
             }
         });
     });
-</script>
 
+    /* ══════════════════════════════
+       FINALIZAR RENTA — abrir modal
+    ══════════════════════════════ */
+    $(document).on("click", ".btnFinalizar", function () {
+        const id    = $(this).data("id");
+        const folio = $(this).data("folio");
+
+        $("#finalizarFolio").text(folio);
+        $("#formFinalizar").attr("action", "/renta/rentas/" + id + "/finalizar/");
+        $("#modalFinalizar").modal("show");
+    });
+
+});
+</script>
 {% endblock %}

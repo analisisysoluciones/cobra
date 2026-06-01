@@ -1,0 +1,91 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-lg-6">
+
+        <div class="card shadow mb-4">
+
+            <div class="card-header py-3">
+
+                <h6 class="m-0 font-weight-bold text-primary">
+
+                    Concepto de renta
+
+                </h6>
+
+            </div>
+
+            <div class="card-body">
+
+                <form method="POST">
+
+                    {% csrf_token %}
+
+                    <div class="form-group">
+
+                        <label>
+
+                            Nombre
+
+                        </label>
+
+                        {{ form.nombre }}
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+
+                            Precio default
+
+                        </label>
+
+                        {{ form.precio_default }}
+
+                    </div>
+
+
+                    <div class="form-group form-check">
+
+                        {{ form.activo }}
+
+                        <label class="form-check-label">
+
+                            Activo
+
+                        </label>
+
+                    </div>
+
+
+                    <button type="submit"
+                            class="btn btn-success">
+
+                        Guardar
+
+                    </button>
+
+
+                    <a href="{% url 'renta:concepto_list' %}"
+                       class="btn btn-secondary">
+
+                        Cancelar
+
+                    </a>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -48,3 +48,30 @@ class Folios(models.Model):
                 nuevo_folio = f"{folio_registro.anio}-{folio_registro.consecutivo:04d}"
                 logger.debug(f"Folio {nuevo_folio} ya existe, generando nuevo: {nuevo_folio}")
             return nuevo_folio
+    
+    def next_folio(self, modelo=None, campo_folio="folio"):
+        """Genérico para cualquier modelo. No toca next_consecutivo."""
+        
+        PREFIJOS = {
+            "COTIZACION": "C",
+            "RENTA": "R",
+            "TICKET": "T",
+            "COMPRAS": "CMP",
+            # agrega los que necesites
+        }
+        
+        with transaction.atomic():
+            registro = Folios.objects.select_for_update().get(pk=self.pk)
+            registro.consecutivo += 1
+            registro.save()
+
+            prefijo = PREFIJOS.get(registro.tipo_documento, registro.tipo_documento)
+            nuevo = f"{prefijo}-{registro.anio}-{registro.consecutivo:04d}"
+
+            if modelo:
+                while modelo.objects.filter(**{campo_folio: nuevo}).exists():
+                    registro.consecutivo += 1
+                    registro.save()
+                    nuevo = f"{prefijo}-{registro.anio}-{registro.consecutivo:04d}"
+
+            return nuevo

@@ -24,7 +24,10 @@ from adm.api import api_equipos_activos, captura_combustible
 from adm.views_actividades import *
 from .views_pda import *
 from .views_dashboard import *
-from .views_oficina import oficina_actividades, editar_actividad
+from .views_oficina import (oficina_actividades, editar_actividad, listado_actividades,captura_bloques_oficina, 
+                            guardar_bloques_oficina, historial_bloques_ajax, actividades_por_equipo_ajax
+                            )
+
 from django.urls import path
 
 app_name = 'adm'
@@ -162,33 +165,13 @@ urlpatterns = [
         
     
     
-    path(
-        "pda/mis-movimientos/",
-        mis_movimientos,
-        name="mis_movimientos"
-    ),
-    path(
-        "pda/escritorio/",
-        jornada_escritorio,
-        name="jornada_escritorio"
-    ),
+    path("pda/mis-movimientos/",mis_movimientos,name="mis_movimientos"),
+    path("pda/escritorio/",jornada_escritorio,name="jornada_escritorio"),
 
-    path(
-        "pda/escritorio/iniciar-actividad/",
-        iniciar_actividad_escritorio,
-        name="iniciar_actividad_escritorio"
-    ),
+    path("pda/escritorio/iniciar-actividad/",iniciar_actividad_escritorio, name="iniciar_actividad_escritorio"),
 
-    path(
-        "pda/escritorio/cerrar/",
-        terminar_jornada,
-        name="cerrar_jornada_escritorio"
-    ),
-    path(
-        "dashboard/maquinaria/",
-        dashboard_maquinaria,
-        name="dashboard_maquinaria"
-    ),
+    path("pda/escritorio/cerrar/",terminar_jornada,name="cerrar_jornada_escritorio"),
+    path("dashboard/maquinaria/",dashboard_maquinaria,name="dashboard_maquinaria"),
     path("pda/mobile/", pda_mobile_inicio, name="pda_mobile_inicio"),
     path("pda/mobile/operacion/", pda_mobile_operacion, name="pda_mobile_operacion"),
     
@@ -203,22 +186,13 @@ urlpatterns = [
     path("proyectos/<int:pk>/360/compras/", proyecto360_compras_ajax, name="proyecto_360_compras"),
     path("proyectos/<int:pk>/360/nomina/", proyecto360_nomina_ajax, name="proyecto_360_nomina"),
     #path("proyectos/<int:pk>/360/clientes/", proyecto360_clientes_ajax, name="proyecto_360_clientes"),
+    path("actividades/listado/",           listado_actividades,      name="listado_actividades"),
+    path("actividades/captura-oficina/",   captura_bloques_oficina,  name="captura_bloques_oficina"),
+    path("actividades/guardar-oficina/",   guardar_bloques_oficina,  name="guardar_bloques_oficina"),
+    path("actividades/historial-ajax/",    historial_bloques_ajax,   name="historial_bloques_ajax"),    
+    path("actividades/por-equipo/", actividades_por_equipo_ajax, name="actividades_por_equipo_ajax"),
 
 
     
     
 ]
-
-   
-
-
-    
-
-    
-
-
-
-
-
-
-    

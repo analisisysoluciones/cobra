@@ -298,7 +298,8 @@
 
 {% block js_page %}
 <script>
-let ultimoProyecto = "";
+// Proyecto sticky — persiste entre filas y recargas de página
+let ultimoProyecto = localStorage.getItem("ultimo_proyecto_" + "{{ jornada.id }}") || "";
 
 function plantillaFila() {
   return `<tr style="border-bottom:1px solid #f0f2fa;">
@@ -327,64 +328,132 @@ function plantillaFila() {
 }
 
 function agregarFila() {
-  document.getElementById("tbody").insertAdjacentHTML("beforeend", plantillaFila());
-  let filas = document.querySelectorAll("#tbody tr");
-  let ultima = filas[filas.length - 1];
-  if (ultimoProyecto) ultima.querySelector(".proyecto").value = ultimoProyecto;
+    document.getElementById("tbody").insertAdjacentHTML("beforeend", plantillaFila());
+    let filas = document.querySelectorAll("#tbody tr");
+    let ultima = filas[filas.length - 1];
+    // Aplica el último proyecto usado automáticamente
+    if (ultimoProyecto) {
+        ultima.querySelector(".proyecto").value = ultimoProyecto;
+    }
 }
 
-function eliminarFila(btn) { btn.closest("tr").remove(); recalcularTotal(); }
+function eliminarFila(btn) {
+    btn.closest("tr").remove();
+    recalcularTotal();
+}
 
 function calcularFila(ctrl) {
-  let tr = ctrl.closest("tr");
-  let ini = tr.querySelector(".inicio").value;
-  let fin = tr.querySelector(".fin").value;
-  if (!ini || !fin) return;
-  let [ah, am] = ini.split(":").map(Number);
-  let [bh, bm] = fin.split(":").map(Number);
-  let dif = Math.max(0, (bh * 60 + bm - ah * 60 - am) / 60);
-  tr.querySelector(".horas").innerText = dif.toFixed(2);
-  recalcularTotal();
+    let tr = ctrl.closest("tr");
+    let ini = tr.querySelector(".inicio").value;
+    let fin = tr.querySelector(".fin").value;
+    if (!ini || !fin) return;
+    let [ah, am] = ini.split(":").map(Number);
+    let [bh, bm] = fin.split(":").map(Number);
+    let dif = Math.max(0, (bh * 60 + bm - ah * 60 - am) / 60);
+    tr.querySelector(".horas").innerText = dif.toFixed(2);
+    recalcularTotal();
 }
 
 function recalcularTotal() {
-  let total = 0;
-  document.querySelectorAll(".horas").forEach(x => total += parseFloat(x.innerText || 0));
-  document.getElementById("totalHoras").innerText = total.toFixed(2);
+    let total = 0;
+    document.querySelectorAll(".horas").forEach(x => total += parseFloat(x.innerText || 0));
+    document.getElementById("totalHoras").innerText = total.toFixed(2);
 }
 
-function guardar() {
-  let filas = document.querySelectorAll("#tbody tr");
-  let bloques = [];
-  for (let f of filas) {
-    let actividad = f.querySelector(".actividad");
-    let tipo = actividad.options[actividad.selectedIndex].dataset.tipo || "";
-    let proyecto_id = f.querySelector(".proyecto").value;
-    if (tipo === "PRODUCTIVO" && !proyecto_id) {
-      alert("Proyecto obligatorio en actividad productiva."); return;
+// Proyecto sticky — cuando el operador cambia el proyecto en cualquier fila
+document.addEventListener("change", function(e) {
+    if (e.target.classList.contains("proyecto") && e.target.value) {
+        ultimoProyecto = e.target.value;
+        // Persiste por jornada — si abre otra jornada no hereda el proyecto anterior
+        localStorage.setItem("ultimo_proyecto_" + "{{ jornada.id }}", ultimoProyecto);
+        // Propaga a todas las filas que no tienen proyecto asignado aún
+        document.querySelectorAll("#tbody tr").forEach(function(fila) {
+            let sel = fila.querySelector(".proyecto");
+            if (sel && !sel.value) {
+                sel.value = ultimoProyecto;
+            }
+        });
     }
-    if (proyecto_id) ultimoProyecto = proyecto_id;
-    bloques.push({
-      actividad_id: actividad.value, proyecto_id,
-      inicio: f.querySelector(".inicio").value,
-      fin: f.querySelector(".fin").value,
-      obs: f.querySelector(".obs").value
-    });
-  }
-  fetch("{% url 'adm:guardar_bloques' %}", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
-    body: JSON.stringify({ bloques })
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (!data.ok) { alert(data.errores?.join("\n") || data.msg || "Error"); return; }
-    let msg = `Guardado correctamente\nInsertados: ${data.insertados}`;
-    if (data.omitidos_duplicados > 0) msg += `\nDuplicados omitidos: ${data.omitidos_duplicados}`;
-    if (data.alertas?.length) msg += `\n\nAlertas:\n${data.alertas.join("\n")}`;
-    alert(msg);
-    location.reload();
-  });
+});
+
+function guardar() {
+    let filas = document.querySelectorAll("#tbody tr");
+    let bloques = [];
+
+    for (let f of filas) {
+        let actividad = f.querySelector(".actividad");
+
+        // Omite filas completamente vacías
+        if (!actividad.value) continue;
+
+        let tipo = actividad.options[actividad.selectedIndex].dataset.tipo || "";
+        let proyecto_id = f.querySelector(".proyecto").value;
+        let inicio = f.querySelector(".inicio").value;
+        let fin = f.querySelector(".fin").value;
+
+        if (tipo === "PRODUCTIVO" && !proyecto_id) {
+            alert("Proyecto obligatorio en actividad productiva.");
+            return;
+        }
+
+        if (!inicio || !fin) {
+            alert("Hora de inicio y fin son obligatorias en cada bloque.");
+            return;
+        }
+
+        // Actualiza sticky con último proyecto seleccionado
+        if (proyecto_id) {
+            ultimoProyecto = proyecto_id;
+            localStorage.setItem("ultimo_proyecto_" + "{{ jornada.id }}", ultimoProyecto);
+        }
+
+        bloques.push({
+            actividad_id: actividad.value,
+            proyecto_id,
+            inicio,
+            fin,
+            obs: f.querySelector(".obs").value
+        });
+    }
+
+    if (!bloques.length) {
+        alert("Agrega al menos un bloque antes de guardar.");
+        return;
+    }
+
+    fetch("{% url 'adm:guardar_bloques' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({ bloques })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (!data.ok) {
+            alert(data.errores?.join("\n") || data.msg || "Error al guardar.");
+            return;
+        }
+        let msg = `✓ Guardado correctamente\nBloques insertados: ${data.insertados}`;
+        if (data.omitidos_duplicados > 0)
+            msg += `\nDuplicados omitidos: ${data.omitidos_duplicados}`;
+        if (data.alertas?.length)
+            msg += `\n\nAlertas:\n${data.alertas.join("\n")}`;
+        alert(msg);
+        location.reload();
+    })
+    .catch(() => alert("Error de conexión. Intenta de nuevo."));
 }
+
+// Al cargar la página, aplica el proyecto sticky a la primera fila si existe
+document.addEventListener("DOMContentLoaded", function() {
+    if (ultimoProyecto) {
+        let primera = document.querySelector("#tbody tr .proyecto");
+        if (primera && !primera.value) {
+            primera.value = ultimoProyecto;
+        }
+    }
+});
 </script>
 {% endblock %}

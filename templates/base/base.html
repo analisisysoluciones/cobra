@@ -173,10 +173,11 @@
              style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
             <i class="fas fa-play-circle" style="font-size:.68rem;width:14px;text-align:center;"></i> Iniciar jornada
           </a>
-          <a href="{% url 'adm:captura_bloques' %}" class="d-flex align-items-center py-1"
-             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
-            <i class="fas fa-table" style="font-size:.68rem;width:14px;text-align:center;"></i> Captura por bloques
+          <a href="{% url 'adm:listado_actividades' %}" class="d-flex align-items-center py-1"
+            style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-clipboard-list" style="font-size:.68rem;width:14px;text-align:center;"></i> Lista de actividades
           </a>
+          
           <a href="{% url 'adm:jornada_escritorio' %}" class="d-flex align-items-center py-1"
              style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
             <i class="fas fa-desktop" style="font-size:.68rem;width:14px;text-align:center;"></i> Jornada escritorio
@@ -188,6 +189,46 @@
         </div>
       </div>
     </li>
+    <!-- Rentas -->
+    <li class="nav-item mx-2">
+      <a class="nav-link collapsed d-flex align-items-center py-2 px-2 rounded font-weight-bold"
+         href="#" data-toggle="collapse" data-target="#menuRentas"
+         style="color:rgba(255,255,255,.75);font-size:.82rem;gap:.65rem;">
+        <span class="d-flex align-items-center justify-content-center rounded"
+              style="width:20px;height:20px;background:rgba(23,162,184,.2);color:#17a2b8;font-size:.72rem;">
+          <i class="fas fa-truck"></i>
+        </span>
+        <span class="flex-grow-1">Rentas</span>
+        <i class="fas fa-chevron-down" style="font-size:.6rem;color:rgba(255,255,255,.3);"></i>
+      </a>
+      <div id="menuRentas" class="collapse" data-parent="#accordionSidebar">
+        <div class="py-1">
+          <a href="{% url 'renta:cliente_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-user" style="font-size:.68rem;width:14px;text-align:center;"></i> Clientes
+          </a>
+          <a href="{% url 'renta:concepto_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-tag" style="font-size:.68rem;width:14px;text-align:center;"></i> Conceptos
+          </a>
+          <a href="{% url 'renta:renta_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-file-contract" style="font-size:.68rem;width:14px;text-align:center;"></i> Rentas
+          </a>
+          <a href="{% url 'renta:tarifa_list' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-tag" style="font-size:.68rem;width:14px;text-align:center;"></i> Tarifas
+          </a>
+          <a href="{% url 'renta:reportes_renta_activas' %}" class="d-flex align-items-center py-1"
+             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
+            <i class="fas fa-chart-pie" style="font-size:.68rem;width:14px;text-align:center;"></i> Reporte
+          </a>
+        </div>
+      </div>
+    </li>
+
+    <hr style="border-color:rgba(255,255,255,.07);margin:.4rem .75rem;">
+
 
     <hr style="border-color:rgba(255,255,255,.07);margin:.4rem .75rem;">
 
@@ -330,42 +371,7 @@
       </div>
     </li>
 
-    <!-- Rentas -->
-    <li class="nav-item mx-2">
-      <a class="nav-link collapsed d-flex align-items-center py-2 px-2 rounded font-weight-bold"
-         href="#" data-toggle="collapse" data-target="#menuRentas"
-         style="color:rgba(255,255,255,.75);font-size:.82rem;gap:.65rem;">
-        <span class="d-flex align-items-center justify-content-center rounded"
-              style="width:20px;height:20px;background:rgba(23,162,184,.2);color:#17a2b8;font-size:.72rem;">
-          <i class="fas fa-truck"></i>
-        </span>
-        <span class="flex-grow-1">Rentas</span>
-        <i class="fas fa-chevron-down" style="font-size:.6rem;color:rgba(255,255,255,.3);"></i>
-      </a>
-      <div id="menuRentas" class="collapse" data-parent="#accordionSidebar">
-        <div class="py-1">
-          <a href="{% url 'renta:cliente_list' %}" class="d-flex align-items-center py-1"
-             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
-            <i class="fas fa-user" style="font-size:.68rem;width:14px;text-align:center;"></i> Clientes
-          </a>
-          <a href="{% url 'renta:renta_list' %}" class="d-flex align-items-center py-1"
-             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
-            <i class="fas fa-file-contract" style="font-size:.68rem;width:14px;text-align:center;"></i> Rentas
-          </a>
-          <a href="{% url 'renta:tarifa_list' %}" class="d-flex align-items-center py-1"
-             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
-            <i class="fas fa-tag" style="font-size:.68rem;width:14px;text-align:center;"></i> Tarifas
-          </a>
-          <a href="{% url 'renta:renta_reporte' %}" class="d-flex align-items-center py-1"
-             style="padding-left:2.85rem;color:rgba(255,255,255,.58);font-size:.78rem;font-weight:600;text-decoration:none;gap:.5rem;">
-            <i class="fas fa-chart-pie" style="font-size:.68rem;width:14px;text-align:center;"></i> Reporte
-          </a>
-        </div>
-      </div>
-    </li>
-
-    <hr style="border-color:rgba(255,255,255,.07);margin:.4rem .75rem;">
-
+    
     <!-- ════════════════════════════ ADMINISTRACIÓN ════════════════════════════ -->
     <div class="px-3 pt-2 pb-1"
          style="font-size:.6rem;font-weight:800;text-transform:uppercase;

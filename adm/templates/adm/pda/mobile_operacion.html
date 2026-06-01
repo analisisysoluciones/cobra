@@ -10,209 +10,291 @@
     <link href="{% static 'base/css/sb-admin-2.min.css' %}" rel="stylesheet">
 
     <style>
-        body{
-            background:#eef2f7;
+        body { background: #eef2f7; }
+
+        .mobile-wrap {
+            max-width: 620px;
+            margin: 0 auto;
+            padding: 12px;
         }
 
-        .mobile-wrap{
-            max-width:620px;
-            margin:0 auto;
-            padding:12px;
+        .panel {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 0.25rem 1rem rgba(0,0,0,.08);
+            padding: 16px;
+            margin-bottom: 14px;
         }
 
-        .panel{
-            background:#fff;
-            border-radius:18px;
-            box-shadow:0 0.25rem 1rem rgba(0,0,0,.08);
-            padding:16px;
-            margin-bottom:14px;
+        .equipo-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #24324a;
+            line-height: 1.25;
         }
 
-        .equipo-title{
-            font-size:1.15rem;
-            font-weight:800;
-            color:#24324a;
-            line-height:1.25;
+        .estado-chip {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: .85rem;
+            font-weight: 700;
+        }
+        .chip-ok { background: #d4edda; color: #155724; }
+
+        .actividad-actual {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #2f4f4f;
         }
 
-        .estado-chip{
-            display:inline-block;
-            padding:6px 12px;
-            border-radius:999px;
-            font-size:.85rem;
-            font-weight:700;
+        .timer {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #4e73df;
         }
 
-        .chip-ok{
-            background:#d4edda;
-            color:#155724;
+        .actividad-btn {
+            min-height: 76px;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 800;
+            width: 100%;
+            margin-bottom: 10px;
+            white-space: normal;
+            box-shadow: 0 0.15rem 0.5rem rgba(0,0,0,.08);
+            border: none;
+            cursor: pointer;
+        }
+        .actividad-tipo-productivo { background: #1cc88a; color: #fff; }
+        .actividad-tipo-soporte    { background: #36b9cc; color: #fff; }
+        .actividad-tipo-muerto     { background: #e74a3b; color: #fff; }
+
+        .btn-finalizar {
+            min-height: 64px;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 800;
         }
 
-        .actividad-actual{
-            font-size:1.2rem;
-            font-weight:800;
-            color:#2f4f4f;
+        .hist-item {
+            border-bottom: 1px solid #edf2f7;
+            padding: 10px 0;
+        }
+        .hist-item:last-child { border-bottom: none; }
+
+        .small-muted { color: #858796; font-size: .92rem; }
+
+        /* ── Proyecto sticky badge ── */
+        .proyecto-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: #eafaf4;
+            border: 2px solid #1cc88a;
+            border-radius: 14px;
+            margin-bottom: 10px;
+        }
+        .proyecto-badge .proy-nombre {
+            font-weight: 800;
+            color: #13855c;
+            font-size: 1rem;
+            flex: 1;
+        }
+        .proyecto-badge .proy-label {
+            font-size: .75rem;
+            color: #6c757d;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        .btn-cambiar-proy {
+            background: none;
+            border: 1.5px solid #adb5bd;
+            border-radius: 8px;
+            color: #6c757d;
+            font-size: .78rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-cambiar-proy:hover { border-color: #4e73df; color: #4e73df; }
+
+        /* ── Buscador de proyecto ── */
+        .proyecto-search-wrap { position: relative; }
+
+        .proy-search-input {
+            min-height: 54px;
+            font-size: 1rem;
+            border-radius: 12px;
+            border: 1.5px solid #d1d3e2;
+            padding: 0 16px 0 44px;
+            width: 100%;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color .15s;
+            background: #fff;
+        }
+        .proy-search-input:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 3px rgba(78,115,223,.15);
+        }
+        .proy-search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #adb5bd;
+            font-size: 1rem;
+            pointer-events: none;
         }
 
-        .timer{
-            font-size:1rem;
-            font-weight:700;
-            color:#4e73df;
+        .proy-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0; right: 0;
+            background: #fff;
+            border: 1.5px solid #d1d3e2;
+            border-radius: 12px;
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 999;
+            box-shadow: 0 4px 16px rgba(0,0,0,.1);
+        }
+        .proy-dropdown.open { display: block; }
+
+        .proy-item {
+            padding: 14px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f2fa;
+            font-size: .97rem;
+            color: #3a3b45;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background .1s;
+        }
+        .proy-item:last-child { border-bottom: none; }
+        .proy-item:hover { background: #eef0ff; color: #4e73df; font-weight: 600; }
+
+        .proy-empty {
+            padding: 16px;
+            text-align: center;
+            color: #adb5bd;
+            font-size: .9rem;
         }
 
-        .actividad-btn{
-            min-height:76px;
-            border-radius:16px;
-            font-size:1rem;
-            font-weight:800;
-            width:100%;
-            margin-bottom:10px;
-            white-space:normal;
-            box-shadow:0 0.15rem 0.5rem rgba(0,0,0,.08);
-            border:none;
-        }
-
-        .actividad-tipo-productivo{
-            background:#1cc88a;
-            color:#fff;
-        }
-
-        .actividad-tipo-soporte{
-            background:#36b9cc;
-            color:#fff;
-        }
-
-        .actividad-tipo-muerto{
-            background:#e74a3b;
-            color:#fff;
-        }
-
-        .btn-finalizar{
-            min-height:64px;
-            border-radius:16px;
-            font-size:1.1rem;
-            font-weight:800;
-        }
-
-        .hist-item{
-            border-bottom:1px solid #edf2f7;
-            padding:10px 0;
-        }
-
-        .hist-item:last-child{
-            border-bottom:none;
-        }
-
-        .small-muted{
-            color:#858796;
-            font-size:.92rem;
-        }
+        /* ocultar/mostrar secciones */
+        .d-none { display: none !important; }
     </style>
 </head>
 
 <body>
-
 <div class="mobile-wrap">
 
-    <!-- ENCABEZADO -->
+    <!-- ── ENCABEZADO ── -->
     <div class="panel">
         <div class="d-flex justify-content-between align-items-start">
             <div>
-                <div class="equipo-title">
-                    {{ jornada.equipo }}
-                </div>
-
+                <div class="equipo-title">{{ jornada.equipo }}</div>
                 <div class="small-muted mt-1">
-                    Jornada iniciada:
-                    {{ jornada.inicio|date:"d/m/Y H:i" }}
+                    Jornada iniciada: {{ jornada.inicio|date:"d/m/Y H:i" }}
                 </div>
             </div>
-
-            <span class="estado-chip chip-ok">
-                {{ jornada.estatus }}
-            </span>
+            <span class="estado-chip chip-ok">{{ jornada.estatus }}</span>
         </div>
     </div>
 
-    <div style="background:#fff3cd; padding:8px; border-radius:8px; margin-bottom:10px;">
-        Último proyecto: {{ ultimo_proyecto.nombre }}
-    </div>
-
-    <div class="mb-3">
-    <label class="font-weight-bold">Proyecto</label>
-
-    <input type="text"
-           id="buscadorProyecto"
-           class="form-control mb-2"
-           placeholder="Buscar proyecto...">
-
-    <select id="proyectoSelect" class="form-control">
-        <option value="">Seleccionar proyecto</option>
-
-        {% for p in proyectos %}
-            <option value="{{ p.id }}">
-                {{ p.nombre }}
-            </option>
-        {% endfor %}
-    </select>
-</div>
-    <!-- ACTIVIDAD ACTUAL -->
-    <div class="panel">
+    <!-- ── PROYECTO STICKY ── -->
+    <div class="panel" id="panelProyecto">
         <div class="font-weight-bold text-dark mb-2">
-            Actividad actual
+            <i class="fas fa-map-marker-alt text-primary mr-1"></i> Proyecto
         </div>
+
+        <!-- Badge proyecto activo — visible si ya hay uno -->
+        <div id="proyectoBadge" class="proyecto-badge {% if not proyecto_activo %}d-none{% endif %}">
+            <div>
+                <div class="proy-label">Proyecto activo</div>
+                <div class="proy-nombre" id="proyectoActivoNombre">
+                    {{ proyecto_activo.nombre|default:"" }}
+                </div>
+            </div>
+            <button type="button" class="btn-cambiar-proy" id="btnCambiarProyecto">
+                <i class="fas fa-exchange-alt mr-1"></i> Cambiar
+            </button>
+        </div>
+
+        <!-- Buscador — visible si no hay proyecto o al cambiar -->
+        <div id="proyectoBuscadorWrap" class="{% if proyecto_activo %}d-none{% endif %}">
+            <div class="proyecto-search-wrap">
+                <i class="fas fa-search proy-search-icon"></i>
+                <input type="text"
+                       id="proyectoBuscar"
+                       class="proy-search-input"
+                       placeholder="Buscar proyecto..."
+                       autocomplete="off"
+                       autocorrect="off"
+                       spellcheck="false">
+                <div class="proy-dropdown" id="proyectoDropdown"></div>
+            </div>
+            <div class="text-muted mt-2" style="font-size:.8rem;">
+                <i class="fas fa-info-circle mr-1"></i>
+                El proyecto seleccionado se mantendrá durante toda la jornada.
+            </div>
+        </div>
+
+        <!-- Input oculto con el ID del proyecto seleccionado -->
+        <input type="hidden" id="proyectoIdHidden"
+               value="{{ proyecto_activo.id|default:'' }}">
+    </div>
+
+    <!-- ── ACTIVIDAD ACTUAL ── -->
+    <div class="panel">
+        <div class="font-weight-bold text-dark mb-2">Actividad actual</div>
 
         {% if actividad_actual %}
             <div class="actividad-actual" id="actividadActualNombre">
                 {{ actividad_actual.actividad.nombre }}
             </div>
-
+            {% if actividad_actual.proyecto %}
+            <div class="small-muted mt-1">
+                <i class="fas fa-map-marker-alt mr-1 text-success"></i>
+                {{ actividad_actual.proyecto.nombre }}
+            </div>
+            {% endif %}
             <div class="timer mt-2">
-                Desde:
-                <span id="actividadActualInicio">
-                    {{ actividad_actual.inicio|time:"H:i" }}
-                </span>
+                Desde: <span id="actividadActualInicio">{{ actividad_actual.inicio|time:"H:i" }}</span>
             </div>
         {% else %}
             <div class="actividad-actual text-muted" id="actividadActualNombre">
                 Sin actividad activa
             </div>
-
-            <div class="timer mt-2">
-                Desde:
-                <span id="actividadActualInicio">-</span>
-            </div>
+            <div class="timer mt-2">Desde: <span id="actividadActualInicio">—</span></div>
         {% endif %}
     </div>
 
-    <!-- REGISTRAR ACTIVIDAD -->
+    <!-- ── REGISTRAR ACTIVIDAD ── -->
     <div class="panel">
-
-        <div class="font-weight-bold text-dark mb-3">
-            Registrar actividad
-        </div>
+        <div class="font-weight-bold text-dark mb-3">Registrar actividad</div>
 
         <div class="row">
-
             {% for act in actividades %}
             <div class="col-12">
-
-                <button
-                    type="button"
-                    class="actividad-btn
-                    {% if act.tipo == 'PRODUCTIVO' %}
-                        actividad-tipo-productivo
-                    {% elif act.tipo == 'SOPORTE' %}
-                        actividad-tipo-soporte
-                    {% else %}
-                        actividad-tipo-muerto
-                    {% endif %}"
-                    onclick="iniciarActividad('{{ act.id }}','{{ act.nombre|escapejs }}')">
-
+                <button type="button"
+                        class="actividad-btn
+                            {% if act.tipo == 'PRODUCTIVO' %}actividad-tipo-productivo
+                            {% elif act.tipo == 'SOPORTE' %}actividad-tipo-soporte
+                            {% else %}actividad-tipo-muerto{% endif %}"
+                        onclick="iniciarActividad('{{ act.id }}','{{ act.nombre|escapejs }}','{{ act.tipo }}')">
+                    <i class="fas
+                        {% if act.tipo == 'PRODUCTIVO' %}fa-hammer
+                        {% elif act.tipo == 'SOPORTE' %}fa-tools
+                        {% else %}fa-pause-circle{% endif %} mr-2"></i>
                     {{ act.nombre }}
-
                 </button>
-
             </div>
             {% empty %}
             <div class="col-12">
@@ -221,151 +303,199 @@
                 </div>
             </div>
             {% endfor %}
-
         </div>
 
-        <!-- CERRAR JORNADA PRO -->
         <form method="post" action="{% url 'adm:terminar_jornada' %}" class="mt-3">
             {% csrf_token %}
-
-            <button
-                type="submit"
-                class="btn btn-danger btn-block btn-finalizar"
-                onclick="return confirm('¿Deseas finalizar la jornada?');">
-
-                <i class="fas fa-stop-circle mr-2"></i>
-                Finalizar jornada
-
+            <button type="submit"
+                    class="btn btn-danger btn-block btn-finalizar"
+                    onclick="return confirm('¿Deseas finalizar la jornada?');">
+                <i class="fas fa-stop-circle mr-2"></i> Finalizar jornada
             </button>
         </form>
-
     </div>
 
-    <!-- HISTORIAL -->
+    <!-- ── HISTORIAL ── -->
     <div class="panel">
-
-        <div class="font-weight-bold text-dark mb-3">
-            Últimos movimientos
-        </div>
+        <div class="font-weight-bold text-dark mb-3">Últimos movimientos</div>
 
         {% for d in detalles_hoy %}
-
         <div class="hist-item">
-
-            <div class="font-weight-bold">
-                {{ d.actividad.nombre }}
-            </div>
-
+            <div class="font-weight-bold">{{ d.actividad.nombre }}</div>
+            {% if d.proyecto %}
             <div class="small-muted">
-                Inicio:
-                {{ d.inicio|time:"H:i" }}
-                |
-
-                Fin:
-
-                {% if d.fin %}
-                    {{ d.fin|time:"H:i" }}
-                {% else %}
-                    En curso
-                {% endif %}
+                <i class="fas fa-map-marker-alt mr-1 text-success" style="font-size:.75rem;"></i>
+                {{ d.proyecto.nombre }}
             </div>
-
+            {% endif %}
             <div class="small-muted">
-                Horas: {{ d.horas }}
+                Inicio: {{ d.inicio|time:"H:i" }} |
+                Fin: {% if d.fin %}{{ d.fin|time:"H:i" }}{% else %}<span class="text-success font-weight-bold">En curso</span>{% endif %}
             </div>
-
+            <div class="small-muted">Horas: {{ d.horas }}</div>
         </div>
-
         {% empty %}
-
-        <div class="text-muted">
-            Sin movimientos todavía.
-        </div>
-
+        <div class="text-muted">Sin movimientos todavía.</div>
         {% endfor %}
-
     </div>
 
-</div>
+</div><!-- /.mobile-wrap -->
 
 <script>
-function getCookie(name){
-    let cookieValue = null;
+/* ══════════════════════════════════════════════════════
+   CATÁLOGO DE PROYECTOS desde Django
+══════════════════════════════════════════════════════ */
+const PROYECTOS = [
+    {% for p in proyectos %}
+    {
+        id:     "{{ p.id }}",
+        nombre: "{{ p.nombre|escapejs }}",
+        texto:  "{{ p.nombre|lower|escapejs }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
 
-    if (document.cookie && document.cookie !== ''){
-        const cookies = document.cookie.split(';');
+/* ══════════════════════════════════════════════════════
+   REFERENCIAS DOM
+══════════════════════════════════════════════════════ */
+const proyectoIdHidden      = document.getElementById("proyectoIdHidden");
+const proyectoBadge         = document.getElementById("proyectoBadge");
+const proyectoActivoNombre  = document.getElementById("proyectoActivoNombre");
+const proyectoBuscadorWrap  = document.getElementById("proyectoBuscadorWrap");
+const proyectoBuscar        = document.getElementById("proyectoBuscar");
+const proyectoDropdown      = document.getElementById("proyectoDropdown");
+const btnCambiarProyecto    = document.getElementById("btnCambiarProyecto");
 
-        for (let i = 0; i < cookies.length; i++){
-            const cookie = cookies[i].trim();
+/* ══════════════════════════════════════════════════════
+   BUSCADOR DE PROYECTO
+══════════════════════════════════════════════════════ */
+function renderProyectos(filtro) {
+    const q = filtro.toLowerCase().trim();
+    const resultados = q
+        ? PROYECTOS.filter(p => p.texto.includes(q))
+        : PROYECTOS;
 
-            if (cookie.substring(0, name.length + 1) === (name + '=')){
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
+    if (!resultados.length) {
+        proyectoDropdown.innerHTML = `<div class="proy-empty">
+            <i class="fas fa-search-minus d-block mb-1" style="font-size:1.2rem;"></i>
+            Sin resultados para "${filtro}"
+        </div>`;
+    } else {
+        proyectoDropdown.innerHTML = resultados.map(p => `
+            <div class="proy-item" data-id="${p.id}" data-nombre="${p.nombre}">
+                <i class="fas fa-map-marker-alt" style="color:#1cc88a;font-size:.85rem;flex-shrink:0;"></i>
+                ${p.nombre}
+            </div>
+        `).join("");
     }
-
-    return cookieValue;
+    proyectoDropdown.classList.add("open");
 }
 
-function iniciarActividad(actividadId, actividadNombre){
+function seleccionarProyecto(id, nombre) {
+    proyectoIdHidden.value         = id;
+    proyectoActivoNombre.textContent = nombre;
+    proyectoBadge.classList.remove("d-none");
+    proyectoBuscadorWrap.classList.add("d-none");
+    proyectoDropdown.classList.remove("open");
+    proyectoBuscar.value = "";
+}
 
-    const proyecto = document.getElementById("proyectoSelect").value;
+// Escribir en buscador
+proyectoBuscar.addEventListener("input", function() {
+    renderProyectos(this.value);
+});
 
-    if(!proyecto){
-        alert("Debes seleccionar un proyecto");
+// Foco abre dropdown
+proyectoBuscar.addEventListener("focus", function() {
+    renderProyectos(this.value);
+});
+
+// Seleccionar proyecto del dropdown
+proyectoDropdown.addEventListener("click", function(e) {
+    const item = e.target.closest(".proy-item");
+    if (!item) return;
+    seleccionarProyecto(item.dataset.id, item.dataset.nombre);
+});
+
+// Botón cambiar proyecto
+btnCambiarProyecto.addEventListener("click", function() {
+    proyectoBadge.classList.add("d-none");
+    proyectoBuscadorWrap.classList.remove("d-none");
+    proyectoBuscar.focus();
+    renderProyectos("");
+});
+
+// Cerrar dropdown al tocar fuera
+document.addEventListener("click", function(e) {
+    if (!proyectoBuscadorWrap.contains(e.target)) {
+        proyectoDropdown.classList.remove("open");
+    }
+});
+
+/* ══════════════════════════════════════════════════════
+   CSRF
+══════════════════════════════════════════════════════ */
+function getCookie(name) {
+    let v = null;
+    if (document.cookie && document.cookie !== "") {
+        document.cookie.split(";").forEach(c => {
+            const t = c.trim();
+            if (t.startsWith(name + "="))
+                v = decodeURIComponent(t.substring(name.length + 1));
+        });
+    }
+    return v;
+}
+
+/* ══════════════════════════════════════════════════════
+   INICIAR ACTIVIDAD
+══════════════════════════════════════════════════════ */
+function iniciarActividad(actividadId, actividadNombre, tipo) {
+    const proyectoId = proyectoIdHidden.value;
+
+    // Solo exige proyecto si la actividad es productiva
+    if (tipo === "PRODUCTIVO" && !proyectoId) {
+        alert("Debes seleccionar un proyecto antes de registrar una actividad productiva.");
+        proyectoBuscar.focus();
         return;
     }
 
     fetch("{% url 'adm:iniciar_actividad' %}", {
         method: "POST",
-        headers:{
-            "Content-Type":"application/json",
+        headers: {
+            "Content-Type": "application/json",
             "X-CSRFToken": getCookie("csrftoken")
         },
         body: JSON.stringify({
             actividad_id: actividadId,
-            proyecto_id: proyecto
+            proyecto_id:  proyectoId || null
         })
     })
-
-    .then(response => response.json())
-
+    .then(r => r.json())
     .then(data => {
-
-        if(!data.ok){
+        if (!data.ok) {
             alert(data.msg || "No se pudo iniciar la actividad");
             return;
         }
 
-        location.reload();
-
-    })
-
-    .catch(() => {
-        alert("Error de comunicación con servidor");
-    });
-}
-
-
-
-document.getElementById("buscadorProyecto").addEventListener("keyup", function(){
-
-    let filtro = this.value.toLowerCase();
-    let opciones = document.getElementById("proyectoSelect").options;
-
-    for (let i = 0; i < opciones.length; i++) {
-
-        let texto = opciones[i].text.toLowerCase();
-
-        if (texto.includes(filtro)) {
-            opciones[i].style.display = "";
-        } else {
-            opciones[i].style.display = "none";
+        // Actualiza badge de proyecto si el servidor devolvió uno
+        if (data.proyecto_id && data.proyecto_nombre) {
+            proyectoIdHidden.value = data.proyecto_id;
+            proyectoActivoNombre.textContent = data.proyecto_nombre;
+            proyectoBadge.classList.remove("d-none");
+            proyectoBuscadorWrap.classList.add("d-none");
         }
-    }
-});
 
+        // Actualiza panel actividad actual sin recargar
+        document.getElementById("actividadActualNombre").textContent = actividadNombre;
+        document.getElementById("actividadActualInicio").textContent =
+            new Date().toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
+
+        // Recarga para actualizar historial
+        setTimeout(() => location.reload(), 800);
+    })
+    .catch(() => alert("Error de comunicación con el servidor"));
+}
 </script>
 
 </body>

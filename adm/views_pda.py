@@ -378,58 +378,59 @@ def terminar_jornada(request):
 @login_required
 def pda_mobile_operacion(request):
 
-    jornada = obtener_jornada_abierta(
-        request.user
-    )
+    jornada = obtener_jornada_abierta(request.user)
 
     if not jornada:
         return redirect("adm:pda_inicio")
 
-    actividades = obtener_actividades_por_jornada(
-        jornada
-    )
+    actividades = obtener_actividades_por_jornada(jornada)
 
     actividad_actual = (
         jornada.detalles
         .filter(fin__isnull=True)
-        .select_related("actividad")
+        .select_related("actividad", "proyecto")
         .order_by("-id")
         .first()
     )
 
     detalles = (
         jornada.detalles
-        .select_related(
-            "actividad",
-            "proyecto"
-        )
+        .select_related("actividad", "proyecto")
         .order_by("-id")[:10]
     )
 
-    
+    # ── Proyecto sticky: último usado EN ESTA jornada, no en jornadas anteriores
+    ultimo_detalle_con_proyecto = (
+        jornada.detalles
+        .filter(proyecto__isnull=False)
+        .select_related("proyecto")
+        .order_by("-id")
+        .first()
+    )
 
-    ultimo = ReporteEquipoDetalle.objects.filter(
-        usuario=request.user
-    ).order_by("-creado").first()
+    proyecto_activo = (
+        ultimo_detalle_con_proyecto.proyecto
+        if ultimo_detalle_con_proyecto
+        else None
+    )
 
-    ultimo_proyecto = ultimo.proyecto if ultimo else None    
-
-    proyectos = Proyecto.objects.all()
+    proyectos = Proyecto.objects.filter(estado=True).order_by("nombre")
 
     return render(
         request,
         "adm/pda/mobile_operacion.html",
         {
-            "jornada": jornada,
-            "actividades": actividades,
+            "jornada":          jornada,
+            "actividades":      actividades,
             "actividad_actual": actividad_actual,
-            "detalles_hoy": detalles,
-            "proyectos":proyectos,
-            "ultimo_proyecto": ultimo_proyecto,   
+            "detalles_hoy":     detalles,
+            "proyectos":        proyectos,
+            "proyecto_activo":  proyecto_activo,   # ← antes: ultimo_proyecto
         }
     )
-
-
+    
+    
+    
 # ==========================================================
 # INICIAR ACTIVIDAD AJAX
 # ==========================================================
@@ -439,56 +440,47 @@ def pda_mobile_operacion(request):
 def iniciar_actividad(request):
 
     if request.method != "POST":
-        return JsonResponse({
-            "ok": False
-        })
+        return JsonResponse({"ok": False})
 
-    data = json.loads(
-        request.body or "{}"
-    )
+    data = json.loads(request.body or "{}")
 
-    actividad_id = data.get(
-        "actividad_id"
-    )
-    proyecto_id = data.get("proyecto_id")
-    print("PROYECTO_ID:", proyecto_id)
+    actividad_id = data.get("actividad_id")
+    proyecto_id  = data.get("proyecto_id")
 
-    jornada = obtener_jornada_abierta(
-        request.user
-    )
+    jornada = obtener_jornada_abierta(request.user)
 
     if not jornada:
-        return JsonResponse({
-            "ok": False,
-            "msg": "Sin jornada"
-        })
+        return JsonResponse({"ok": False, "msg": "Sin jornada"})
 
     valida = (
-        obtener_actividades_por_jornada(
-            jornada
-        )
+        obtener_actividades_por_jornada(jornada)
         .filter(id=actividad_id)
         .exists()
     )
 
+    if not valida:
+        return JsonResponse({"ok": False, "msg": "Actividad inválida"})
+
+    # ── Si no viene proyecto_id, hereda el último de esta jornada
+    if not proyecto_id:
+        ultimo = (
+            jornada.detalles
+            .filter(proyecto__isnull=False)
+            .order_by("-id")
+            .values_list("proyecto_id", flat=True)
+            .first()
+        )
+        proyecto_id = ultimo
+
+    # ── Si sigue sin proyecto, rechaza
     if not proyecto_id:
         return JsonResponse({
             "ok": False,
-            "msg": "Proyecto requerido"
-        })
-
-    if not valida:
-        return JsonResponse({
-            "ok": False,
-            "msg": "Actividad inválida"
+            "msg": "Selecciona un proyecto para iniciar"
         })
 
     momento = ahora()
-
-    cerrar_actividad_abierta(
-        jornada,
-        momento
-    )
+    cerrar_actividad_abierta(jornada, momento)
 
     ReporteEquipoDetalle.objects.create(
         reporte=jornada,
@@ -498,10 +490,21 @@ def iniciar_actividad(request):
         inicio=momento
     )
 
-    return JsonResponse({
-        "ok": True
-    })
+    # Devuelve el proyecto usado para que el template lo refleje
+    from .models import Proyecto as ProyectoModel
+    nombre_proyecto = (
+        ProyectoModel.objects
+        .filter(id=proyecto_id)
+        .values_list("nombre", flat=True)
+        .first()
+        or ""
+    )
 
+    return JsonResponse({
+        "ok": True,
+        "proyecto_id":     proyecto_id,
+        "proyecto_nombre": nombre_proyecto,
+    })
 
 # ==========================================================
 # CAPTURA BLOQUES
@@ -639,7 +642,9 @@ def guardar_bloques(request):
 
     return JsonResponse({
         "ok": True,
-        "creados": creados
+        "insertados": creados,      # ← era "creados"
+        "omitidos_duplicados": 0,
+        "alertas": [],
     })
 
 

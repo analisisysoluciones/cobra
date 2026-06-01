@@ -2,10 +2,12 @@ from django.urls import path
 from .views import(
     RentaEquipoCreateView, RentaEquipoListView, reporte_rentas, ClienteCreateView, ClienteListView, ClienteUpdateView,
     TarifaEquipoCreateView, TarifaEquipoListView, TarifaEquipoUpdateView, cliente_ajax_crear, RentaEquipoDetailView,
-    RentaEquipoUpdateView, finalizar_renta, cancelar_renta, renta_pdf, PagoRentaCreateView
-    
+    RentaEquipoUpdateView, finalizar_renta, cancelar_renta, renta_pdf, PagoRentaCreateView, RentaConcepto, ConceptoRentaCatalogoCreateView,
+    ConceptoRentaCatalogoListView,ConceptoRentaCatalogoUpdateView, concepto_precio_ajax, ConvertirRentaView, PagoRapidoView,
+    FinalizarRentaView, ReciboPagoView
 ) 
 
+from renta.views_reportes import *
 
 app_name = 'renta'
 
@@ -30,5 +32,17 @@ urlpatterns = [
     path("tarifas/nuevo/", TarifaEquipoCreateView.as_view(), name="tarifa_new"),
     path("tarifas/<int:pk>/editar/", TarifaEquipoUpdateView.as_view(), name="tarifa_edit"),
     
+    path("reportes/",ReporteRentasActivasView.as_view(),name="reportes_renta_activas"),
+    
+    path("catalogos/conceptos/",ConceptoRentaCatalogoListView.as_view(),name="concepto_list"),
+
+    path("catalogos/conceptos/nuevo/",ConceptoRentaCatalogoCreateView.as_view(),name="concepto_create"),
+    path("catalogos/conceptos/<int:pk>/editar/",ConceptoRentaCatalogoUpdateView.as_view(),name="concepto_update"),    
+    path("conceptos/<int:pk>/precio/",concepto_precio_ajax,name="concepto_precio_ajax"),
+    path("rentas/<int:pk>/convertir/",ConvertirRentaView.as_view(),name="convertir_renta"),
+    
+    path("rentas/<int:pk>/pago/",      PagoRapidoView.as_view(),   name="pago_rapido"),
+    path("rentas/<int:pk>/finalizar/", FinalizarRentaView.as_view(), name="finalizar_renta"),
+    path("pagos/<int:pago_pk>/recibo/", ReciboPagoView.as_view(),   name="recibo_pago"),
     
 ]
