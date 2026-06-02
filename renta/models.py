@@ -130,6 +130,8 @@ class RentaEquipo(models.Model):
     estatus_financiero = models.CharField(max_length=15,choices=ESTATUS_FINANCIERO,default="PENDIENTE")
 
     creado = models.DateTimeField(auto_now_add=True)
+    # En RentaEquipo, agrega este campo:
+    motivo_cancelacion = models.TextField(blank=True,null=True,verbose_name="Motivo de cancelación")
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -517,3 +519,5 @@ class PagoRenta(models.Model):
             f"{self.renta.folio} - "
             f"${self.importe}"
         )        
+        
+        

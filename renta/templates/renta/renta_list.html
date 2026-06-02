@@ -272,6 +272,29 @@
                         </button>
                         {% endif %}
 
+
+                        {% if r.estatus == "COTIZACION" %}
+                        <!-- Ver PDF en nueva pestaña -->
+                        <a href="{% url 'renta:cotizacion_pdf' r.id %}"
+                        target="_blank"
+                        class="btn btn-sm btn-outline-secondary shadow-sm"
+                        title="Ver cotización PDF">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
+                        
+                        {% endif %}
+
+
+                        {% if r.estatus == "COTIZACION" or r.estatus == "ACTIVA" %}
+                        <button type="button"
+                                class="btn btn-sm btn-danger shadow-sm"
+                                title="Cancelar"
+                                data-toggle="modal"
+                                data-target="#modalCancelar-{{ r.id }}">
+                            <i class="fas fa-ban"></i>
+                        </button>
+                        {% endif %}
+
                     </td>
                 </tr>
                 {% empty %}
@@ -290,9 +313,9 @@
 </div>
 
 
-{# ══════════════════════════════════════════════════════════════════
+<!-- {# ══════════════════════════════════════════════════════════════════
    MODALES DE CONVERSIÓN — uno por cada cotización, fuera de la tabla
-══════════════════════════════════════════════════════════════════ #}
+══════════════════════════════════════════════════════════════════ #} -->
 {% for r in rentas %}
 {% if r.estatus == "COTIZACION" %}
 <div class="modal fade" id="modalConvertir-{{ r.id }}" tabindex="-1" role="dialog">
@@ -344,10 +367,10 @@
 {% endfor %}
 
 
-{# ══════════════════════════════════════════════════════════════════
+<!-- {# ══════════════════════════════════════════════════════════════════
    MODAL ÚNICO: REGISTRAR PAGO RÁPIDO
    Se rellena vía JS al hacer clic en el botón de cada fila
-══════════════════════════════════════════════════════════════════ #}
+══════════════════════════════════════════════════════════════════ #} -->
 <div class="modal fade" id="modalPago" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content border-0 shadow">
@@ -438,9 +461,9 @@
 </div>
 
 
-{# ══════════════════════════════════════════════════════════════════
+<!-- ══════════════════════════════════════════════════════════════════
    MODAL ÚNICO: FINALIZAR RENTA MANUALMENTE
-══════════════════════════════════════════════════════════════════ #}
+══════════════════════════════════════════════════════════════════ #} -->
 <div class="modal fade" id="modalFinalizar" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-sm" role="document">
     <div class="modal-content border-0 shadow">
@@ -470,6 +493,81 @@
   </div>
 </div>
 
+
+
+
+{% for r in rentas %}
+{% if r.estatus == "COTIZACION" or r.estatus == "ACTIVA" %}
+<div class="modal fade" id="modalCancelar-{{ r.id }}" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content border-0 shadow">
+
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title font-weight-bold">
+          <i class="fas fa-ban mr-2"></i> Cancelar Renta
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="mb-2">¿Confirmas cancelar este documento?</p>
+        <table class="table table-sm table-borderless mb-3">
+          <tr>
+            <td class="text-muted small font-weight-bold pl-0" style="width:100px;">Folio:</td>
+            <td class="font-weight-bold text-primary">{{ r.folio }}</td>
+          </tr>
+          <tr>
+            <td class="text-muted small font-weight-bold pl-0">Cliente:</td>
+            <td>{{ r.cliente }}</td>
+          </tr>
+          <tr>
+            <td class="text-muted small font-weight-bold pl-0">Estatus:</td>
+            <td>{{ r.get_estatus_display }}</td>
+          </tr>
+        </table>
+
+        <form method="post"
+              action="{% url 'renta:cancelar_renta' r.id %}"
+              id="formCancelar-{{ r.id }}">
+          {% csrf_token %}
+          <div class="form-group mb-0">
+            <label class="small font-weight-bold text-gray-700">
+              Motivo de cancelación <span class="text-danger">*</span>
+            </label>
+            <textarea name="motivo"
+                      class="form-control"
+                      rows="3"
+                      placeholder="Describe el motivo de cancelación..."
+                      required
+                      style="border-radius:8px;font-size:.9rem;"></textarea>
+            <small class="text-muted">Campo obligatorio</small>
+          </div>
+        </form>
+
+        <div class="alert alert-warning mt-3 mb-0 py-2 small">
+          <i class="fas fa-exclamation-triangle mr-1"></i>
+          Esta acción <strong>no se puede deshacer</strong>.
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light border" data-dismiss="modal">
+          <i class="fas fa-times mr-1"></i> Cerrar
+        </button>
+        <button type="submit"
+                form="formCancelar-{{ r.id }}"
+                class="btn btn-danger font-weight-bold">
+          <i class="fas fa-ban mr-1"></i> Confirmar cancelación
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endfor %}
 {% endblock %}
 
 
